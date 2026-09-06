@@ -1,0 +1,1784 @@
+{
+  "Admin": [
+    {
+      "_id": "doc_1788698606309_8522",
+      "createdAt": "2026-09-06T12:43:26.309Z",
+      "username": "admin",
+      "email": "admin@apex-inst.edu",
+      "passwordHash": "$2a$10$V4pgaL.FZHl4HM8tAQcVYOg93/KW/Tv7.GyrsVZRjmY4Px/2D3fpy",
+      "fullName": "Chief Institutional Administrator",
+      "lastLogin": "2026-09-06T12:46:04.104Z",
+      "updatedAt": "2026-09-06T12:46:04.104Z"
+    }
+  ],
+  "SiteSetting": [
+    {
+      "_id": "doc_1788698606312_2228",
+      "createdAt": "2026-09-06T12:43:26.312Z",
+      "key": "college_name",
+      "value": "Apex Institute of Technology",
+      "group": "general",
+      "label": "College / University Name",
+      "updatedAt": "2026-09-06T15:27:24.453Z"
+    },
+    {
+      "_id": "doc_1788698606313_9663",
+      "createdAt": "2026-09-06T12:43:26.313Z",
+      "key": "college_tagline",
+      "value": "Autonomous Institution of Excellence | Approved by AICTE, New Delhi",
+      "group": "general",
+      "label": "Institutional Tagline"
+    },
+    {
+      "_id": "doc_1788698606314_7875",
+      "createdAt": "2026-09-06T12:43:26.314Z",
+      "key": "college_short_name",
+      "value": "Apex Institute",
+      "group": "general",
+      "label": "Short Abbreviation"
+    },
+    {
+      "_id": "doc_1788698606314_6772",
+      "createdAt": "2026-09-06T12:43:26.314Z",
+      "key": "college_est",
+      "value": "1984",
+      "group": "general",
+      "label": "Established Year"
+    },
+    {
+      "_id": "doc_1788698606315_2384",
+      "createdAt": "2026-09-06T12:43:26.315Z",
+      "key": "affiliation",
+      "value": "Autonomous College affiliated to State Technological University",
+      "group": "general",
+      "label": "Affiliation"
+    },
+    {
+      "_id": "doc_1788698606315_8969",
+      "createdAt": "2026-09-06T12:43:26.316Z",
+      "key": "accreditation_summary",
+      "value": "NAAC A++ Grade (CGPA 3.65) | NBA Accredited Programs | NIRF Top 150 Band",
+      "group": "general",
+      "label": "Accreditation Summary"
+    },
+    {
+      "_id": "doc_1788698606316_7921",
+      "createdAt": "2026-09-06T12:43:26.316Z",
+      "key": "contact_phone_primary",
+      "value": "+91 253 251 2876",
+      "group": "contact",
+      "label": "Primary Contact Phone"
+    },
+    {
+      "_id": "doc_1788698606317_7265",
+      "createdAt": "2026-09-06T12:43:26.317Z",
+      "key": "contact_phone_admissions",
+      "value": "+91 253 251 2867",
+      "group": "contact",
+      "label": "Admissions Helpline"
+    },
+    {
+      "_id": "doc_1788698606318_5011",
+      "createdAt": "2026-09-06T12:43:26.318Z",
+      "key": "contact_email_primary",
+      "value": "principal@apex-inst.edu",
+      "group": "contact",
+      "label": "Primary Official Email"
+    },
+    {
+      "_id": "doc_1788698606319_408",
+      "createdAt": "2026-09-06T12:43:26.319Z",
+      "key": "contact_email_admissions",
+      "value": "admissions@apex-inst.edu",
+      "group": "contact",
+      "label": "Admissions Email"
+    },
+    {
+      "_id": "doc_1788698606320_2677",
+      "createdAt": "2026-09-06T12:43:26.320Z",
+      "key": "contact_email_placements",
+      "value": "tpo@apex-inst.edu",
+      "group": "contact",
+      "label": "Placement Cell Email"
+    },
+    {
+      "_id": "doc_1788698606320_8343",
+      "createdAt": "2026-09-06T12:43:26.320Z",
+      "key": "contact_address",
+      "value": "Hirabai Haridas Vidyanagari, Amrutdham, Panchavati, Nashik - 422003, Maharashtra, India",
+      "group": "contact",
+      "label": "Campus Address"
+    },
+    {
+      "_id": "doc_1788698606321_6818",
+      "createdAt": "2026-09-06T12:43:26.321Z",
+      "key": "google_maps_embed",
+      "value": "https://maps.google.com/maps?q=Nashik,Maharashtra&t=&z=13&ie=UTF8&iwloc=&output=embed",
+      "group": "contact",
+      "label": "Campus Map Embed"
+    },
+    {
+      "_id": "doc_1788698606321_4106",
+      "createdAt": "2026-09-06T12:43:26.321Z",
+      "key": "social_linkedin",
+      "value": "https://linkedin.com",
+      "group": "social",
+      "label": "LinkedIn URL"
+    },
+    {
+      "_id": "doc_1788698606322_4210",
+      "createdAt": "2026-09-06T12:43:26.322Z",
+      "key": "social_twitter",
+      "value": "https://x.com",
+      "group": "social",
+      "label": "X / Twitter URL"
+    },
+    {
+      "_id": "doc_1788698606323_284",
+      "createdAt": "2026-09-06T12:43:26.323Z",
+      "key": "social_youtube",
+      "value": "https://youtube.com",
+      "group": "social",
+      "label": "YouTube Channel"
+    },
+    {
+      "_id": "doc_1788698606323_7792",
+      "createdAt": "2026-09-06T12:43:26.323Z",
+      "key": "social_instagram",
+      "value": "https://instagram.com",
+      "group": "social",
+      "label": "Instagram Profile"
+    },
+    {
+      "_id": "doc_1788698606324_8948",
+      "createdAt": "2026-09-06T12:43:26.325Z",
+      "key": "seo_meta_title",
+      "value": "Apex Institute of Engineering & Technology | Autonomous College",
+      "group": "seo",
+      "label": "Default SEO Title"
+    },
+    {
+      "_id": "doc_1788698606325_9641",
+      "createdAt": "2026-09-06T12:43:26.325Z",
+      "key": "seo_meta_description",
+      "value": "Premier autonomous engineering institution offering world-class UG, PG, and PhD programs, industry-driven curriculum, NAAC A++ accreditation, and 95%+ placement record.",
+      "group": "seo",
+      "label": "Default SEO Meta Description"
+    },
+    {
+      "_id": "doc_1788698606326_7004",
+      "createdAt": "2026-09-06T12:43:26.326Z",
+      "key": "seo_meta_keywords",
+      "value": "Engineering college, Computer Science, AI, Mechanical, Autonomous, Admissions, Placements, Top engineering college",
+      "group": "seo",
+      "label": "Default SEO Keywords"
+    },
+    {
+      "_id": "doc_1788698606327_7658",
+      "createdAt": "2026-09-06T12:43:26.327Z",
+      "key": "hero_admission_alert",
+      "value": "Admissions Open 2026-27 for B.Tech, M.Tech, MBA & MCA Programs. Online Applications Closing Soon.",
+      "group": "general",
+      "label": "Top Notification Ticker"
+    },
+    {
+      "_id": "doc_1788698606327_1107",
+      "createdAt": "2026-09-06T12:43:26.327Z",
+      "key": "demo_notice_disclaimer",
+      "value": "Demo Institutional Portal. Data presented is for illustrative demonstration purposes inspired by academic benchmarks.",
+      "group": "general",
+      "label": "Footer Disclaimer"
+    },
+    {
+      "_id": "doc_1788708365706_6240",
+      "createdAt": "2026-09-06T15:26:05.706Z",
+      "key": "college_logo",
+      "value": "/uploads/college-crest-sample.png",
+      "group": "general",
+      "updatedAt": "2026-09-06T15:27:24.450Z"
+    }
+  ],
+  "Navigation": [
+    {
+      "_id": "doc_1788698606328_5546",
+      "createdAt": "2026-09-06T12:43:26.328Z",
+      "title": "Home",
+      "path": "#home",
+      "parentId": "0",
+      "sortOrder": 1
+    },
+    {
+      "_id": "doc_1788698606329_9700",
+      "createdAt": "2026-09-06T12:43:26.329Z",
+      "title": "About Us",
+      "path": "#about",
+      "parentId": "0",
+      "sortOrder": 2
+    },
+    {
+      "_id": "doc_1788698606329_5159",
+      "createdAt": "2026-09-06T12:43:26.329Z",
+      "title": "Leadership",
+      "path": "#leadership",
+      "parentId": "0",
+      "sortOrder": 3
+    },
+    {
+      "_id": "doc_1788698606330_6147",
+      "createdAt": "2026-09-06T12:43:26.330Z",
+      "title": "Academics",
+      "path": "#academics",
+      "parentId": "0",
+      "sortOrder": 4
+    },
+    {
+      "_id": "doc_1788698606331_1295",
+      "createdAt": "2026-09-06T12:43:26.331Z",
+      "title": "Departments",
+      "path": "#departments",
+      "parentId": "0",
+      "sortOrder": 5
+    },
+    {
+      "_id": "doc_1788698606331_8479",
+      "createdAt": "2026-09-06T12:43:26.331Z",
+      "title": "Admissions",
+      "path": "#admissions",
+      "parentId": "0",
+      "sortOrder": 6
+    },
+    {
+      "_id": "doc_1788698606332_9662",
+      "createdAt": "2026-09-06T12:43:26.332Z",
+      "title": "Placements",
+      "path": "#placements",
+      "parentId": "0",
+      "sortOrder": 7
+    },
+    {
+      "_id": "doc_1788698606333_6758",
+      "createdAt": "2026-09-06T12:43:26.333Z",
+      "title": "Campus & Facilities",
+      "path": "#campus",
+      "parentId": "0",
+      "sortOrder": 8
+    },
+    {
+      "_id": "doc_1788698606334_7911",
+      "createdAt": "2026-09-06T12:43:26.334Z",
+      "title": "Student Life",
+      "path": "#life",
+      "parentId": "0",
+      "sortOrder": 9
+    },
+    {
+      "_id": "doc_1788698606335_9644",
+      "createdAt": "2026-09-06T12:43:26.335Z",
+      "title": "Research",
+      "path": "#research",
+      "parentId": "0",
+      "sortOrder": 10
+    },
+    {
+      "_id": "doc_1788698606336_9314",
+      "createdAt": "2026-09-06T12:43:26.336Z",
+      "title": "News & Notices",
+      "path": "#news",
+      "parentId": "0",
+      "sortOrder": 11
+    },
+    {
+      "_id": "doc_1788698606337_8342",
+      "createdAt": "2026-09-06T12:43:26.337Z",
+      "title": "Contact Us",
+      "path": "#contact",
+      "parentId": "0",
+      "sortOrder": 12
+    }
+  ],
+  "HomepageSection": [
+    {
+      "_id": "doc_1788698606338_8525",
+      "createdAt": "2026-09-06T12:43:26.338Z",
+      "sectionKey": "hero_carousel",
+      "title": "Campus Hero Showcase",
+      "subtitle": "Leading Engineering & Technology Institution",
+      "isVisible": true,
+      "sortOrder": 1
+    },
+    {
+      "_id": "doc_1788698606338_2245",
+      "createdAt": "2026-09-06T12:43:26.338Z",
+      "sectionKey": "accreditation_bar",
+      "title": "Accreditations & Recognitions",
+      "subtitle": "National Recognition of Educational Excellence",
+      "isVisible": true,
+      "sortOrder": 2
+    },
+    {
+      "_id": "doc_1788698606339_5894",
+      "createdAt": "2026-09-06T12:43:26.339Z",
+      "sectionKey": "notice_ticker",
+      "title": "Important Circulars & Announcements",
+      "subtitle": "Real-time updates from examination and academic council",
+      "isVisible": true,
+      "sortOrder": 3
+    },
+    {
+      "_id": "doc_1788698606340_5361",
+      "createdAt": "2026-09-06T12:43:26.340Z",
+      "sectionKey": "stats_counter",
+      "title": "Institutional Key Figures",
+      "subtitle": "Four decades of legacy in engineering education",
+      "isVisible": true,
+      "sortOrder": 4
+    },
+    {
+      "_id": "doc_1788698606341_6823",
+      "createdAt": "2026-09-06T12:43:26.341Z",
+      "sectionKey": "admissions_cta",
+      "title": "Admissions 2026-27 Open",
+      "subtitle": "Take the first step toward high-impact engineering leadership",
+      "isVisible": true,
+      "sortOrder": 5
+    },
+    {
+      "_id": "doc_1788698606341_8848",
+      "createdAt": "2026-09-06T12:43:26.341Z",
+      "sectionKey": "programs_showcase",
+      "title": "Academic Programs & Degrees",
+      "subtitle": "Undergraduate, Postgraduate & Doctoral specializations",
+      "isVisible": true,
+      "sortOrder": 6
+    },
+    {
+      "_id": "doc_1788698606342_7212",
+      "createdAt": "2026-09-06T12:43:26.342Z",
+      "sectionKey": "departments_overview",
+      "title": "Academic Departments",
+      "subtitle": "State-of-the-art departments with dedicated centers of excellence",
+      "isVisible": true,
+      "sortOrder": 7
+    },
+    {
+      "_id": "doc_1788698606343_455",
+      "createdAt": "2026-09-06T12:43:26.343Z",
+      "sectionKey": "director_message",
+      "title": "Message from the Director",
+      "subtitle": "Shaping ethical innovators for global challenges",
+      "isVisible": true,
+      "sortOrder": 8
+    },
+    {
+      "_id": "doc_1788698606343_9018",
+      "createdAt": "2026-09-06T12:43:26.343Z",
+      "sectionKey": "placement_highlights",
+      "title": "Placement Records & Packages",
+      "subtitle": "Consistent 95%+ campus placements across Fortune 500 tech leaders",
+      "isVisible": true,
+      "sortOrder": 9
+    },
+    {
+      "_id": "doc_1788698606344_6383",
+      "createdAt": "2026-09-06T12:43:26.344Z",
+      "sectionKey": "recruiter_marquee",
+      "title": "Marquee Corporate Partners",
+      "subtitle": "Top global technology enterprises hiring our graduates",
+      "isVisible": true,
+      "sortOrder": 10
+    },
+    {
+      "_id": "doc_1788698606345_9301",
+      "createdAt": "2026-09-06T12:43:26.345Z",
+      "sectionKey": "campus_highlights",
+      "title": "World-Class Infrastructure",
+      "subtitle": "Designed for experiential learning, research, and recreation",
+      "isVisible": true,
+      "sortOrder": 11
+    },
+    {
+      "_id": "doc_1788698606346_7373",
+      "createdAt": "2026-09-06T12:43:26.346Z",
+      "sectionKey": "student_achievements",
+      "title": "Student Innovations & Fests",
+      "subtitle": "Triumph in national hackathons, Formula Student, and robotics",
+      "isVisible": true,
+      "sortOrder": 12
+    },
+    {
+      "_id": "doc_1788698606347_210",
+      "createdAt": "2026-09-06T12:43:26.347Z",
+      "sectionKey": "news_events",
+      "title": "Campus Events & Announcements",
+      "subtitle": "Conferences, technical symposiums, and cultural milestones",
+      "isVisible": true,
+      "sortOrder": 13
+    },
+    {
+      "_id": "doc_1788698606348_6259",
+      "createdAt": "2026-09-06T12:43:26.348Z",
+      "sectionKey": "testimonials",
+      "title": "Student & Alumni Stories",
+      "subtitle": "Hear from our alumni thriving at global tech hubs",
+      "isVisible": true,
+      "sortOrder": 14
+    },
+    {
+      "_id": "doc_1788698606348_5322",
+      "createdAt": "2026-09-06T12:43:26.348Z",
+      "sectionKey": "gallery_preview",
+      "title": "Life at Apex Campus",
+      "subtitle": "A vibrant, collaborative, and transformative student journey",
+      "isVisible": true,
+      "sortOrder": 15
+    },
+    {
+      "_id": "doc_1788698606349_836",
+      "createdAt": "2026-09-06T12:43:26.349Z",
+      "sectionKey": "contact_cta",
+      "title": "Connect with Campus Admissions",
+      "subtitle": "Visit us or reach out for counseling and guided campus tours",
+      "isVisible": true,
+      "sortOrder": 16
+    }
+  ],
+  "Banner": [
+    {
+      "_id": "doc_1788698606350_6096",
+      "createdAt": "2026-09-06T12:43:26.350Z",
+      "title": "Four Decades of Academic Rigor & Engineering Excellence",
+      "subtitle": "Autonomous Institute accredited with NAAC A++ Grade (CGPA 3.65). Fostering critical thinking, engineering research, and ethical leadership.",
+      "badge": "NAAC A++ ACCREDITED | AUTONOMOUS",
+      "ctaText": "Explore Academic Programs",
+      "ctaLink": "#academics",
+      "secondaryCtaText": "Apply for Admission",
+      "secondaryCtaLink": "#admissions",
+      "imageUrl": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80",
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606351_9499",
+      "createdAt": "2026-09-06T12:43:26.351Z",
+      "title": "Industry-Integrated Learning & 95%+ Campus Placements",
+      "subtitle": "Highest package ₹44.2 LPA, Average package ₹8.65 LPA. Over 350+ global recruitment partners including Google, Microsoft, NVIDIA, Siemens, and L&T.",
+      "badge": "PLACEMENTS 2025-26 RECORD",
+      "ctaText": "View Placement Report",
+      "ctaLink": "#placements",
+      "secondaryCtaText": "Our Recruiters",
+      "secondaryCtaLink": "#recruiters",
+      "imageUrl": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1920&q=80",
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606352_6081",
+      "createdAt": "2026-09-06T12:43:26.352Z",
+      "title": "Pioneering Research Centers & Innovation Ecosystem",
+      "subtitle": "Interdisciplinary research labs in Artificial Intelligence, Electric Vehicles, Internet of Things, and Smart Manufacturing with ₹12+ Crore in funded R&D grants.",
+      "badge": "RESEARCH & INNOVATION EXCELLENCE",
+      "ctaText": "Discover Research Centers",
+      "ctaLink": "#research",
+      "secondaryCtaText": "Virtual Campus Tour",
+      "secondaryCtaLink": "#campus",
+      "imageUrl": "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1920&q=80",
+      "sortOrder": 3,
+      "isActive": true
+    }
+  ],
+  "Notice": [
+    {
+      "_id": "doc_1788698606422_515",
+      "createdAt": "2026-09-06T12:43:26.422Z",
+      "title": "First Year B.Tech & Direct Second Year Admission Notification 2026-27",
+      "category": "Admissions",
+      "publishedDate": "2026-04-10",
+      "expiryDate": "2026-06-30",
+      "attachmentUrl": "#download-admission-brochure",
+      "isPinned": true,
+      "isNewNotice": true,
+      "status": "published",
+      "content": "Detailed schedule of Institute Level Quota counseling rounds, eligibility norms, and application link for academic year 2026-27."
+    },
+    {
+      "_id": "doc_1788698606423_4522",
+      "createdAt": "2026-09-06T12:43:26.423Z",
+      "title": "End-Semester Theory & Practical Examination Time Table (Summer 2026)",
+      "category": "Examinations",
+      "publishedDate": "2026-04-05",
+      "expiryDate": "2026-05-25",
+      "attachmentUrl": "#exam-timetable-summer-2026",
+      "isPinned": true,
+      "isNewNotice": true,
+      "status": "published",
+      "content": "Final schedule for Autonomous B.Tech (Sem IV, VI, VIII) and PG courses theory examinations commencing from May 12, 2026."
+    },
+    {
+      "_id": "doc_1788698606424_8787",
+      "createdAt": "2026-09-06T12:43:26.424Z",
+      "title": "Campus Recruitment Drive by Microsoft & Cisco for Class of 2026",
+      "category": "Placements",
+      "publishedDate": "2026-04-02",
+      "expiryDate": "2026-04-20",
+      "attachmentUrl": "#placement-registration-portal",
+      "isPinned": false,
+      "isNewNotice": true,
+      "status": "published",
+      "content": "Eligible 7th-semester students from Computer, AI&DS, and ENTC are instructed to register on the T&P portal before April 18, 2026."
+    },
+    {
+      "_id": "doc_1788698606426_2887",
+      "createdAt": "2026-09-06T12:43:26.426Z",
+      "title": "Invitation for Proposals under Institute Seed Research Grant Scheme 2026",
+      "category": "Research",
+      "publishedDate": "2026-03-28",
+      "expiryDate": "2026-04-30",
+      "attachmentUrl": "#seed-grant-guidelines",
+      "isPinned": false,
+      "isNewNotice": false,
+      "status": "published",
+      "content": "Faculty and student interdisciplinary research teams can apply for project funding up to ₹3,00,000 per approved prototype."
+    },
+    {
+      "_id": "doc_1788698606428_7846",
+      "createdAt": "2026-09-06T12:43:26.428Z",
+      "title": "Hostel Re-Registration and Room Allocation Notice for AY 2026-27",
+      "category": "Hostel",
+      "publishedDate": "2026-03-25",
+      "expiryDate": "2026-05-15",
+      "attachmentUrl": "#hostel-reallotment",
+      "isPinned": false,
+      "isNewNotice": false,
+      "status": "published",
+      "content": "Guidelines for hostel seat reservation and clearance of dues for existing senior hostelites."
+    },
+    {
+      "_id": "doc_1788698606429_6871",
+      "createdAt": "2026-09-06T12:43:26.429Z",
+      "title": "Annual Alumni Global Conclave 2026 - Registration Open",
+      "category": "Alumni",
+      "publishedDate": "2026-03-20",
+      "expiryDate": "2026-05-10",
+      "attachmentUrl": "#alumni-meet-2026",
+      "isPinned": false,
+      "isNewNotice": false,
+      "status": "published",
+      "content": "Welcoming alumni from all batches to reconnect and mentor graduating engineering students."
+    }
+  ],
+  "Event": [
+    {
+      "_id": "doc_1788698606431_3582",
+      "createdAt": "2026-09-06T12:43:26.431Z",
+      "title": "TECHNO-CREST 2026: National Level Technical Symposium & Hackathon",
+      "category": "Technical Fest",
+      "eventDate": "2026-05-08",
+      "eventTime": "09:00 AM - 06:00 PM",
+      "venue": "Main Campus & Supercomputing Center",
+      "speaker": "Chief Technology Officers from Marquee Tech Firms",
+      "description": "36-hour non-stop hackathon with ₹5,00,000 in cash prizes, paper presentations, robot race competitions, and startup pitch rounds.",
+      "imageUrl": "https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=800&q=80",
+      "registerLink": "#register-technocrest",
+      "status": "published",
+      "isFeatured": true
+    },
+    {
+      "_id": "doc_1788698606433_8571",
+      "createdAt": "2026-09-06T12:43:26.433Z",
+      "title": "International Conference on AI, Robotics and Sustainable Systems (ICARSS-2026)",
+      "category": "International Conference",
+      "eventDate": "2026-05-22",
+      "eventTime": "10:00 AM - 05:00 PM",
+      "venue": "Rabindranath Tagore Auditorium",
+      "speaker": "Prof. David Chen (MIT) & Dr. Radhika Singhania (IIT Delhi)",
+      "description": "Scopus-indexed peer-reviewed conference bringing together international scholars to deliberate on AI governance and green manufacturing.",
+      "imageUrl": "https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80",
+      "registerLink": "#register-conference",
+      "status": "published",
+      "isFeatured": true
+    },
+    {
+      "_id": "doc_1788698606434_7089",
+      "createdAt": "2026-09-06T12:43:26.434Z",
+      "title": "Industry-Academia Leadership Round Table on Semiconductor Design",
+      "category": "Industry Conclave",
+      "eventDate": "2026-06-04",
+      "eventTime": "11:00 AM - 03:00 PM",
+      "venue": "Executive Seminar Hall A",
+      "speaker": "Vice Presidents from Siemens EDA & Cadence Systems",
+      "description": "Deliberation on indigenous chip design, RISC-V architectures, and curriculum synchronization for the National Semiconductor Mission.",
+      "imageUrl": "https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80",
+      "registerLink": "#register-roundtable",
+      "status": "published",
+      "isFeatured": false
+    }
+  ],
+  "News": [
+    {
+      "_id": "doc_1788698606436_2291",
+      "createdAt": "2026-09-06T12:43:26.436Z",
+      "title": "Apex Institute Granted Autonomy Extension with Highest NAAC A++ Grade",
+      "category": "Institutional Achievement",
+      "publishedDate": "2026-04-01",
+      "summary": "Peer review committee praises the institute for world-class laboratory infrastructure, high placement ratio, and vibrant startup incubation ecosystem.",
+      "content": "The National Assessment and Accreditation Council (NAAC) has awarded Apex Institute the prestigious A++ grade with a CGPA score of 3.65. The autonomous status empowers the college to implement industry 4.0 courses and flexible credit choice systems.",
+      "imageUrl": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
+      "author": "Office of the Principal",
+      "isFeatured": true,
+      "status": "published"
+    },
+    {
+      "_id": "doc_1788698606438_4101",
+      "createdAt": "2026-09-06T12:43:26.438Z",
+      "title": "Student Team \"Apex Racing\" Wins National SAE BAJA Championship 2026",
+      "category": "Student Achievement",
+      "publishedDate": "2026-03-18",
+      "summary": "The all-terrain electric buggy designed and fabricated by mechanical and electrical engineering students bagged 1st prize overall out of 110 national teams.",
+      "content": "Demonstrating exceptional vehicle dynamics, endurance, and acceleration, Apex Racing secured first place in the all-India dynamic track trials held at the NATRAX testing facility.",
+      "imageUrl": "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=800&q=80",
+      "author": "SAE Student Chapter",
+      "isFeatured": true,
+      "status": "published"
+    },
+    {
+      "_id": "doc_1788698606440_5413",
+      "createdAt": "2026-09-06T12:43:26.440Z",
+      "title": "Research Grant of ₹2.4 Crores Sanctioned by DST for AI in Smart Agriculture",
+      "category": "Research Grant",
+      "publishedDate": "2026-03-05",
+      "summary": "Interdisciplinary research team led by Department of AI & Computer Engineering bags major grant for drone-based crop disease diagnosis.",
+      "content": "The Department of Science & Technology, Government of India has approved funding for a 3-year collaborative project deployable across rural farming belts.",
+      "imageUrl": "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=800&q=80",
+      "author": "Dean R&D",
+      "isFeatured": false,
+      "status": "published"
+    }
+  ],
+  "Department": [
+    {
+      "_id": "doc_1788698606353_2099",
+      "createdAt": "2026-09-06T12:43:26.353Z",
+      "code": "CS",
+      "name": "Department of Computer Engineering",
+      "degreeLevels": "B.Tech, M.Tech, Ph.D.",
+      "hodName": "Dr. Vivek V. Joshi",
+      "hodImage": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "hodMessage": "Our focus is on blending computational theory with high-impact software engineering in Cloud Systems, Cyber Security, and Distributed Computing.",
+      "email": "cs.hod@apex-inst.edu",
+      "phone": "+91 253 251 2801",
+      "overview": "Established in 1993, the Department of Computer Engineering is accredited by the NBA and boasts state-of-the-art specialized computing labs, NVIDIA GPUs, and an active ACM student chapter.",
+      "vision": "To produce ethically sound, globally competent computer engineering professionals capable of leading software innovation.",
+      "mission": "Delivering hands-on curriculum, fostering collaborative research, and instilling entrepreneurial aptitude.",
+      "stats": {
+        "intake": 180,
+        "faculty": 32,
+        "labs": 12,
+        "placementRate": "98%"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80",
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606354_7568",
+      "createdAt": "2026-09-06T12:43:26.354Z",
+      "code": "AIDS",
+      "name": "Artificial Intelligence & Data Science",
+      "degreeLevels": "B.Tech",
+      "hodName": "Dr. Sunita K. Pathak",
+      "hodImage": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
+      "hodMessage": "Empowering future engineers with machine intelligence, neural architectures, deep learning, and ethical data governance frameworks.",
+      "email": "aids.hod@apex-inst.edu",
+      "phone": "+91 253 251 2802",
+      "overview": "A pioneering interdisciplinary department equipped with high-performance computing clusters dedicated to computer vision, natural language processing, and big data analytics.",
+      "vision": "To emerge as a premier center of intelligence engineering driving societal transformation.",
+      "mission": "Providing interdisciplinary curriculum aligned with top industry frontiers and academic research.",
+      "stats": {
+        "intake": 120,
+        "faculty": 18,
+        "labs": 6,
+        "placementRate": "96%"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80",
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606355_7209",
+      "createdAt": "2026-09-06T12:43:26.355Z",
+      "code": "ENTC",
+      "name": "Electronics & Telecommunication",
+      "degreeLevels": "B.Tech, M.Tech, Ph.D.",
+      "hodName": "Dr. Ramesh B. Patil",
+      "hodImage": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+      "hodMessage": "From 5G communications to VLSI design and embedded systems, our department bridges hardware architecture with high-speed digital communications.",
+      "email": "entc.hod@apex-inst.edu",
+      "phone": "+91 253 251 2803",
+      "overview": "Accredited with NBA, featuring Center of Excellence in IoT, Cadence VLSI tools, and collaborative projects with Texas Instruments.",
+      "vision": "Excellence in electronics and telecommunication engineering through applied knowledge and industry partnership.",
+      "mission": "Empowering students with hardware-software co-design abilities and telecommunication fundamentals.",
+      "stats": {
+        "intake": 120,
+        "faculty": 24,
+        "labs": 10,
+        "placementRate": "92%"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
+      "sortOrder": 3,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606356_2277",
+      "createdAt": "2026-09-06T12:43:26.356Z",
+      "code": "MECH",
+      "name": "Mechanical Engineering",
+      "degreeLevels": "B.Tech, M.Tech, Ph.D.",
+      "hodName": "Dr. Prakash S. Shinde",
+      "hodImage": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+      "hodMessage": "Combining classical thermodynamics and mechanics with modern CAD/CAM, robotics automation, and Electric Vehicle technology.",
+      "email": "mech.hod@apex-inst.edu",
+      "phone": "+91 253 251 2804",
+      "overview": "One of the founding branches of the institute with extensive workshop facilities, CNC machines, wind tunnel lab, and championship-winning SAE BAJA team.",
+      "vision": "Developing world-class mechanical design engineers and industrial innovators.",
+      "mission": "Providing strong analytical foundations, hands-on workshop training, and exposure to smart manufacturing.",
+      "stats": {
+        "intake": 120,
+        "faculty": 28,
+        "labs": 14,
+        "placementRate": "90%"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80",
+      "sortOrder": 4,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606357_1301",
+      "createdAt": "2026-09-06T12:43:26.357Z",
+      "code": "CIVIL",
+      "name": "Civil Engineering & Infrastructure",
+      "degreeLevels": "B.Tech, M.Tech",
+      "hodName": "Dr. Madhav T. Sonawane",
+      "hodImage": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80",
+      "hodMessage": "Designing sustainable urban infrastructure, green buildings, resilient structural frameworks, and smart water management systems.",
+      "email": "civil.hod@apex-inst.edu",
+      "phone": "+91 253 251 2805",
+      "overview": "Renowned for industrial consultancy in geotechnical testing, structural audit, environmental impact assessment, and GIS surveying.",
+      "vision": "Building sustainable and resilient infrastructure leaders for modern urban societies.",
+      "mission": "Instilling expertise in structural design, environmental sustainability, and modern construction management.",
+      "stats": {
+        "intake": 60,
+        "faculty": 16,
+        "labs": 9,
+        "placementRate": "88%"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=800&q=80",
+      "sortOrder": 5,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606358_1741",
+      "createdAt": "2026-09-06T12:43:26.358Z",
+      "code": "CHEMICAL",
+      "name": "Chemical Engineering",
+      "degreeLevels": "B.Tech, M.Tech",
+      "hodName": "Dr. Vandana S. Mahajan",
+      "hodImage": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=400&q=80",
+      "hodMessage": "Advancing green chemistry, renewable energy biofuels, sustainable process engineering, and nano-materials.",
+      "email": "chem.hod@apex-inst.edu",
+      "phone": "+91 253 251 2806",
+      "overview": "Equipped with pilot-scale process synthesis units, mass transfer distillation labs, and chemical reaction engineering simulation suites.",
+      "vision": "Pioneering clean process engineering and sustainable biochemical technology.",
+      "mission": "Promoting process safety, eco-friendly synthesis, and strong industry linkages.",
+      "stats": {
+        "intake": 60,
+        "faculty": 14,
+        "labs": 8,
+        "placementRate": "89%"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=800&q=80",
+      "sortOrder": 6,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606359_4457",
+      "createdAt": "2026-09-06T12:43:26.359Z",
+      "code": "MGMT",
+      "name": "Department of Management Studies (MBA)",
+      "degreeLevels": "MBA, Executive MDP",
+      "hodName": "Dr. Anand K. Kulkarni",
+      "hodImage": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80",
+      "hodMessage": "Developing visionary business leaders with specialized competencies in Tech Management, Finance, Marketing, and Operations.",
+      "email": "mba.hod@apex-inst.edu",
+      "phone": "+91 253 251 2807",
+      "overview": "Premier business school department with Bloomberg-style business analytics lab, incubation cell, and corporate mentorship program.",
+      "vision": "To cultivate entrepreneurial visionaries and agile corporate managers.",
+      "mission": "Case-based pedagogy, corporate executive interactions, and business analytics integration.",
+      "stats": {
+        "intake": 120,
+        "faculty": 15,
+        "labs": 3,
+        "placementRate": "94%"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80",
+      "sortOrder": 7,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606360_7096",
+      "createdAt": "2026-09-06T12:43:26.360Z",
+      "code": "MCA",
+      "name": "Department of Computer Applications (MCA)",
+      "degreeLevels": "MCA",
+      "hodName": "Prof. Varsha D. Bhamare",
+      "hodImage": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80",
+      "hodMessage": "Fostering full-stack enterprise software architects, cloud engineers, and mobile application specialists.",
+      "email": "mca.hod@apex-inst.edu",
+      "phone": "+91 253 251 2808",
+      "overview": "Intensive 2-year professional degree focusing on enterprise Java/Python frameworks, DevOps, cloud deployment, and system architecture.",
+      "vision": "Excellence in application development and modern enterprise software practices.",
+      "mission": "Industry live projects, hackathons, and continuous technical certification tracks.",
+      "stats": {
+        "intake": 60,
+        "faculty": 10,
+        "labs": 4,
+        "placementRate": "95%"
+      },
+      "imageUrl": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80",
+      "sortOrder": 8,
+      "isActive": true
+    }
+  ],
+  "Course": [
+    {
+      "_id": "doc_1788698606362_2495",
+      "createdAt": "2026-09-06T12:43:26.362Z",
+      "departmentCode": "CS",
+      "title": "B.Tech in Computer Engineering",
+      "degree": "Undergraduate (UG)",
+      "duration": "4 Years (8 Semesters)",
+      "intake": 180,
+      "eligibility": "10+2 with Physics, Mathematics, and Chemistry/CS with min 50% marks + Valid MHT-CET / JEE Main Score.",
+      "description": "Comprehensive curriculum covering Data Structures, Algorithms, Distributed Systems, Cloud Computing, Compiler Design, and Cyber Security.",
+      "curriculum": [
+        "Sem 1-2: Engineering Physics, Calculus, C Programming, Digital Electronics",
+        "Sem 3-4: OOP Java, Data Structures, Discrete Math, Computer Organization",
+        "Sem 5-6: Operating Systems, Database Management, Computer Networks, Software Engineering",
+        "Sem 7-8: Cloud Computing, Machine Learning, Capstone Major Project, Industry Internship"
+      ],
+      "syllabusUrl": "#syllabus-download",
+      "careerOpportunities": "Software Engineer, Systems Architect, Cloud DevOps Engineer, Cyber Security Specialist",
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606363_2363",
+      "createdAt": "2026-09-06T12:43:26.363Z",
+      "departmentCode": "AIDS",
+      "title": "B.Tech in Artificial Intelligence & Data Science",
+      "degree": "Undergraduate (UG)",
+      "duration": "4 Years (8 Semesters)",
+      "intake": 120,
+      "eligibility": "10+2 with Physics, Mathematics, and Chemistry/CS with min 50% marks + Valid MHT-CET / JEE Main Score.",
+      "description": "Specialized program diving deep into Neural Networks, Deep Learning, Big Data Frameworks, NLP, and Computer Vision.",
+      "curriculum": [
+        "Sem 1-2: Linear Algebra, Statistics, Python Programming, Applied Electronics",
+        "Sem 3-4: Foundations of AI, Data Analysis, Data Warehousing, Optimization Algorithms",
+        "Sem 5-6: Machine Learning, Deep Neural Nets, Computer Vision, Big Data Analytics",
+        "Sem 7-8: Reinforcement Learning, MLOps, Generative AI, Industrial Project"
+      ],
+      "syllabusUrl": "#syllabus-download",
+      "careerOpportunities": "AI Engineer, Data Scientist, ML Ops Specialist, Business Intelligence Architect",
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606364_4280",
+      "createdAt": "2026-09-06T12:43:26.364Z",
+      "departmentCode": "CS",
+      "title": "M.Tech in Computer Engineering",
+      "degree": "Postgraduate (PG)",
+      "duration": "2 Years (4 Semesters)",
+      "intake": 24,
+      "eligibility": "B.E./B.Tech in Computer / IT / Electronics with min 50% marks + Valid GATE score.",
+      "description": "Advanced master course focusing on high-performance computing, distributed ledger algorithms, and autonomous system research.",
+      "curriculum": [
+        "Sem 1: Advanced Algorithms, Parallel Computing, Research Methodology",
+        "Sem 2: Cloud Native Architectures, Deep Learning Frontiers, Elective I & II",
+        "Sem 3: Dissertation Phase I, Research Publication",
+        "Sem 4: Dissertation Phase II, Defense and Tech Transfer"
+      ],
+      "syllabusUrl": "#syllabus-download",
+      "careerOpportunities": "Principal Research Engineer, Senior Systems Architect, Academic Faculty",
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606364_9010",
+      "createdAt": "2026-09-06T12:43:26.365Z",
+      "departmentCode": "ENTC",
+      "title": "B.Tech in Electronics & Telecommunication",
+      "degree": "Undergraduate (UG)",
+      "duration": "4 Years (8 Semesters)",
+      "intake": 120,
+      "eligibility": "10+2 with Physics, Mathematics, Chemistry with min 50% + MHT-CET / JEE Main.",
+      "description": "Modern electronics curriculum spanning RF design, 5G signal processing, embedded IoT microcontrollers, and FPGA programming.",
+      "curriculum": [
+        "Sem 1-2: Basic Electrical & Electronics, Engineering Mechanics, Applied Chemistry",
+        "Sem 3-4: Electronic Devices & Circuits, Signals & Systems, Microprocessors 8086/ARM",
+        "Sem 5-6: Digital Signal Processing, Antenna & Wave Propagation, VLSI Design",
+        "Sem 7-8: Wireless Communication, IoT Protocols, Embedded Robotics, Capstone Project"
+      ],
+      "syllabusUrl": "#syllabus-download",
+      "careerOpportunities": "VLSI Design Engineer, Embedded Firmware Engineer, Telecom Network Architect",
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606365_8708",
+      "createdAt": "2026-09-06T12:43:26.365Z",
+      "departmentCode": "MECH",
+      "title": "B.Tech in Mechanical Engineering",
+      "degree": "Undergraduate (UG)",
+      "duration": "4 Years (8 Semesters)",
+      "intake": 120,
+      "eligibility": "10+2 with Physics, Mathematics, Chemistry with min 50% + MHT-CET / JEE Main.",
+      "description": "Engineering excellence in thermodynamics, finite element analysis, robotics, mechatronics, and Electric Vehicle powertrains.",
+      "curriculum": [
+        "Sem 1-2: Workshop Practice, Engineering Graphics, Material Science",
+        "Sem 3-4: Strength of Materials, Thermodynamics, Fluid Mechanics, Kinematics",
+        "Sem 5-6: Heat Transfer, Turbo Machinery, Mechatronics, CAD/CAM/CAE",
+        "Sem 7-8: EV Powertrain Design, Industrial Automation, Renewable Energy, Major Project"
+      ],
+      "syllabusUrl": "#syllabus-download",
+      "careerOpportunities": "Automotive Design Engineer, Manufacturing Specialist, Thermal Analyst, EV Systems Engineer",
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606366_2902",
+      "createdAt": "2026-09-06T12:43:26.366Z",
+      "departmentCode": "MGMT",
+      "title": "Master of Business Administration (MBA)",
+      "degree": "Postgraduate (PG)",
+      "duration": "2 Years (4 Semesters)",
+      "intake": 120,
+      "eligibility": "Graduation in any discipline with min 50% marks + Valid MAH-MBA-CET / CAT / CMAT / MAT score.",
+      "description": "Specializations in Financial Management, Marketing, Human Resource Management, Operations & Supply Chain, and Business Analytics.",
+      "curriculum": [
+        "Sem 1: Management Principles, Financial Accounting, Managerial Economics, Org Behavior",
+        "Sem 2: Marketing Management, Operations Research, Business Law, Analytics Lab",
+        "Sem 3: Specialization Core & Electives, Summer Internship Project",
+        "Sem 4: Strategic Management, Corporate Governance, Final Capstone Project"
+      ],
+      "syllabusUrl": "#syllabus-download",
+      "careerOpportunities": "Investment Banker, Product Manager, Marketing Strategist, Supply Chain Consultant",
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606367_4712",
+      "createdAt": "2026-09-06T12:43:26.367Z",
+      "departmentCode": "MCA",
+      "title": "Master of Computer Applications (MCA)",
+      "degree": "Postgraduate (PG)",
+      "duration": "2 Years (4 Semesters)",
+      "intake": 60,
+      "eligibility": "BCA / B.Sc (Computer Science / IT) or Bachelor degree with Mathematics at 10+2 or Graduate level + MAH-MCA-CET.",
+      "description": "Industry-geared program focusing on Full Stack Web Architecture, Cloud Deployments, Microservices, and Mobile Apps.",
+      "curriculum": [
+        "Sem 1: Advanced Java, Python & Web Technologies, RDBMS, Software Engineering",
+        "Sem 2: Cloud Computing, DevOps & CI/CD, Enterprise Frameworks (Spring / React)",
+        "Sem 3: AI & Machine Learning, Mobile Computing, Agile Project Management",
+        "Sem 4: Full 6-Month Industry Live Internship & Project Defense"
+      ],
+      "syllabusUrl": "#syllabus-download",
+      "careerOpportunities": "Full Stack Developer, Cloud Solutions Architect, DevOps Engineer",
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606369_1036",
+      "createdAt": "2026-09-06T12:43:26.369Z",
+      "departmentCode": "CS",
+      "title": "Ph.D. in Computer Engineering & Technology",
+      "degree": "Doctoral (Ph.D.)",
+      "duration": "3 to 5 Years",
+      "intake": 10,
+      "eligibility": "Master Degree in relevant discipline with min 55% marks + Valid PET / GATE / NET qualification.",
+      "description": "Doctoral research center affiliated with University research council. Focus areas include AI ethics, Quantum Cryptography, and Edge IoT.",
+      "curriculum": [
+        "Coursework: Advanced Research Methodology, Quantitative Data Techniques, Domain Elective",
+        "Comprehensive Viva & Research Proposal Defense",
+        "Annual Progress Review Seminars and High-Impact IEEE/Scopus Journal Publications",
+        "Final Thesis Submission & Open Defense"
+      ],
+      "syllabusUrl": "#syllabus-download",
+      "careerOpportunities": "Chief Scientist, University Professor, R&D Lab Director",
+      "isActive": true
+    }
+  ],
+  "Faculty": [
+    {
+      "_id": "doc_1788698606370_569",
+      "createdAt": "2026-09-06T12:43:26.370Z",
+      "departmentCode": "CS",
+      "name": "Dr. Vivek V. Joshi",
+      "designation": "Professor & Head of Department",
+      "qualification": "Ph.D. (IIT Bombay), M.Tech (Computer Engg)",
+      "experienceYears": 22,
+      "email": "vvjoshi@apex-inst.edu",
+      "phone": "+91 253 251 2810",
+      "bio": "Author of 48 international journal papers and 3 patents in Distributed Cloud Systems and Fault-Tolerant Computing.",
+      "researchAreas": "Distributed Systems, Cloud Architecture, Fault Tolerance",
+      "publicationsCount": 48,
+      "imageUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606371_9837",
+      "createdAt": "2026-09-06T12:43:26.371Z",
+      "departmentCode": "CS",
+      "name": "Prof. Anita S. Kulkarni",
+      "designation": "Associate Professor",
+      "qualification": "Ph.D. (Pursuing), M.E. (Computer Engg)",
+      "experienceYears": 17,
+      "email": "askulkarni@apex-inst.edu",
+      "phone": "+91 253 251 2811",
+      "bio": "Specialist in Software Engineering metrics, Object Oriented design patterns, and Agile pedagogies.",
+      "researchAreas": "Software Architecture, Code Optimization, Agile Methods",
+      "publicationsCount": 24,
+      "imageUrl": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=400&q=80",
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606372_9033",
+      "createdAt": "2026-09-06T12:43:26.372Z",
+      "departmentCode": "AIDS",
+      "name": "Dr. Sunita K. Pathak",
+      "designation": "Professor & Head of Department",
+      "qualification": "Ph.D. (IISc Bangalore), M.Tech (AI & Robotics)",
+      "experienceYears": 19,
+      "email": "skpathak@apex-inst.edu",
+      "phone": "+91 253 251 2812",
+      "bio": "Recipient of IEEE Best Researcher Award for work in Deep Convolutional Networks for Medical Image Diagnostics.",
+      "researchAreas": "Deep Learning, Medical Imaging, Generative Models",
+      "publicationsCount": 56,
+      "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80",
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606374_2114",
+      "createdAt": "2026-09-06T12:43:26.374Z",
+      "departmentCode": "AIDS",
+      "name": "Dr. Anand M. Bapat",
+      "designation": "Associate Professor",
+      "qualification": "Ph.D. (SPPU Pune), M.Tech",
+      "experienceYears": 14,
+      "email": "ambapat@apex-inst.edu",
+      "phone": "+91 253 251 2813",
+      "bio": "Investigator on DST-funded Natural Language Processing project for regional Indian languages.",
+      "researchAreas": "NLP, Large Language Models, Computational Linguistics",
+      "publicationsCount": 32,
+      "imageUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80",
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606375_7700",
+      "createdAt": "2026-09-06T12:43:26.375Z",
+      "departmentCode": "ENTC",
+      "name": "Dr. Ramesh B. Patil",
+      "designation": "Professor & Head of Department",
+      "qualification": "Ph.D. (VNIT Nagpur), M.Tech (VLSI & Microelectronics)",
+      "experienceYears": 25,
+      "email": "rbpatil@apex-inst.edu",
+      "phone": "+91 253 251 2814",
+      "bio": "Consultant to leading semiconductor design houses on low-power CMOS and ASIC synthesis.",
+      "researchAreas": "VLSI Systems, Embedded IoT, RF Transceivers",
+      "publicationsCount": 42,
+      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606377_1346",
+      "createdAt": "2026-09-06T12:43:26.377Z",
+      "departmentCode": "MECH",
+      "name": "Dr. Prakash S. Shinde",
+      "designation": "Professor & Head of Department",
+      "qualification": "Ph.D. (COEP Pune), M.E. (Automobile Engg)",
+      "experienceYears": 23,
+      "email": "psshinde@apex-inst.edu",
+      "phone": "+91 253 251 2815",
+      "bio": "Faculty mentor for the university national champion BAJA SAE vehicle team for 8 consecutive years.",
+      "researchAreas": "Vehicle Dynamics, Thermal Engineering, Mechatronics",
+      "publicationsCount": 38,
+      "imageUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80",
+      "sortOrder": 1,
+      "isActive": true
+    }
+  ],
+  "Admission": [
+    {
+      "_id": "doc_1788698606379_540",
+      "createdAt": "2026-09-06T12:43:26.379Z",
+      "category": "Admission Process",
+      "stepNumber": 1,
+      "title": "Online Application & Registration",
+      "description": "Register on the Central Admission Process (CAP) portal or the Institute Level Application portal. Upload academic transcripts, photo, and entrance scorecard.",
+      "deadline": "May 31, 2026",
+      "eligibilityCriteria": "Passed 10+2 with Physics and Mathematics as compulsory subjects alongside Chemistry/CS.",
+      "requiredDocuments": "10th & 12th Marksheets, Entrance Exam Scorecard (MHT-CET / JEE), Leaving Certificate, Domicile/Nationality Certificate.",
+      "feeAnnual": "₹1,25,000 per year (Tuition + Development)",
+      "applicationUrl": "#apply-online",
+      "sortOrder": 1,
+      "status": "published"
+    },
+    {
+      "_id": "doc_1788698606380_7718",
+      "createdAt": "2026-09-06T12:43:26.380Z",
+      "category": "Admission Process",
+      "stepNumber": 2,
+      "title": "Document Verification & Merit List",
+      "description": "Physical or e-scrutiny verification of uploaded credentials at the designated facilitation center. Publication of provisional and final state/institute merit lists.",
+      "deadline": "June 15, 2026",
+      "eligibilityCriteria": "Clear verification of caste/category certificates if claiming reservations.",
+      "requiredDocuments": "Original documents verification + 2 sets of attested photocopies.",
+      "feeAnnual": "N/A",
+      "applicationUrl": "#merit-list",
+      "sortOrder": 2,
+      "status": "published"
+    },
+    {
+      "_id": "doc_1788698606381_6818",
+      "createdAt": "2026-09-06T12:43:26.381Z",
+      "category": "Admission Process",
+      "stepNumber": 3,
+      "title": "Option Form Filling & Seat Allotment",
+      "description": "Submit institutional preference choices during CAP Round I, II, and III. Check allotment status and freeze/float options.",
+      "deadline": "June 30, 2026",
+      "eligibilityCriteria": "Valid CAP enrollment pin and merit rank.",
+      "requiredDocuments": "Seat Allotment Letter, Provisional Admission Receipt.",
+      "feeAnnual": "Seat Acceptance Fee: ₹1,000 (Govt Portal)",
+      "applicationUrl": "#cap-rounds",
+      "sortOrder": 3,
+      "status": "published"
+    },
+    {
+      "_id": "doc_1788698606382_4175",
+      "createdAt": "2026-09-06T12:43:26.382Z",
+      "category": "Admission Process",
+      "stepNumber": 4,
+      "title": "Reporting to Campus & Enrollment Confirmation",
+      "description": "Report in person to the Apex Campus Admission Cell with original certificates and fee payment demand draft or net banking receipt.",
+      "deadline": "July 15, 2026",
+      "eligibilityCriteria": "Allotted seat in CAP or approved institutional quota selection.",
+      "requiredDocuments": "Medical Fitness Certificate, Migration Certificate (if from outside state board), 5 Passport Photos.",
+      "feeAnnual": "₹1,25,000 (Open Category) / ₹15,000 (SC/ST Govt Scholarship)",
+      "applicationUrl": "#campus-reporting",
+      "sortOrder": 4,
+      "status": "published"
+    },
+    {
+      "_id": "doc_1788698606383_5505",
+      "createdAt": "2026-09-06T12:43:26.383Z",
+      "category": "Fee Structure",
+      "stepNumber": 1,
+      "title": "B.Tech Engineering (Open / General Category)",
+      "description": "Approved by State Fee Regulating Authority (FRA). Inclusive of tuition, computer lab fees, gymkhana, library, and development fund.",
+      "deadline": "Annual / Semester installments",
+      "eligibilityCriteria": "Open category students",
+      "requiredDocuments": "Income Certificate (for EBC concession eligibility)",
+      "feeAnnual": "₹1,25,000 per academic year",
+      "applicationUrl": "#fee-details",
+      "sortOrder": 5,
+      "status": "published"
+    },
+    {
+      "_id": "doc_1788698606384_2737",
+      "createdAt": "2026-09-06T12:43:26.384Z",
+      "category": "Fee Structure",
+      "stepNumber": 2,
+      "title": "B.Tech Engineering (OBC / EBC / EWS Reserved)",
+      "description": "50% tuition fee concession under Maharashtra State Rajarshi Shahu Maharaj Shikshan Shulk Yojna.",
+      "deadline": "Annual / Semester installments",
+      "eligibilityCriteria": "Family income < ₹8,00,000 with valid income certificate",
+      "requiredDocuments": "Income Certificate issued by Tahsildar, Non-Creamy Layer Certificate",
+      "feeAnnual": "₹68,500 per academic year",
+      "applicationUrl": "#fee-details",
+      "sortOrder": 6,
+      "status": "published"
+    },
+    {
+      "_id": "doc_1788698606385_5788",
+      "createdAt": "2026-09-06T12:43:26.385Z",
+      "category": "Fee Structure",
+      "stepNumber": 3,
+      "title": "M.Tech / Post Graduate Courses",
+      "description": "Approved annual fees for two-year master degree programs. GATE scholarship of ₹12,400/month applicable for qualified candidates.",
+      "deadline": "Per Semester / Annual",
+      "eligibilityCriteria": "Valid B.Tech degree with 50% aggregate",
+      "requiredDocuments": "Degree Certificate, GATE Scorecard",
+      "feeAnnual": "₹95,000 per academic year",
+      "applicationUrl": "#fee-details",
+      "sortOrder": 7,
+      "status": "published"
+    },
+    {
+      "_id": "doc_1788698606389_2931",
+      "createdAt": "2026-09-06T12:43:26.389Z",
+      "category": "Fee Structure",
+      "stepNumber": 4,
+      "title": "Master of Business Administration (MBA)",
+      "description": "Two-year management program fee covering case study licenses, enterprise software training, and industrial immersion.",
+      "deadline": "Per Semester / Annual",
+      "eligibilityCriteria": "Graduate in any discipline + MBA CET / CAT",
+      "requiredDocuments": "Graduation Marksheets, CET Scorecard",
+      "feeAnnual": "₹1,10,000 per academic year",
+      "applicationUrl": "#fee-details",
+      "sortOrder": 8,
+      "status": "published"
+    }
+  ],
+  "Placement": [
+    {
+      "_id": "doc_1788698606389_5268",
+      "createdAt": "2026-09-06T12:43:26.389Z",
+      "academicYear": "2024-25",
+      "totalStudents": 840,
+      "placedStudents": 806,
+      "placementRate": 95.95,
+      "highestPackage": "₹44.20 LPA",
+      "averagePackage": "₹8.65 LPA",
+      "medianPackage": "₹7.20 LPA",
+      "totalOffers": 1120,
+      "topSectors": {
+        "Cloud & IT Services": 45,
+        "Product Engineering": 25,
+        "Electronics & VLSI": 15,
+        "Core Manufacturing": 10,
+        "Fintech & Analytics": 5
+      },
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606390_3318",
+      "createdAt": "2026-09-06T12:43:26.390Z",
+      "academicYear": "2023-24",
+      "totalStudents": 810,
+      "placedStudents": 765,
+      "placementRate": 94.44,
+      "highestPackage": "₹38.50 LPA",
+      "averagePackage": "₹7.90 LPA",
+      "medianPackage": "₹6.80 LPA",
+      "totalOffers": 980,
+      "topSectors": {
+        "Cloud & IT Services": 48,
+        "Product Engineering": 22,
+        "Electronics & VLSI": 14,
+        "Core Manufacturing": 11,
+        "Fintech & Analytics": 5
+      },
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606392_13",
+      "createdAt": "2026-09-06T12:43:26.392Z",
+      "academicYear": "2022-23",
+      "totalStudents": 760,
+      "placedStudents": 712,
+      "placementRate": 93.68,
+      "highestPackage": "₹32.00 LPA",
+      "averagePackage": "₹7.25 LPA",
+      "medianPackage": "₹6.20 LPA",
+      "totalOffers": 890,
+      "topSectors": {
+        "Cloud & IT Services": 50,
+        "Product Engineering": 20,
+        "Electronics & VLSI": 12,
+        "Core Manufacturing": 12,
+        "Fintech & Analytics": 6
+      },
+      "isActive": true
+    }
+  ],
+  "Recruiter": [
+    {
+      "_id": "doc_1788698606393_4170",
+      "createdAt": "2026-09-06T12:43:26.393Z",
+      "name": "Microsoft",
+      "tier": "Tier-1 Marquee",
+      "category": "Product Tech",
+      "logoUrl": "https://cdn.simpleicons.org/microsoft/00A4EF",
+      "highestOffer": "₹44.20 LPA",
+      "isMarquee": true,
+      "sortOrder": 1
+    },
+    {
+      "_id": "doc_1788698606394_1076",
+      "createdAt": "2026-09-06T12:43:26.394Z",
+      "name": "Amazon",
+      "tier": "Tier-1 Marquee",
+      "category": "E-commerce & Cloud",
+      "logoUrl": "https://cdn.simpleicons.org/amazon/FF9900",
+      "highestOffer": "₹36.00 LPA",
+      "isMarquee": true,
+      "sortOrder": 2
+    },
+    {
+      "_id": "doc_1788698606396_6974",
+      "createdAt": "2026-09-06T12:43:26.396Z",
+      "name": "NVIDIA",
+      "tier": "Tier-1 Marquee",
+      "category": "Semiconductors & AI",
+      "logoUrl": "https://cdn.simpleicons.org/nvidia/76B900",
+      "highestOffer": "₹32.00 LPA",
+      "isMarquee": true,
+      "sortOrder": 3
+    },
+    {
+      "_id": "doc_1788698606397_6424",
+      "createdAt": "2026-09-06T12:43:26.397Z",
+      "name": "Siemens",
+      "tier": "Core Engineering",
+      "category": "Automation & Energy",
+      "logoUrl": "https://cdn.simpleicons.org/siemens/00646E",
+      "highestOffer": "₹14.50 LPA",
+      "isMarquee": true,
+      "sortOrder": 4
+    },
+    {
+      "_id": "doc_1788698606398_9018",
+      "createdAt": "2026-09-06T12:43:26.398Z",
+      "name": "Larsen & Toubro (L&T)",
+      "tier": "Core Engineering",
+      "category": "Engineering & Construction",
+      "logoUrl": "https://cdn.simpleicons.org/landrover/005A36",
+      "highestOffer": "₹12.00 LPA",
+      "isMarquee": true,
+      "sortOrder": 5
+    },
+    {
+      "_id": "doc_1788698606399_4885",
+      "createdAt": "2026-09-06T12:43:26.399Z",
+      "name": "Tata Consultancy Services",
+      "tier": "IT Consulting",
+      "category": "IT Services & Digital",
+      "logoUrl": "https://cdn.simpleicons.org/tata/005A9C",
+      "highestOffer": "₹9.00 LPA",
+      "isMarquee": true,
+      "sortOrder": 6
+    },
+    {
+      "_id": "doc_1788698606400_7812",
+      "createdAt": "2026-09-06T12:43:26.400Z",
+      "name": "Infosys",
+      "tier": "IT Consulting",
+      "category": "IT Services & Cloud",
+      "logoUrl": "https://cdn.simpleicons.org/infosys/007CC3",
+      "highestOffer": "₹9.50 LPA",
+      "isMarquee": true,
+      "sortOrder": 7
+    },
+    {
+      "_id": "doc_1788698606401_855",
+      "createdAt": "2026-09-06T12:43:26.401Z",
+      "name": "Capgemini",
+      "tier": "IT Consulting",
+      "category": "Technology Services",
+      "logoUrl": "https://cdn.simpleicons.org/capgemini/0070AD",
+      "highestOffer": "₹8.50 LPA",
+      "isMarquee": true,
+      "sortOrder": 8
+    },
+    {
+      "_id": "doc_1788698606402_2535",
+      "createdAt": "2026-09-06T12:43:26.402Z",
+      "name": "Bosch Global",
+      "tier": "Automotive & IoT",
+      "category": "Mobility & Engineering",
+      "logoUrl": "https://cdn.simpleicons.org/bosch/EA001E",
+      "highestOffer": "₹14.00 LPA",
+      "isMarquee": true,
+      "sortOrder": 9
+    },
+    {
+      "_id": "doc_1788698606403_112",
+      "createdAt": "2026-09-06T12:43:26.403Z",
+      "name": "Cisco Systems",
+      "tier": "Tier-1 Marquee",
+      "category": "Networking & Security",
+      "logoUrl": "https://cdn.simpleicons.org/cisco/1BA0D7",
+      "highestOffer": "₹28.00 LPA",
+      "isMarquee": true,
+      "sortOrder": 10
+    },
+    {
+      "_id": "doc_1788698606405_9962",
+      "createdAt": "2026-09-06T12:43:26.405Z",
+      "name": "Barclays",
+      "tier": "Fintech & Banking",
+      "category": "Financial Tech",
+      "logoUrl": "https://cdn.simpleicons.org/barclays/00AEEF",
+      "highestOffer": "₹15.50 LPA",
+      "isMarquee": true,
+      "sortOrder": 11
+    },
+    {
+      "_id": "doc_1788698606406_6295",
+      "createdAt": "2026-09-06T12:43:26.406Z",
+      "name": "Persistent Systems",
+      "tier": "Product Engineering",
+      "category": "Digital Transformation",
+      "logoUrl": "https://cdn.simpleicons.org/producthunt/DA552F",
+      "highestOffer": "₹10.50 LPA",
+      "isMarquee": true,
+      "sortOrder": 12
+    }
+  ],
+  "Facility": [
+    {
+      "_id": "doc_1788698606407_2019",
+      "createdAt": "2026-09-06T12:43:26.407Z",
+      "name": "Dr. A.P.J. Abdul Kalam Central Knowledge Center (Library)",
+      "category": "Academic Resource",
+      "shortDesc": "Over 85,000 printed volumes, IEEE, Springer, ACM e-journals, and a 24x7 digital reading wing.",
+      "detailedDesc": "Spanning across 25,000 sq.ft., the Central Library features RFID book circulation, air-conditioned multimedia learning carrels, automated plagiarism checking tools, and institutional repository access.",
+      "imageUrl": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=800&q=80",
+      "specifications": {
+        "volumes": "85,000+",
+        "eJournals": "12,000+",
+        "capacity": "650 Seats",
+        "wifi": "Gigabit LAN & WiFi 6"
+      },
+      "timings": "Monday - Saturday: 07:30 AM to 11:00 PM (24x7 during exams)",
+      "location": "Central Academic Block, 2nd Floor",
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606408_899",
+      "createdAt": "2026-09-06T12:43:26.408Z",
+      "name": "High-Performance Supercomputing & AI Innovation Lab",
+      "category": "Research & Labs",
+      "shortDesc": "Equipped with NVIDIA DGX A100 GPU clusters and 10Gbps dedicated fiber backhaul for neural network training.",
+      "detailedDesc": "Built in collaboration with leading technology partners, this laboratory supports complex simulations in computational fluid dynamics, deep neural networks, and autonomous robotics.",
+      "imageUrl": "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=800&q=80",
+      "specifications": {
+        "compute": "NVIDIA DGX A100",
+        "nodes": "48 Nodes Cluster",
+        "storage": "200 TB High-speed NVMe"
+      },
+      "timings": "08:00 AM to 08:00 PM",
+      "location": "Technology Block B, Ground Floor",
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606410_9264",
+      "createdAt": "2026-09-06T12:43:26.410Z",
+      "name": "Sir Visvesvaraya Advanced Manufacturing Workshop",
+      "category": "Workshops & Labs",
+      "shortDesc": "5-Axis CNC Milling machines, Wire-cut EDM, 3D additive printing suites, and automated laser cutting.",
+      "detailedDesc": "Empowers student engineering teams (including Formula Student BAJA/SUPRA) to design, prototype, and manufacture custom mechanical components on-campus.",
+      "imageUrl": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80",
+      "specifications": {
+        "machines": "5-Axis CNC, Wire EDM, 3D Printers",
+        "area": "18,000 sq.ft.",
+        "certified": "ISO 9001:2015"
+      },
+      "timings": "08:30 AM to 06:30 PM",
+      "location": "Mechanical Workshop Complex",
+      "sortOrder": 3,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606411_60",
+      "createdAt": "2026-09-06T12:43:26.411Z",
+      "name": "Olympic-Standard Sports Complex & Gymnasium",
+      "category": "Sports & Health",
+      "shortDesc": "Floodlit 400m synthetic athletic track, football ground, basketball courts, and modern indoor gym.",
+      "detailedDesc": "Apex Institute fosters all-round development with professional coaches for cricket, football, basketball, badminton, table tennis, and yoga.",
+      "imageUrl": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80",
+      "specifications": {
+        "track": "400m 8-Lane Synthetic",
+        "gym": "Fully Air-conditioned 4,000 sq.ft.",
+        "sports": "Cricket, Football, Basketball, Tennis"
+      },
+      "timings": "06:00 AM to 09:00 AM & 04:30 PM to 08:30 PM",
+      "location": "South Campus Sports Arena",
+      "sortOrder": 4,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606412_1485",
+      "createdAt": "2026-09-06T12:43:26.412Z",
+      "name": "On-Campus Student Residential Hostels (Boys & Girls)",
+      "category": "Residential Living",
+      "shortDesc": "Modern twin & triple sharing furnished rooms, high-speed Wi-Fi, biometric security, and hygienic dining mess.",
+      "detailedDesc": "Separate gated hostels for boys and girls with 24/7 CCTV surveillance, resident wardens, solar water heaters, study lounges, and medical clinic on call.",
+      "imageUrl": "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=800&q=80",
+      "specifications": {
+        "capacity": "1,800 Residents",
+        "rooms": "Furnished AC / Non-AC",
+        "mess": "Hygienic Pure Veg & Multicuisine"
+      },
+      "timings": "24 Hours (Gate curfew: 09:30 PM)",
+      "location": "North Residential Campus",
+      "sortOrder": 5,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606413_7432",
+      "createdAt": "2026-09-06T12:43:26.413Z",
+      "name": "Rabindranath Tagore Multi-Purpose Auditorium",
+      "category": "Cultural & Events",
+      "shortDesc": "Acoustically engineered 1,200 seat auditorium with 4K digital projection and surround audio.",
+      "detailedDesc": "The center stage for national conferences, university convocations, corporate leadership seminars, and annual cultural celebrations.",
+      "imageUrl": "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80",
+      "specifications": {
+        "seating": "1,200 Auditorium Seats",
+        "stage": "Motorized Stage & Light Truss",
+        "av": "Dolby Surround & 4K Projection"
+      },
+      "timings": "Event Based",
+      "location": "Administrative Block A",
+      "sortOrder": 6,
+      "isActive": true
+    }
+  ],
+  "Testimonial": [
+    {
+      "_id": "doc_1788698606414_1899",
+      "createdAt": "2026-09-06T12:43:26.414Z",
+      "studentName": "Priyanka N. Deshmukh",
+      "course": "B.Tech in Computer Engineering",
+      "graduationYear": "Class of 2024",
+      "currentRole": "Software Development Engineer II",
+      "company": "Microsoft, Redmond",
+      "quote": "The rigorous algorithm labs, hackathon culture, and mentorship from professors at Apex gave me the technical confidence to clear competitive global software interviews seamlessly.",
+      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606416_720",
+      "createdAt": "2026-09-06T12:43:26.416Z",
+      "studentName": "Aditya S. Kulkarni",
+      "course": "B.Tech in Mechanical Engineering",
+      "graduationYear": "Class of 2023",
+      "currentRole": "EV Powertrain Design Lead",
+      "company": "Tata Motors EV Tech",
+      "quote": "Working on the SAE BAJA buggy in the campus workshop until midnight taught me more about hands-on mechanics, team leadership, and design resilience than any textbook alone could.",
+      "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606417_8912",
+      "createdAt": "2026-09-06T12:43:26.417Z",
+      "studentName": "Sneha R. Patil",
+      "course": "B.Tech in AI & Data Science",
+      "graduationYear": "Class of 2025",
+      "currentRole": "Machine Learning Engineer",
+      "company": "NVIDIA AI Lab",
+      "quote": "Apex provided direct access to NVIDIA DGX clusters and high-impact industry research projects from our third year. It transformed my engineering career completely.",
+      "avatarUrl": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
+      "sortOrder": 3,
+      "isActive": true
+    }
+  ],
+  "Leadership": [
+    {
+      "_id": "doc_1788698606419_616",
+      "createdAt": "2026-09-06T12:43:26.419Z",
+      "name": "Hon. Balasaheb D. Wagh",
+      "roleTitle": "President & Founder Visionary",
+      "designationBadge": "Governing Council",
+      "message": "Education is not merely the acquisition of degrees; it is the empowerment of human intellect to solve national challenges and uplift society with moral integrity.",
+      "quote": "Dedication to truth, discipline, and technological innovation.",
+      "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
+      "qualifications": "B.E., M.S., Philanthropist and Educationist",
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606420_3043",
+      "createdAt": "2026-09-06T12:43:26.420Z",
+      "name": "Dr. Keshav N. Nandurkar",
+      "roleTitle": "Director & Principal",
+      "designationBadge": "Executive Academic Head",
+      "message": "Welcome to Apex Institute. For over forty years, we have nurtured engineering graduates who lead multinational technology firms, launch deep-tech startups, and advance fundamental research. Our autonomous status empowers us to continuously refresh our curriculum in consultation with world-leading industry partners.",
+      "quote": "Excellence in engineering education through industry-led experiential learning.",
+      "imageUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80",
+      "qualifications": "Ph.D. (IIT Roorkee), M.Tech (Production Engg), Fellow IEI",
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606421_3422",
+      "createdAt": "2026-09-06T12:43:26.421Z",
+      "name": "Prof. Ajinkya B. Wagh",
+      "roleTitle": "Trustee & Head of Strategic Initiatives",
+      "designationBadge": "Board of Trustees",
+      "message": "Our ongoing investments in high-performance computing, clean green campus infrastructure, and global university partnerships ensure our students compete at the highest international standards.",
+      "quote": "Building world-class learning infrastructure for future generations.",
+      "imageUrl": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80",
+      "qualifications": "M.B.A. (USA), B.Tech (Electronics)",
+      "sortOrder": 3,
+      "isActive": true
+    }
+  ],
+  "Research": [
+    {
+      "_id": "doc_1788698606443_8583",
+      "createdAt": "2026-09-06T12:43:26.443Z",
+      "title": "Autonomous Edge AI System for Micro-Crack Detection in Railway Tracks",
+      "category": "Funded Project",
+      "departmentCode": "CS",
+      "investigator": "Dr. Vivek V. Joshi & Team",
+      "fundingAgency": "Ministry of Railways (CRIS)",
+      "grantAmount": "₹85,00,000",
+      "publicationDate": "2025-11-15",
+      "patentNumber": "IN202521049281A",
+      "status": "Active",
+      "linkUrl": "#research-link-1"
+    },
+    {
+      "_id": "doc_1788698606445_1630",
+      "createdAt": "2026-09-06T12:43:26.445Z",
+      "title": "High-Efficiency Dual-Rotor Regenerative Braking Architecture for Two-Wheeler EVs",
+      "category": "Patent Granted",
+      "departmentCode": "MECH",
+      "investigator": "Dr. Prakash S. Shinde & Prof. S. R. Darekar",
+      "fundingAgency": "Internal Innovation Cell",
+      "grantAmount": "₹12,00,000",
+      "publicationDate": "2025-08-20",
+      "patentNumber": "PATENT-IN-492810",
+      "status": "Granted",
+      "linkUrl": "#research-link-2"
+    },
+    {
+      "_id": "doc_1788698606447_9096",
+      "createdAt": "2026-09-06T12:43:26.447Z",
+      "title": "Bio-Derived Nano-Catalyst for Rapid Industrial Wastewater Detoxification",
+      "category": "Journal Publication",
+      "departmentCode": "CHEMICAL",
+      "investigator": "Dr. Vandana S. Mahajan",
+      "fundingAgency": "AICTE RPS Scheme",
+      "grantAmount": "₹18,50,000",
+      "publicationDate": "2026-01-10",
+      "patentNumber": "N/A",
+      "status": "Published in Elsevier Clean Tech",
+      "linkUrl": "#research-link-3"
+    }
+  ],
+  "Gallery": [
+    {
+      "_id": "doc_1788698606450_2998",
+      "createdAt": "2026-09-06T12:43:26.450Z",
+      "title": "Modern Academic Campus Main Facade",
+      "category": "Campus",
+      "imageUrl": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80",
+      "caption": "State of the art autonomous engineering campus",
+      "sortOrder": 1,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606452_698",
+      "createdAt": "2026-09-06T12:43:26.452Z",
+      "title": "Interactive Learning in Smart Classrooms",
+      "category": "Academics",
+      "imageUrl": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",
+      "caption": "Smart interactive digital boards and lecture recording",
+      "sortOrder": 2,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606454_7495",
+      "createdAt": "2026-09-06T12:43:26.454Z",
+      "title": "NVIDIA AI Supercomputing Lab",
+      "category": "Labs",
+      "imageUrl": "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=800&q=80",
+      "caption": "Students training deep neural networks",
+      "sortOrder": 3,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606456_3061",
+      "createdAt": "2026-09-06T12:43:26.456Z",
+      "title": "Annual Cultural Festival Equinox",
+      "category": "Student Life",
+      "imageUrl": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80",
+      "caption": "Electrifying musical and dance performances",
+      "sortOrder": 4,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606459_1307",
+      "createdAt": "2026-09-06T12:43:26.459Z",
+      "title": "SAE BAJA Championship Buggy Testing",
+      "category": "Innovations",
+      "imageUrl": "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=800&q=80",
+      "caption": "Fabricated by student engineers in campus workshop",
+      "sortOrder": 5,
+      "isActive": true
+    },
+    {
+      "_id": "doc_1788698606461_10",
+      "createdAt": "2026-09-06T12:43:26.461Z",
+      "title": "Central Knowledge Library Reading Wing",
+      "category": "Facilities",
+      "imageUrl": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=800&q=80",
+      "caption": "24/7 quiet study carrels and digital repository",
+      "sortOrder": 6,
+      "isActive": true
+    }
+  ],
+  "Inquiry": [
+    {
+      "_id": "doc_1788698606463_5269",
+      "createdAt": "2026-09-06T12:43:26.463Z",
+      "fullName": "Tanmay Rahul Joshi",
+      "email": "tanmay.joshi@example.com",
+      "phone": "+91 98230 45812",
+      "courseInterested": "B.Tech in Artificial Intelligence & Data Science",
+      "departmentCode": "AIDS",
+      "message": "I scored 96.4 percentile in MHT-CET 2026. What are the expected cutoff ranks for AI & DS in CAP Round 1?",
+      "status": "new"
+    },
+    {
+      "_id": "doc_1788698606465_4961",
+      "createdAt": "2026-09-06T12:43:26.465Z",
+      "fullName": "Pooja Sanjay Kadam",
+      "email": "pooja.kadam@example.com",
+      "phone": "+91 97654 11234",
+      "courseInterested": "Master of Business Administration (MBA)",
+      "departmentCode": "MGMT",
+      "message": "Requesting information on hostel accommodation for girls and the MBA fee concession process for EBC candidates.",
+      "status": "contacted",
+      "notes": "Counselor called on April 12. Sent prospectus."
+    }
+  ],
+  "AuditLog": [
+    {
+      "_id": "doc_1788698606467_826",
+      "createdAt": "2026-09-06T12:43:26.467Z",
+      "username": "admin",
+      "action": "SYSTEM_INITIALIZATION",
+      "entityType": "database",
+      "entityId": "all",
+      "details": "System seeded with full institutional database structure",
+      "ipAddress": "127.0.0.1"
+    },
+    {
+      "_id": "doc_1788698764113_1403",
+      "createdAt": "2026-09-06T12:46:04.113Z",
+      "username": "admin",
+      "action": "ADMIN_LOGIN_SUCCESS",
+      "entityType": "auth",
+      "entityId": "doc_1788698606309_8522",
+      "details": "Administrator logged into CMS dashboard",
+      "ipAddress": "::1"
+    }
+  ],
+  "Media": [],
+  "Page": [],
+  "Subsection": []
+}
