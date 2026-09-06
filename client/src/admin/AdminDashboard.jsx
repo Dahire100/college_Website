@@ -37,6 +37,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
   const [settingsList, setSettingsList] = useState([]);
   const [navItems, setNavItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showDashboardSections, setShowDashboardSections] = useState(false);
 
   // Login form state
   const [loginUsername, setLoginUsername] = useState('admin');
@@ -226,18 +227,63 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
     }
   };
 
-  // Save Page Details
+  // Open Full-Page Studio directly to Create New Page (NO POPUP MODAL CARD)
+  const handleStartCreateNewPage = () => {
+    const newDraft = {
+      isNew: true,
+      title: '',
+      slug: '',
+      navLabel: '',
+      heroTitle: '',
+      heroSubtitle: '',
+      heroBadge: 'NEW PAGE',
+      heroImageUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80',
+      content: '',
+      showInHeader: true,
+      showInFooter: true,
+      isActive: true
+    };
+    setSelectedStudioPage(newDraft);
+    setPageEditorData(newDraft);
+    setCurrentTab('pages');
+    setModalOpen(false);
+  };
+
+  // Save Page Details (handles both updating existing pages and creating new pages)
   const handleSavePageDetails = async (e) => {
     e?.preventDefault();
     if (!pageEditorData) return;
     try {
-      const id = pageEditorData._id || pageEditorData.id;
-      const res = await api.put(`/api/v1/admin/pages/${id}`, pageEditorData);
-      if (res.success) {
-        onToast(`Page "${pageEditorData.title}" details updated live!`, 'success');
-        fetchAllData();
-        setSelectedStudioPage(res.data);
-        onPublicUpdate?.();
+      if (pageEditorData.isNew) {
+        if (!pageEditorData.title?.trim()) {
+          onToast('Please enter a Page Title', 'error');
+          return;
+        }
+        const cleanSlug = (pageEditorData.slug || pageEditorData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')).replace(/^-|-$/g, '');
+        const payload = {
+          ...pageEditorData,
+          slug: cleanSlug,
+          navLabel: pageEditorData.navLabel || pageEditorData.title,
+          heroTitle: pageEditorData.heroTitle || pageEditorData.title
+        };
+        delete payload.isNew;
+        const res = await api.post('/api/v1/admin/pages', payload);
+        if (res.success) {
+          onToast(`Page "${payload.title}" created and published live!`, 'success');
+          await fetchAllData();
+          setSelectedStudioPage(res.data);
+          setPageEditorData(res.data);
+          onPublicUpdate?.();
+        }
+      } else {
+        const id = pageEditorData._id || pageEditorData.id;
+        const res = await api.put(`/api/v1/admin/pages/${id}`, pageEditorData);
+        if (res.success) {
+          onToast(`Page "${pageEditorData.title}" details updated live!`, 'success');
+          fetchAllData();
+          setSelectedStudioPage(res.data);
+          onPublicUpdate?.();
+        }
       }
     } catch (err) {
       onToast(err.message || 'Failed to save page', 'error');
@@ -567,7 +613,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <button className="admin-btn admin-btn-primary" onClick={() => openModal('page')} style={{ fontWeight: 600 }}>
+          <button className="admin-btn admin-btn-primary" onClick={handleStartCreateNewPage} style={{ fontWeight: 600 }}>
             <Plus size={14} /> Add New Page
           </button>
           <button className="admin-btn admin-btn-success" onClick={() => { handleSaveSettings(); onToast('Changes saved!', 'success'); }}>
@@ -605,7 +651,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
               <span className="admin-section-label" style={{ padding: 0, margin: 0 }}>Your Pages</span>
               <button
                 type="button"
-                onClick={() => openModal('page')}
+                onClick={handleStartCreateNewPage}
                 style={{ background: 'none', border: 'none', color: '#2563EB', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0.15rem 0.35rem', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 600, gap: '0.2rem' }}
                 title="Add New Page"
               >
@@ -694,53 +740,135 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                 </div>
               </div>
 
-              {/* Homepage Sections */}
+              {/* Website Pages List directly on Dashboard */}
               <div className="admin-card" style={{ marginBottom: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                   <div>
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Homepage Sections</h3>
-                    <p style={{ fontSize: '0.8rem', color: '#6B7280', margin: 0 }}>Turn sections on or off on your homepage</p>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: '#111827' }}>
+                      Website Pages ({pagesList.length})
+                    </h3>
+                    <p style={{ fontSize: '0.82rem', color: '#6B7280', margin: '0.2rem 0 0 0' }}>
+                      All institutional pages live on your website. Click any page to edit its banner, photos, and content.
+                    </p>
                   </div>
+                  <button className="admin-btn admin-btn-primary" onClick={handleStartCreateNewPage} style={{ fontWeight: 600 }}>
+                    <Plus size={14} /> Add New Page
+                  </button>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {sectionsList.map((sec, idx) => (
-                    <div key={sec._id || sec.id || idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.85rem', background: '#F9FAFB', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <span style={{ width: '24px', height: '24px', borderRadius: '6px', background: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>
-                          {idx + 1}
-                        </span>
-                        <span style={{ fontSize: '0.88rem', fontWeight: 500, color: sec.isVisible ? '#111827' : '#9CA3AF' }}>
-                          {sec.title}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <span style={{ fontSize: '0.75rem', color: sec.isVisible ? '#059669' : '#9CA3AF' }}>
-                          {sec.isVisible ? 'Showing' : 'Hidden'}
-                        </span>
-                        <button className={`toggle-switch ${sec.isVisible ? 'on' : ''}`}
-                          onClick={() => handleToggleSection(sec._id || sec.id)}>
-                          <span className="toggle-switch-knob" />
-                        </button>
-                        <div style={{ display: 'flex', gap: '0.25rem' }}>
-                          <button className="admin-btn admin-btn-secondary" style={{ padding: '0.25rem 0.4rem' }} disabled={idx === 0} onClick={() => handleMoveSection(idx, 'up')} title="Move up">
-                            <ArrowUp size={13} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                  {pagesList.map(page => {
+                    const pageSubs = subsectionsList.filter(s => s.pageSlug === page.slug);
+                    return (
+                      <div
+                        key={page._id || page.slug}
+                        className="page-list-item"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => { setSelectedStudioPage(page); setPageEditorData({ ...page }); setCurrentTab('pages'); }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+                          <div style={{ width: "34px", height: "34px", borderRadius: "8px", background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center", color: "#2563EB", flexShrink: 0 }}>
+                            {renderPageIcon(page.slug, 18)}
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                              <strong style={{ fontSize: '0.92rem', color: '#111827' }}>{page.title}</strong>
+                              {page.isSystem && (
+                                <span style={{ background: '#EFF6FF', color: '#2563EB', padding: '0.05rem 0.35rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700 }}>
+                                  CORE
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: '0.78rem', color: '#9CA3AF' }}>
+                              /{page.slug} • {pageSubs.length} section{pageSubs.length !== 1 ? 's' : ''}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={e => e.stopPropagation()}>
+                          <span style={{ fontSize: '0.75rem', color: page.isActive ? '#059669' : '#9CA3AF', fontWeight: 600 }}>
+                            {page.isActive ? '● Live' : '○ Hidden'}
+                          </span>
+                          <button
+                            type="button"
+                            className={`toggle-switch ${page.isActive ? 'on' : ''}`}
+                            onClick={() => handleToggleEntity('pages', page._id || page.id)}
+                            title={page.isActive ? 'Hide page' : 'Show page'}
+                          >
+                            <span className="toggle-switch-knob" />
                           </button>
-                          <button className="admin-btn admin-btn-secondary" style={{ padding: '0.25rem 0.4rem' }} disabled={idx === sectionsList.length - 1} onClick={() => handleMoveSection(idx, 'down')} title="Move down">
-                            <ArrowDown size={13} />
+                          <button
+                            type="button"
+                            className="admin-btn admin-btn-primary"
+                            style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem' }}
+                            onClick={() => { setSelectedStudioPage(page); setPageEditorData({ ...page }); setCurrentTab('pages'); }}
+                          >
+                            <Edit size={13} /> Edit Page
                           </button>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
+              </div>
+
+              {/* Collapsible Homepage Sections Management */}
+              <div className="admin-card" style={{ marginBottom: '1.5rem' }}>
+                <div
+                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                  onClick={() => setShowDashboardSections(!showDashboardSections)}
+                >
+                  <div>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#111827' }}>
+                      <Sliders size={16} style={{ color: '#2563EB' }} /> Homepage Sections Reordering & Visibility ({sectionsList.filter(s => s.isVisible).length}/{sectionsList.length})
+                    </h3>
+                    <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '0.15rem 0 0 0' }}>Click to expand/collapse homepage section re-ordering</p>
+                  </div>
+                  <button type="button" className="admin-btn admin-btn-secondary" style={{ padding: '0.3rem 0.6rem' }}>
+                    {showDashboardSections ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                  </button>
+                </div>
+
+                {showDashboardSections && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem', borderTop: '1px solid #E5E7EB', paddingTop: '1rem' }}>
+                    {sectionsList.map((sec, idx) => (
+                      <div key={sec._id || sec.id || idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 0.85rem', background: '#F9FAFB', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <span style={{ width: '24px', height: '24px', borderRadius: '6px', background: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700 }}>
+                            {idx + 1}
+                          </span>
+                          <span style={{ fontSize: '0.88rem', fontWeight: 500, color: sec.isVisible ? '#111827' : '#9CA3AF' }}>
+                            {sec.title}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <span style={{ fontSize: '0.75rem', color: sec.isVisible ? '#059669' : '#9CA3AF' }}>
+                            {sec.isVisible ? 'Showing' : 'Hidden'}
+                          </span>
+                          <button className={`toggle-switch ${sec.isVisible ? 'on' : ''}`}
+                            onClick={() => handleToggleSection(sec._id || sec.id)}>
+                            <span className="toggle-switch-knob" />
+                          </button>
+                          <div style={{ display: 'flex', gap: '0.25rem' }}>
+                            <button className="admin-btn admin-btn-secondary" style={{ padding: '0.25rem 0.4rem' }} disabled={idx === 0} onClick={() => handleMoveSection(idx, 'up')} title="Move up">
+                              <ArrowUp size={13} />
+                            </button>
+                            <button className="admin-btn admin-btn-secondary" style={{ padding: '0.25rem 0.4rem' }} disabled={idx === sectionsList.length - 1} onClick={() => handleMoveSection(idx, 'down')} title="Move down">
+                              <ArrowDown size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Quick Links */}
               <div className="admin-card">
                 <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0 0 0.75rem 0' }}>Quick Actions</h3>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  <button className="admin-btn admin-btn-primary" onClick={() => { setCurrentTab('pages'); openModal('page'); }}><Plus size={14} /> Add New Page</button>
+                  <button className="admin-btn admin-btn-primary" onClick={handleStartCreateNewPage}><Plus size={14} /> Add New Page</button>
                   <button className="admin-btn admin-btn-secondary" onClick={() => { setCurrentTab('hero'); openModal('banner'); }}><Plus size={14} /> Add Hero Slide</button>
                   <button className="admin-btn admin-btn-secondary" onClick={() => { setCurrentTab('gallery'); openModal('gallery'); }}><Plus size={14} /> Add Photo</button>
                   <button className="admin-btn admin-btn-secondary" onClick={() => { setCurrentTab('notices'); }}><FileText size={14} /> Manage Notices</button>
@@ -757,7 +885,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                   <h2 style={{ fontSize: '1.3rem', fontWeight: 700, margin: 0 }}>All Pages</h2>
                   <p style={{ fontSize: '0.85rem', color: '#6B7280', margin: 0 }}>Click any page to edit its content, title, and images.</p>
                 </div>
-                <button className="admin-btn admin-btn-primary" onClick={() => openModal('page')}>
+                <button className="admin-btn admin-btn-primary" onClick={handleStartCreateNewPage}>
                   <Plus size={14} /> Add New Page
                 </button>
               </div>
@@ -848,10 +976,10 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                     </div>
                     <div>
                       <h2 style={{ fontSize: '1.3rem', fontWeight: 700, margin: 0, color: '#111827' }}>
-                        {selectedStudioPage.title}
+                        {selectedStudioPage.isNew ? (pageEditorData?.title || 'Create New Page') : selectedStudioPage.title}
                       </h2>
                       <div style={{ fontSize: '0.78rem', color: '#6B7280' }}>
-                        Page Route: <code style={{ background: '#F3F4F6', padding: '0.1rem 0.4rem', borderRadius: '4px', color: '#2563EB', fontWeight: 600 }}>/{selectedStudioPage.slug}</code>
+                        Page Route: <code style={{ background: '#F3F4F6', padding: '0.1rem 0.4rem', borderRadius: '4px', color: '#2563EB', fontWeight: 600 }}>/{pageEditorData?.slug || selectedStudioPage.slug || 'new-page'}</code>
                       </div>
                     </div>
                   </div>
@@ -859,39 +987,45 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#F9FAFB', padding: '0.4rem 0.85rem', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: selectedStudioPage.isActive ? '#059669' : '#9CA3AF' }}>
-                      {selectedStudioPage.isActive ? '● Live on Website' : '○ Hidden from Visitors'}
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600, color: (pageEditorData?.isActive ?? selectedStudioPage.isActive) ? '#059669' : '#9CA3AF' }}>
+                      {(pageEditorData?.isActive ?? selectedStudioPage.isActive) ? '● Live on Website' : '○ Hidden from Visitors'}
                     </span>
                     <button
                       type="button"
-                      className={`toggle-switch ${selectedStudioPage.isActive ? 'on' : ''}`}
+                      className={`toggle-switch ${(pageEditorData?.isActive ?? selectedStudioPage.isActive) ? 'on' : ''}`}
                       onClick={async () => {
-                        await handleToggleEntity('pages', selectedStudioPage._id || selectedStudioPage.id);
-                        setSelectedStudioPage(prev => ({ ...prev, isActive: !prev.isActive }));
+                        if (selectedStudioPage.isNew) {
+                          setPageEditorData(prev => ({ ...prev, isActive: !prev.isActive }));
+                        } else {
+                          await handleToggleEntity('pages', selectedStudioPage._id || selectedStudioPage.id);
+                          setSelectedStudioPage(prev => ({ ...prev, isActive: !prev.isActive }));
+                        }
                       }}
-                      title={selectedStudioPage.isActive ? 'Click to hide this page' : 'Click to make page visible'}
+                      title="Toggle visibility"
                     >
                       <span className="toggle-switch-knob" />
                     </button>
                   </div>
 
-                  <a
-                    href={`#${selectedStudioPage.slug}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="admin-btn admin-btn-secondary"
-                    style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.85rem' }}
-                  >
-                    <ExternalLink size={14} /> Open Live Page
-                  </a>
+                  {!selectedStudioPage.isNew && (
+                    <a
+                      href={`#${selectedStudioPage.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="admin-btn admin-btn-secondary"
+                      style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.85rem' }}
+                    >
+                      <ExternalLink size={14} /> Open Live Page
+                    </a>
+                  )}
 
                   <button
                     type="button"
                     className="admin-btn admin-btn-success"
                     onClick={handleSavePageDetails}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', fontSize: '0.85rem' }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 1.1rem', fontSize: '0.85rem', fontWeight: 700 }}
                   >
-                    <Save size={15} /> Save Page
+                    <Save size={15} /> {selectedStudioPage.isNew ? 'Publish Page Live' : 'Save Page'}
                   </button>
                 </div>
               </div>
@@ -1795,13 +1929,27 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                     </div>
 
                     <div style={{ marginBottom: '1.1rem' }}>
-                      <label className="simple-label">Page Title</label>
+                      <label className="simple-label">Page Title *</label>
                       <input
                         type="text"
                         className="simple-input"
-                        placeholder="e.g. About Us"
+                        placeholder="e.g. Alumni Network"
                         value={pageEditorData?.title || ''}
-                        onChange={e => setPageEditorData({ ...pageEditorData, title: e.target.value })}
+                        onChange={e => {
+                          const val = e.target.value;
+                          if (selectedStudioPage.isNew) {
+                            const genSlug = val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                            setPageEditorData(prev => ({
+                              ...prev,
+                              title: val,
+                              slug: genSlug,
+                              navLabel: prev.navLabel || val,
+                              heroTitle: prev.heroTitle || val
+                            }));
+                          } else {
+                            setPageEditorData(prev => ({ ...prev, title: val }));
+                          }
+                        }}
                         required
                       />
                     </div>
@@ -1946,7 +2094,27 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                       </button>
                     </div>
 
-                    {subsectionsList.filter(s => s.pageSlug === selectedStudioPage.slug).length === 0 ? (
+                    {selectedStudioPage.isNew ? (
+                      <div style={{ textAlign: 'center', padding: '2.5rem 1.5rem', background: '#F8FAFC', borderRadius: '10px', border: '1.5px dashed #CBD5E1' }}>
+                        <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto' }}>
+                          <CheckCircle size={24} />
+                        </div>
+                        <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', margin: '0 0 0.4rem 0' }}>
+                          Ready to Publish New Page
+                        </h4>
+                        <p style={{ fontSize: '0.82rem', color: '#64748B', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
+                          Enter your headline and page title on the left, then click <strong>Publish Page Live</strong>. Once published, you can add modular content subsections, cards, and images right here!
+                        </p>
+                        <button
+                          type="button"
+                          className="admin-btn admin-btn-success"
+                          style={{ margin: '0 auto', padding: '0.6rem 1.25rem', fontWeight: 700 }}
+                          onClick={handleSavePageDetails}
+                        >
+                          <Save size={15} /> Publish Page Live
+                        </button>
+                      </div>
+                    ) : subsectionsList.filter(s => s.pageSlug === selectedStudioPage.slug).length === 0 ? (
                       <div style={{ textAlign: 'center', padding: '2rem 1rem', background: '#F9FAFB', borderRadius: '8px', border: '1.5px dashed #D1D5DB' }}>
                         <div style={{ color: '#9CA3AF', marginBottom: '0.5rem' }}>
                           <Layers size={28} style={{ margin: '0 auto' }} />
