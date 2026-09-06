@@ -5,6 +5,7 @@
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
+    "build": "npm --prefix client install && npm --prefix client run build",
     "dev": "node server/index.js",
     "seed": "node server/seed.js"
   },
