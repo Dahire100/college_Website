@@ -72,65 +72,130 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
         </div>
       )}
 
-      {/* Tier 1: Top Utility Bar */}
-      <div style={{ background: '#071626', color: '#94A3B8', fontSize: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0.35rem 0' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
-            <span style={{ background: '#DC2626', color: '#FFFFFF', padding: '0.1rem 0.45rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.04em' }}>
+      {/* Tier 1: Sleek Top Utility Bar */}
+      <div style={{ background: '#0B1528', color: '#94A3B8', fontSize: '0.76rem', borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '0.42rem 0' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+          {/* Left: Institute Badges & Accreditation */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+            <span style={{
+              background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+              color: '#FFFFFF',
+              padding: '0.15rem 0.55rem',
+              borderRadius: '9999px',
+              fontWeight: 700,
+              fontSize: '0.68rem',
+              letterSpacing: '0.04em',
+              boxShadow: '0 2px 6px rgba(220,38,38,0.3)'
+            }}>
               {profile.shortName}
             </span>
-            <span style={{ color: '#F1F5F9', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22C55E', display: 'inline-block' }} />
+
+            <span style={{ color: '#E2E8F0', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', display: 'inline-block', boxShadow: '0 0 6px #10B981' }} />
               {profile.academicUnitsLabel}
             </span>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-            <span style={{ color: '#FCD34D', fontWeight: 600 }}>
-              {settings.accreditation_summary || 'CMS Managed Institutional Site'}
-            </span>
+
+            {settings.accreditation_summary && (
+              <>
+                <span style={{ color: 'rgba(255,255,255,0.15)' }}>•</span>
+                <span style={{
+                  color: '#FCD34D',
+                  fontWeight: 600,
+                  fontSize: '0.74rem',
+                  letterSpacing: '0.01em'
+                }}>
+                  {settings.accreditation_summary}
+                </span>
+              </>
+            )}
+
             {settings.affiliation && (
               <>
-                <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-                <span style={{ color: '#E2E8F0' }}>{settings.affiliation}</span>
+                <span style={{ color: 'rgba(255,255,255,0.15)' }}>•</span>
+                <span style={{ color: '#CBD5E1', fontSize: '0.74rem' }}>
+                  {settings.affiliation}
+                </span>
               </>
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem', flexWrap: 'wrap' }}>
-            <a href={`tel:${settings.contact_phone_primary || '+91 20 2420 2180'}`} style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', transition: 'color 150ms' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#CBD5E1'}>
-              <Phone size={11} style={{ color: '#94A3B8' }} />
+          {/* Right: Contact & Admin */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <a
+              href={`tel:${settings.contact_phone_primary || '+91 20 2420 2180'}`}
+              style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', transition: 'color 150ms', fontSize: '0.74rem' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'}
+              onMouseLeave={e => e.currentTarget.style.color = '#CBD5E1'}
+            >
+              <Phone size={12} style={{ color: '#60A5FA' }} />
               <span>{settings.contact_phone_primary || '+91 20 2420 2180'}</span>
             </a>
-            <a href={`mailto:${settings.contact_email_primary || 'info@example.edu'}`} style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', transition: 'color 150ms' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#CBD5E1'}>
-              <Mail size={11} style={{ color: '#94A3B8' }} />
+
+            <a
+              href={`mailto:${settings.contact_email_primary || 'info@example.edu'}`}
+              style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', transition: 'color 150ms', fontSize: '0.74rem' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'}
+              onMouseLeave={e => e.currentTarget.style.color = '#CBD5E1'}
+            >
+              <Mail size={12} style={{ color: '#60A5FA' }} />
               <span>{settings.contact_email_primary || 'info@example.edu'}</span>
             </a>
+
             {settings.erp_login_url && (
-              <a href={settings.erp_login_url} target="_blank" rel="noopener noreferrer" style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(255,255,255,0.08)', padding: '0.15rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.15)', fontWeight: 600, fontSize: '0.72rem' }}>
-                <Globe size={10} /> ERP Login
+              <a
+                href={settings.erp_login_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: '#CBD5E1',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  background: 'rgba(255,255,255,0.06)',
+                  padding: '0.2rem 0.55rem',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  fontWeight: 600,
+                  fontSize: '0.72rem',
+                  transition: 'all 150ms'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#60A5FA'; e.currentTarget.style.color = '#FFFFFF'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#CBD5E1'; }}
+              >
+                <Globe size={11} /> ERP Portal
               </a>
             )}
+
             <button
               onClick={() => handleNavClick('admin')}
               style={{
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.15)',
+                background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.25))',
+                border: '1px solid rgba(245,158,11,0.4)',
                 color: '#FCD34D',
                 cursor: 'pointer',
-                fontSize: '0.72rem',
+                fontSize: '0.73rem',
                 fontWeight: 600,
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.3rem',
-                padding: '0.15rem 0.5rem',
-                borderRadius: '4px',
-                transition: 'all 150ms'
+                gap: '0.35rem',
+                padding: '0.22rem 0.65rem',
+                borderRadius: '6px',
+                transition: 'all 200ms',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(252,211,77,0.15)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(245,158,11,0.35)';
+                e.currentTarget.style.borderColor = '#FCD34D';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.25))';
+                e.currentTarget.style.borderColor = 'rgba(245,158,11,0.4)';
+                e.currentTarget.style.transform = 'none';
+              }}
             >
-              <Lock size={10} /> Admin CMS
+              <Lock size={11} /> Admin CMS
             </button>
           </div>
         </div>
@@ -181,15 +246,19 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexShrink: 0 }}>
             {/* Admissions Helpline */}
-            <div style={{ borderLeft: '2px solid #E2E8F0', paddingLeft: '1.25rem', textAlign: 'right' }} className="header-helpline-box">
-              <span style={{ fontSize: '0.7rem', color: '#DC2626', display: 'block', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.03em' }}>
-                Admissions Office
+            <div style={{ borderLeft: '1px solid #E2E8F0', paddingLeft: '1.25rem', textAlign: 'right' }} className="header-helpline-box">
+              <span style={{ fontSize: '0.68rem', color: '#64748B', display: 'block', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
+                Admissions Helpline
               </span>
-              <span style={{ fontSize: '0.95rem', color: '#002147', fontWeight: 700, fontFamily: "'Inter', monospace" }}>
+              <a
+                href={`tel:${settings.contact_phone_admissions || settings.contact_phone_primary || '+91 20 2420 2115'}`}
+                style={{ fontSize: '0.95rem', color: '#002147', fontWeight: 800, fontFamily: "'Inter', sans-serif", textDecoration: 'none', display: 'block' }}
+              >
                 {settings.contact_phone_admissions || settings.contact_phone_primary || '+91 20 2420 2115'}
-              </span>
-              <div style={{ fontSize: '0.7rem', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
-                {profile.admissionsLabel}
+              </a>
+              <div style={{ fontSize: '0.68rem', color: '#10B981', fontWeight: 600, marginTop: '2px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.3rem' }}>
+                <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#10B981' }}></span>
+                {profile.admissionsLabel || 'Admissions Open'}
               </div>
             </div>
 
@@ -197,11 +266,32 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
             {onOpenInquiry && (
               <button
                 onClick={() => onOpenInquiry()}
-                className="btn btn-accent btn-sm"
-                style={{ display: 'none', fontFamily: "'Inter', sans-serif" }}
+                style={{
+                  background: 'linear-gradient(135deg, #D97706, #B45309)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.6rem 1.1rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  boxShadow: '0 4px 12px rgba(217, 119, 6, 0.3)',
+                  transition: 'all 200ms ease'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(217, 119, 6, 0.4)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'none';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(217, 119, 6, 0.3)';
+                }}
                 id="header-apply-btn"
               >
-                Apply Now <ArrowRight size={14} />
+                Apply Now <ArrowRight size={15} />
               </button>
             )}
 
