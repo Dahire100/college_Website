@@ -48,49 +48,58 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
       <div style={{ background: '#071626', color: '#94A3B8', fontSize: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0.35rem 0' }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem' }}>
           {/* Left: Government Accreditations */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
+            <span style={{ background: '#DC2626', color: '#FFFFFF', padding: '0.1rem 0.45rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.04em' }}>
+              DTE CODE: {settings.dte_code || '6277'}
+            </span>
             <span style={{ color: '#F1F5F9', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22C55E', display: 'inline-block' }} />
-              UGC Autonomous Institution
+              UGC Autonomous
             </span>
             <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
             <span style={{ color: '#FCD34D', fontWeight: 600 }}>
-              NAAC 'A++' Grade (CGPA 3.65)
+              NAAC 'A++' Grade (CGPA 3.68)
             </span>
             <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
             <span style={{ color: '#E2E8F0' }}>
-              NBA Tier-1 Accredited Programs
+              Affiliated to SPPU, Pune
+            </span>
+            <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
+            <span style={{ color: '#CBD5E1' }}>
+              NBA Tier-1 Accredited
             </span>
           </div>
 
           {/* Right: Contact & Portal Links */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
-            <a href={`tel:${settings.contact_phone_primary || '+91 253 251 2876'}`} style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem', flexWrap: 'wrap' }}>
+            <a href={`tel:${settings.contact_phone_primary || '+91 20 2420 2180'}`} style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
               <Phone size={11} style={{ color: '#94A3B8' }} />
-              <span>{settings.contact_phone_primary || '+91 253 251 2876'}</span>
+              <span>{settings.contact_phone_primary || '+91 20 2420 2180'}</span>
             </a>
-            <a href={`mailto:${settings.contact_email_primary || 'principal@apex-inst.edu'}`} style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <a href={`mailto:${settings.contact_email_primary || 'principal@vit.edu'}`} style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
               <Mail size={11} style={{ color: '#94A3B8' }} />
-              <span>{settings.contact_email_primary || 'principal@apex-inst.edu'}</span>
+              <span>{settings.contact_email_primary || 'principal@vit.edu'}</span>
             </a>
             <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
             <button
               onClick={() => handleNavClick('admin')}
               style={{
-                background: 'none',
-                border: 'none',
-                color: '#CBD5E1',
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                color: '#FCD34D',
                 cursor: 'pointer',
-                fontSize: '0.75rem',
+                fontSize: '0.72rem',
+                fontWeight: 600,
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.3rem',
-                padding: 0
+                padding: '0.15rem 0.5rem',
+                borderRadius: '4px'
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = '#FCD34D')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = '#CBD5E1')}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.18)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
             >
-              <Lock size={11} /> Admin Portal
+              <Lock size={10} /> Admin CMS Portal
             </button>
           </div>
         </div>
@@ -117,7 +126,7 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
                   style={{ width: '58px', height: '58px', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,33,71,0.12))' }}
                 />
               ) : (
-                <svg width="58" height="58" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,33,71,0.15))' }}>
+                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,33,71,0.15))' }}>
                   {/* Outer Crest Ring */}
                   <circle cx="50" cy="50" r="47" fill="#002147" stroke="#C59B27" strokeWidth="3" />
                   <circle cx="50" cy="50" r="41" fill="#FFFFFF" stroke="#002147" strokeWidth="1.5" />
@@ -133,10 +142,10 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
                   {/* Gear of Engineering */}
                   <circle cx="50" cy="69" r="6" stroke="#002147" strokeWidth="2" fill="#C59B27" strokeDasharray="3 2" />
 
-                  {/* Banner ESTD 1984 */}
+                  {/* Banner ESTD 1983 */}
                   <rect x="26" y="80" width="48" height="11" rx="2" fill="#002147" stroke="#C59B27" strokeWidth="1" />
                   <text x="50" y="88.5" fontSize="7" fontWeight="bold" fill="#FFFFFF" textAnchor="middle" fontFamily="sans-serif">
-                    ESTD. 1984
+                    ESTD. 1983
                   </text>
                 </svg>
               )}
@@ -145,7 +154,7 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
             {/* University Titles */}
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.15rem' }}>
-                Apex Education Trust • Autonomous Institute
+                Bansilal Ramnath Agarwal Charitable Trust • Autonomous Institute
               </div>
               <h1 style={{
                 fontSize: '1.45rem',
@@ -156,10 +165,10 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
                 margin: 0,
                 lineHeight: 1.2
               }}>
-                {settings.college_name || 'Apex Institute of Engineering & Technology'}
+                {settings.college_name || 'Vishwakarma Institute of Technology (VIT Pune)'}
               </h1>
               <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: '0.25rem', lineHeight: 1.35 }}>
-                Approved by AICTE, New Delhi • Affiliated to State Technological University • Recognized by Govt. of Maharashtra
+                Autonomous Institute Affiliated to Savitribai Phule Pune University (SPPU) • Approved by AICTE • DTE Code: {settings.dte_code || '6277'}
               </div>
             </div>
           </a>
@@ -168,12 +177,14 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexShrink: 0 }}>
             {/* Admissions Help Desk */}
             <div style={{ borderLeft: '2px solid #E2E8F0', paddingLeft: '1.25rem', textAlign: 'right' }} className="header-helpline-box">
-              <span style={{ fontSize: '0.7rem', color: '#64748B', display: 'block', textTransform: 'uppercase', fontWeight: 600 }}>Admissions Helpline</span>
+              <span style={{ fontSize: '0.7rem', color: '#DC2626', display: 'block', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.03em' }}>
+                DTE CODE: {settings.dte_code || '6277'}
+              </span>
               <span style={{ fontSize: '0.95rem', color: '#002147', fontWeight: 700, fontFamily: 'monospace' }}>
-                {settings.contact_phone_admissions || '+91 253 251 2867'}
+                {settings.contact_phone_admissions || '+91 20 2420 2115'}
               </span>
               <div style={{ fontSize: '0.7rem', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
-                Online Counseling Active
+                MHT-CET CAP Counseling Active
               </div>
             </div>
 

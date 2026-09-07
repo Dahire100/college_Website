@@ -7,8 +7,8 @@ async function seed() {
   await connectDB();
 
   // 1. Single Admin User
-  const existingAdmin = await db.Admin.findOne({ username: process.env.ADMIN_USERNAME || 'admin' });
-  if (!existingAdmin) {
+  const adminCount = await db.Admin.countDocuments();
+  if (adminCount === 0) {
     const defaultPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
     const passwordHash = bcrypt.hashSync(defaultPassword, 10);
     await db.Admin.create({

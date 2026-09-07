@@ -5,12 +5,14 @@ import {
   CheckCircle, Plus, Trash2, Edit, ArrowUp, ArrowDown, ArrowLeft, Eye, EyeOff,
   Upload, X, Check, Save, HelpCircle, ExternalLink, Globe, Sliders,
   ChevronDown, ChevronUp, FileText, Search, Home, BookOpen, Users,
-  Building2, ClipboardList, School, Microscope, Image, Newspaper, Phone
+  Building2, ClipboardList, School, Microscope, Image, Newspaper, Phone, Key, Lock, Palette
 } from 'lucide-react';
 import { api } from '../services/api';
 import ImageUploadField from './ImageUploadField';
+import PdfUploadField from './PdfUploadField';
+import { THEME_PRESETS, applyTheme } from '../styles/themes';
 
-export default function AdminDashboard({ onToast, onPublicUpdate }) {
+export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) {
   const [isAuthenticated, setIsAuthenticated] = useState(api.isAuthenticated());
   const [currentTab, setCurrentTab] = useState('overview');
   const [adminUser, setAdminUser] = useState(api.getAdmin());
@@ -40,8 +42,9 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
   const [showDashboardSections, setShowDashboardSections] = useState(false);
 
   // Login form state
-  const [loginUsername, setLoginUsername] = useState('admin');
-  const [loginPassword, setLoginPassword] = useState('Admin@123');
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -52,6 +55,124 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
 
   // Settings form local state
   const [localSettings, setLocalSettings] = useState({});
+
+  // Admin Account & Security state
+  const [newUsernameInput, setNewUsernameInput] = useState('');
+  const [currentPasswordForUser, setCurrentPasswordForUser] = useState('');
+  const [showCurrentPassUser, setShowCurrentPassUser] = useState(false);
+  const [userUpdating, setUserUpdating] = useState(false);
+
+  const [currentPasswordForPass, setCurrentPasswordForPass] = useState('');
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState('');
+  const [showCurrentPass, setShowCurrentPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const [passUpdating, setPassUpdating] = useState(false);
+
+  const [adminFullName, setAdminFullName] = useState(adminUser?.fullName || 'Chief Institutional Administrator');
+  const [adminEmail, setAdminEmail] = useState(adminUser?.email || 'admin@apex-inst.edu');
+  const [profileUpdating, setProfileUpdating] = useState(false);
+
+  useEffect(() => {
+    if (adminUser) {
+      if (adminUser.fullName) setAdminFullName(adminUser.fullName);
+      if (adminUser.email) setAdminEmail(adminUser.email);
+    }
+  }, [adminUser]);
+
+  const handleUpdateUsername = async (e) => {
+    e.preventDefault();
+    if (!newUsernameInput.trim()) {
+      onToast('Please enter a new username', 'error');
+      return;
+    }
+    if (newUsernameInput.trim().length < 3) {
+      onToast('Username must be at least 3 characters', 'error');
+      return;
+    }
+    if (!currentPasswordForUser) {
+      onToast('Please enter your current password to authorize this change', 'error');
+      return;
+    }
+    setUserUpdating(true);
+    try {
+      const res = await api.put('/api/v1/auth/profile', {
+        username: newUsernameInput.trim(),
+        currentPassword: currentPasswordForUser
+      });
+      if (res.success) {
+        api.setAuth(res.token, res.admin);
+        setAdminUser(res.admin);
+        setNewUsernameInput('');
+        setCurrentPasswordForUser('');
+        onToast(`Admin username successfully changed to "${res.admin.username}"!`, 'success');
+      }
+    } catch (err) {
+      onToast(err.message || 'Failed to update username', 'error');
+    } finally {
+      setUserUpdating(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    if (!currentPasswordForPass) {
+      onToast('Please enter your current password', 'error');
+      return;
+    }
+    if (!newPasswordInput) {
+      onToast('Please enter a new password', 'error');
+      return;
+    }
+    if (newPasswordInput.length < 6) {
+      onToast('New password must be at least 6 characters long', 'error');
+      return;
+    }
+    if (newPasswordInput !== confirmPasswordInput) {
+      onToast('New password and confirmation do not match', 'error');
+      return;
+    }
+    setPassUpdating(true);
+    try {
+      const res = await api.put('/api/v1/auth/profile', {
+        currentPassword: currentPasswordForPass,
+        newPassword: newPasswordInput
+      });
+      if (res.success) {
+        api.setAuth(res.token, res.admin);
+        setAdminUser(res.admin);
+        setCurrentPasswordForPass('');
+        setNewPasswordInput('');
+        setConfirmPasswordInput('');
+        onToast('Admin password successfully updated!', 'success');
+      }
+    } catch (err) {
+      onToast(err.message || 'Failed to update password', 'error');
+    } finally {
+      setPassUpdating(false);
+    }
+  };
+
+  const handleUpdateProfileDetails = async (e) => {
+    e.preventDefault();
+    setProfileUpdating(true);
+    try {
+      const res = await api.put('/api/v1/auth/profile', {
+        fullName: adminFullName,
+        email: adminEmail
+      });
+      if (res.success) {
+        api.setAuth(res.token, res.admin);
+        setAdminUser(res.admin);
+        onToast('Admin profile details updated!', 'success');
+      }
+    } catch (err) {
+      onToast(err.message || 'Failed to update profile details', 'error');
+    } finally {
+      setProfileUpdating(false);
+    }
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -239,6 +360,8 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
       heroBadge: 'NEW PAGE',
       heroImageUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80',
       content: '',
+      pdfUrl: '',
+      pdfName: '',
       showInHeader: true,
       showInFooter: true,
       isActive: true
@@ -247,6 +370,33 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
     setPageEditorData(newDraft);
     setCurrentTab('pages');
     setModalOpen(false);
+  };
+
+  // Safe Page Deletion
+  const handleDeletePage = async (page) => {
+    if (!page) return;
+    if (page.isSystem) {
+      onToast('Core institutional system pages cannot be deleted. You can toggle them hidden instead.', 'error');
+      return;
+    }
+    const confirmed = window.confirm(`Are you sure you want to delete the page "${page.title}"?\n\nThis will permanently remove the page, its menu link, and any content subsections.`);
+    if (!confirmed) return;
+
+    try {
+      const id = page._id || page.id;
+      const res = await api.delete(`/api/v1/admin/pages/${id}`);
+      if (res.success) {
+        onToast(`Page "${page.title}" deleted successfully!`, 'success');
+        if (selectedStudioPage && ((selectedStudioPage._id || selectedStudioPage.id) === id || selectedStudioPage.slug === page.slug)) {
+          setSelectedStudioPage(null);
+          setPageEditorData(null);
+        }
+        await fetchAllData();
+        onPublicUpdate?.();
+      }
+    } catch (err) {
+      onToast(err.message || 'Failed to delete page', 'error');
+    }
   };
 
   // Save Page Details (handles both updating existing pages and creating new pages)
@@ -356,6 +506,8 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
           heroBadge: 'NEW PAGE',
           heroImageUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80',
           content: '',
+          pdfUrl: '',
+          pdfName: '',
           showInHeader: true,
           showInFooter: true,
           isActive: true
@@ -368,6 +520,8 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
           badge: 'FEATURED',
           layoutType: 'split_content',
           imageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80',
+          pdfUrl: '',
+          pdfName: '',
           content: '',
           ctaText: 'Explore More',
           ctaLink: '#contact',
@@ -549,21 +703,91 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
           </div>
 
           <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '0.85rem' }}>
-              <label className="simple-label">Username</label>
-              <input type="text" className="simple-input" value={loginUsername} onChange={e => setLoginUsername(e.target.value)} required />
-            </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label className="simple-label">Password</label>
-              <input type="password" className="simple-input" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
+              <label className="simple-label">Username</label>
+              <input
+                type="text"
+                className="simple-input"
+                placeholder="Enter username"
+                value={loginUsername}
+                onChange={e => setLoginUsername(e.target.value)}
+                autoComplete="username"
+                required
+              />
             </div>
-            <button type="submit" className="admin-btn admin-btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.6rem' }}>
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label className="simple-label">Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="simple-input"
+                  placeholder="Enter password"
+                  value={loginPassword}
+                  onChange={e => setLoginPassword(e.target.value)}
+                  autoComplete="current-password"
+                  style={{ paddingRight: '2.5rem' }}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(prev => !prev)}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#6B7280',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px'
+                  }}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+            <button type="submit" className="admin-btn admin-btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.65rem' }}>
               Sign In
             </button>
           </form>
 
-          <div style={{ background: '#F9FAFB', padding: '0.75rem', borderRadius: '8px', marginTop: '1rem', fontSize: '0.78rem', textAlign: 'center', color: '#6B7280', border: '1px solid #E5E7EB' }}>
-            Username: <strong>admin</strong> &nbsp;|&nbsp; Password: <strong>Admin@123</strong>
+          <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid #E5E7EB', textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={() => {
+                if (onNavigate) {
+                  onNavigate('home');
+                } else {
+                  window.location.hash = '#home';
+                }
+              }}
+              style={{
+                width: '100%',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                padding: '0.65rem 1rem',
+                background: '#F3F4F6',
+                color: '#374151',
+                border: '1px solid #D1D5DB',
+                borderRadius: '8px',
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.background = '#E5E7EB'; e.currentTarget.style.color = '#111827'; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.color = '#374151'; }}
+            >
+              <ArrowLeft size={16} /> Back to Main Website
+            </button>
           </div>
         </div>
       </div>
@@ -619,9 +843,29 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
           <button className="admin-btn admin-btn-success" onClick={() => { handleSaveSettings(); onToast('Changes saved!', 'success'); }}>
             <Check size={14} /> Save All Changes
           </button>
-          <a href="#" target="_blank" rel="noreferrer" className="admin-btn admin-btn-secondary" style={{ textDecoration: 'none' }}>
-            <ExternalLink size={13} /> View Website
-          </a>
+          <button
+            className={`admin-btn ${currentTab === 'account' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
+            onClick={() => { setSelectedStudioPage(null); setCurrentTab('account'); }}
+            title="Change Admin Username & Password"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}
+          >
+            <Shield size={13} />
+            <span>Admin: {adminUser?.username || 'admin'}</span>
+          </button>
+          <button
+            className="admin-btn admin-btn-secondary"
+            onClick={() => {
+              if (onNavigate) {
+                onNavigate('home');
+              } else {
+                window.location.hash = '#home';
+              }
+            }}
+            style={{ cursor: 'pointer' }}
+            title="Return to public college portal"
+          >
+            <Globe size={13} /> Return to Website
+          </button>
           <button className="admin-btn admin-btn-secondary" onClick={handleLogout}>
             <LogOut size={13} /> Logout
           </button>
@@ -707,6 +951,11 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
             <button className={`admin-nav-item ${currentTab === 'settings' ? 'active' : ''}`}
               onClick={() => { setSelectedStudioPage(null); setCurrentTab('settings'); }}>
               <Settings size={16} /> Settings
+            </button>
+
+            <button className={`admin-nav-item ${currentTab === 'account' ? 'active' : ''}`}
+              onClick={() => { setSelectedStudioPage(null); setCurrentTab('account'); }}>
+              <Shield size={16} /> Admin Account & Security
             </button>
           </nav>
         </aside>
@@ -907,15 +1156,16 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
                       <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center", color: "#2563EB", flexShrink: 0 }}>{renderPageIcon(page.slug, 18)}</div>
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                           <strong style={{ fontSize: '0.92rem', color: '#111827' }}>{page.title}</strong>
                           {page.isSystem && <span style={{ background: '#EFF6FF', color: '#2563EB', padding: '0.05rem 0.35rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700 }}>CORE</span>}
+                          {page.pdfUrl && <span style={{ background: '#FEE2E2', color: '#DC2626', padding: '0.05rem 0.35rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700 }}>PDF</span>}
                         </div>
                         <div style={{ fontSize: '0.78rem', color: '#9CA3AF' }}>/{page.slug} • {pageSubs.length} section{pageSubs.length !== 1 ? 's' : ''}</div>
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }} onClick={e => e.stopPropagation()}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }} onClick={e => e.stopPropagation()}>
                       <span style={{ fontSize: '0.75rem', color: page.isActive ? '#059669' : '#9CA3AF' }}>
                         {page.isActive ? '✓ Visible' : 'Hidden'}
                       </span>
@@ -927,6 +1177,17 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                         onClick={() => { setSelectedStudioPage(page); setPageEditorData({ ...page }); }}>
                         <Edit size={12} /> Edit
                       </button>
+                      {!page.isSystem && (
+                        <button
+                          type="button"
+                          className="admin-btn admin-btn-danger"
+                          style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem' }}
+                          onClick={() => handleDeletePage(page)}
+                          title="Delete this custom page"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -1019,6 +1280,17 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                     </a>
                   )}
 
+                  {!selectedStudioPage.isNew && !selectedStudioPage.isSystem && (
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn-danger"
+                      onClick={() => handleDeletePage(selectedStudioPage)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.5rem 0.85rem', fontWeight: 600 }}
+                    >
+                      <Trash2 size={14} /> Delete Page
+                    </button>
+                  )}
+
                   <button
                     type="button"
                     className="admin-btn admin-btn-success"
@@ -1094,6 +1366,30 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                       onToast={onToast}
                       aspectRatio="wide"
                       helperText="Upload high-resolution campus photo from your computer (1920x600 recommended)"
+                    />
+                  </div>
+
+                  {/* Card 2: Attached Official PDF Document */}
+                  <div className="admin-card" style={{ padding: '1.5rem', background: '#FFFFFF' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid #F3F4F6', paddingBottom: '0.75rem' }}>
+                      <FileText size={18} style={{ color: '#DC2626' }} />
+                      <div>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: '#111827' }}>
+                          Official PDF Document Attachment
+                        </h3>
+                        <p style={{ fontSize: '0.78rem', color: '#6B7280', margin: '0.15rem 0 0 0' }}>
+                          Upload an official syllabus, prospectus, or circular PDF for this page. Visitors will see an institutional download & preview card.
+                        </p>
+                      </div>
+                    </div>
+
+                    <PdfUploadField
+                      label="Page Official PDF Document"
+                      value={pageEditorData?.pdfUrl || ''}
+                      pdfName={pageEditorData?.pdfName || ''}
+                      onChange={(url, name) => setPageEditorData(prev => ({ ...prev, pdfUrl: url, pdfName: name }))}
+                      onToast={onToast}
+                      helperText="Upload official syllabus, prospectus, brochure, or notice PDF from computer (Max 10MB)"
                     />
                   </div>
 
@@ -2626,6 +2922,152 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                 {currentTab === 'settings' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4rem' }}>
                     
+                    {/* 0. Website Theme & Color Customizer */}
+                    <div style={{ background: '#FFFFFF', padding: '1.5rem', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <div>
+                          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: '#111827', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Palette size={20} style={{ color: '#2563EB' }} /> Institutional Website Theme & Color Palette
+                          </h3>
+                          <p style={{ fontSize: '0.8rem', color: '#6B7280', margin: '0.2rem 0 0 0' }}>
+                            Select an official academic theme preset or customize primary and accent brand colors with instant live preview.
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#F3F4F6', padding: '0.3rem 0.75rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 600, color: '#374151' }}>
+                          Active Preset: <strong>{THEME_PRESETS[localSettings.theme_preset || 'oxford']?.name || 'Oxford Academic'}</strong>
+                        </div>
+                      </div>
+
+                      {/* Theme Presets Grid */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+                        {Object.values(THEME_PRESETS).map(preset => {
+                          const isSelected = (localSettings.theme_preset || 'oxford') === preset.id;
+                          return (
+                            <div
+                              key={preset.id}
+                              onClick={() => {
+                                const nextSettings = {
+                                  ...localSettings,
+                                  theme_preset: preset.id,
+                                  theme_primary_color: preset.primary,
+                                  theme_accent_color: preset.accent
+                                };
+                                setLocalSettings(nextSettings);
+                                applyTheme(nextSettings);
+                                onToast(`Theme switched to ${preset.name}! Click "Save All Changes" to publish permanently.`, 'info');
+                              }}
+                              style={{
+                                border: isSelected ? '2px solid #2563EB' : '1px solid #E2E8F0',
+                                borderRadius: '10px',
+                                padding: '1rem',
+                                background: isSelected ? '#EFF6FF' : '#F8FAFC',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                position: 'relative',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.65rem'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                  {/* Swatch */}
+                                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: preset.primary, border: '2px solid #FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: preset.accent, marginLeft: '-8px', border: '2px solid #FFFFFF', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                                  </div>
+                                  <strong style={{ fontSize: '0.9rem', color: '#111827' }}>{preset.name}</strong>
+                                </div>
+                                <span style={{
+                                  fontSize: '0.68rem',
+                                  fontWeight: 700,
+                                  padding: '0.15rem 0.45rem',
+                                  borderRadius: '4px',
+                                  background: isSelected ? '#2563EB' : '#E2E8F0',
+                                  color: isSelected ? '#FFFFFF' : '#475569'
+                                }}>
+                                  {preset.badge}
+                                </span>
+                              </div>
+
+                              <p style={{ fontSize: '0.76rem', color: '#64748B', margin: 0, lineHeight: 1.4 }}>
+                                {preset.description}
+                              </p>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.72rem', color: '#6B7280', paddingTop: '0.4rem', borderTop: '1px solid #E2E8F0' }}>
+                                <span>Primary: <code>{preset.primary}</code></span>
+                                <span>Accent: <code>{preset.accent}</code></span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Custom Color Pickers */}
+                      <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                        <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#334155', marginBottom: '0.75rem' }}>
+                          Custom Brand Color Overrides (Optional)
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                          <div>
+                            <label className="simple-label">Primary Brand Color</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <input
+                                type="color"
+                                value={localSettings.theme_primary_color || '#002147'}
+                                onChange={e => {
+                                  const next = { ...localSettings, theme_primary_color: e.target.value };
+                                  setLocalSettings(next);
+                                  applyTheme(next);
+                                }}
+                                style={{ width: '42px', height: '38px', borderRadius: '6px', border: '1px solid #CBD5E1', cursor: 'pointer', padding: '2px' }}
+                              />
+                              <input
+                                type="text"
+                                className="simple-input"
+                                value={localSettings.theme_primary_color || '#002147'}
+                                onChange={e => {
+                                  const next = { ...localSettings, theme_primary_color: e.target.value };
+                                  setLocalSettings(next);
+                                  applyTheme(next);
+                                }}
+                                placeholder="#002147"
+                                style={{ fontFamily: 'monospace', textTransform: 'uppercase' }}
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="simple-label">Accent / Highlight Color</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <input
+                                type="color"
+                                value={localSettings.theme_accent_color || '#C59B27'}
+                                onChange={e => {
+                                  const next = { ...localSettings, theme_accent_color: e.target.value };
+                                  setLocalSettings(next);
+                                  applyTheme(next);
+                                }}
+                                style={{ width: '42px', height: '38px', borderRadius: '6px', border: '1px solid #CBD5E1', cursor: 'pointer', padding: '2px' }}
+                              />
+                              <input
+                                type="text"
+                                className="simple-input"
+                                value={localSettings.theme_accent_color || '#C59B27'}
+                                onChange={e => {
+                                  const next = { ...localSettings, theme_accent_color: e.target.value };
+                                  setLocalSettings(next);
+                                  applyTheme(next);
+                                }}
+                                placeholder="#C59B27"
+                                style={{ fontFamily: 'monospace', textTransform: 'uppercase' }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* 1. College Identity & Logo */}
                     <div style={{ background: '#F8FAFC', padding: '1.25rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
                       <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 1rem 0', color: '#002147', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -2924,6 +3366,291 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                   <Save size={16} /> Save & Publish Settings Live
                 </button>
               </form>
+            </div>
+          )}
+
+          {/* ======== ADMIN ACCOUNT & SECURITY TAB ======== */}
+          {currentTab === 'account' && (
+            <div>
+              <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                  <h2 style={{ fontSize: '1.3rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: '#111827', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Shield size={22} style={{ color: '#2563EB' }} /> Admin Account & Security
+                  </h2>
+                  <p style={{ fontSize: '0.85rem', color: '#6B7280', margin: 0 }}>
+                    Change your administrative login username, update master password, and manage institutional admin credentials.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#EFF6FF', padding: '0.5rem 0.9rem', borderRadius: '8px', border: '1px solid #BFDBFE', color: '#1E40AF', fontSize: '0.84rem', fontWeight: 600 }}>
+                  <CheckCircle size={15} style={{ color: '#2563EB' }} />
+                  <span>Active Session: <strong>{adminUser?.username || 'admin'}</strong></span>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                
+                {/* 1. Change Username Card */}
+                <div style={{ background: '#FFFFFF', padding: '1.5rem', borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem', borderBottom: '1px solid #F3F4F6', paddingBottom: '0.85rem' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563EB', flexShrink: 0 }}>
+                      <User size={18} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#111827' }}>Change Admin Username</h3>
+                      <p style={{ fontSize: '0.75rem', color: '#6B7280', margin: 0 }}>Update the login ID you use to access this portal</p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleUpdateUsername}>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label className="simple-label">Current Username</label>
+                      <input
+                        type="text"
+                        className="simple-input"
+                        value={adminUser?.username || 'admin'}
+                        disabled
+                        style={{ background: '#F9FAFB', cursor: 'not-allowed', color: '#4B5563', fontWeight: 600 }}
+                      />
+                    </div>
+
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label className="simple-label">New Username *</label>
+                      <input
+                        type="text"
+                        className="simple-input"
+                        placeholder="Enter new username (e.g. college_admin)"
+                        value={newUsernameInput}
+                        onChange={e => setNewUsernameInput(e.target.value)}
+                        required
+                      />
+                      <div className="simple-hint">Must be at least 3 characters (letters, numbers, underscores).</div>
+                    </div>
+
+                    <div style={{ marginBottom: '1.25rem' }}>
+                      <label className="simple-label">Current Password (to authorize change) *</label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type={showCurrentPassUser ? 'text' : 'password'}
+                          className="simple-input"
+                          placeholder="Enter current password"
+                          value={currentPasswordForUser}
+                          onChange={e => setCurrentPasswordForUser(e.target.value)}
+                          style={{ paddingRight: '2.5rem' }}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassUser(prev => !prev)}
+                          style={{
+                            position: 'absolute',
+                            right: '10px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            color: '#6B7280',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '4px'
+                          }}
+                          title={showCurrentPassUser ? 'Hide password' : 'Show password'}
+                        >
+                          {showCurrentPassUser ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={userUpdating}
+                      className="admin-btn admin-btn-primary"
+                      style={{ width: '100%', justifyContent: 'center', padding: '0.65rem', fontWeight: 600 }}
+                    >
+                      <User size={15} /> {userUpdating ? 'Updating Username...' : 'Update Username'}
+                    </button>
+                  </form>
+                </div>
+
+                {/* 2. Change Password Card */}
+                <div style={{ background: '#FFFFFF', padding: '1.5rem', borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem', borderBottom: '1px solid #F3F4F6', paddingBottom: '0.85rem' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#D97706', flexShrink: 0 }}>
+                      <Lock size={18} />
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#111827' }}>Change Admin Password</h3>
+                      <p style={{ fontSize: '0.75rem', color: '#6B7280', margin: 0 }}>Set a strong and secure new password</p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleUpdatePassword}>
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label className="simple-label">Current Password *</label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type={showCurrentPass ? 'text' : 'password'}
+                          className="simple-input"
+                          placeholder="Enter your current password"
+                          value={currentPasswordForPass}
+                          onChange={e => setCurrentPasswordForPass(e.target.value)}
+                          style={{ paddingRight: '2.5rem' }}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPass(prev => !prev)}
+                          style={{
+                            position: 'absolute',
+                            right: '10px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            color: '#6B7280',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '4px'
+                          }}
+                          title={showCurrentPass ? 'Hide password' : 'Show password'}
+                        >
+                          {showCurrentPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: '1rem' }}>
+                      <label className="simple-label">New Password *</label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type={showNewPass ? 'text' : 'password'}
+                          className="simple-input"
+                          placeholder="Enter new password (min. 6 characters)"
+                          value={newPasswordInput}
+                          onChange={e => setNewPasswordInput(e.target.value)}
+                          style={{ paddingRight: '2.5rem' }}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPass(prev => !prev)}
+                          style={{
+                            position: 'absolute',
+                            right: '10px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            color: '#6B7280',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '4px'
+                          }}
+                          title={showNewPass ? 'Hide password' : 'Show password'}
+                        >
+                          {showNewPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                      <div className="simple-hint">Must be at least 6 characters.</div>
+                    </div>
+
+                    <div style={{ marginBottom: '1.25rem' }}>
+                      <label className="simple-label">Confirm New Password *</label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type={showConfirmPass ? 'text' : 'password'}
+                          className="simple-input"
+                          placeholder="Re-enter new password"
+                          value={confirmPasswordInput}
+                          onChange={e => setConfirmPasswordInput(e.target.value)}
+                          style={{ paddingRight: '2.5rem' }}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPass(prev => !prev)}
+                          style={{
+                            position: 'absolute',
+                            right: '10px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'none',
+                            border: 'none',
+                            color: '#6B7280',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '4px'
+                          }}
+                          title={showConfirmPass ? 'Hide password' : 'Show password'}
+                        >
+                          {showConfirmPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={passUpdating}
+                      className="admin-btn admin-btn-success"
+                      style={{ width: '100%', justifyContent: 'center', padding: '0.65rem', fontWeight: 600 }}
+                    >
+                      <Lock size={15} /> {passUpdating ? 'Updating Password...' : 'Update Password'}
+                    </button>
+                  </form>
+                </div>
+
+              </div>
+
+              {/* 3. Administrator Profile Details Card */}
+              <div style={{ background: '#FFFFFF', padding: '1.5rem', borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem', borderBottom: '1px solid #F3F4F6', paddingBottom: '0.85rem' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ECFDF5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669', flexShrink: 0 }}>
+                    <CheckCircle size={18} />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#111827' }}>Administrator Profile & Contact Information</h3>
+                    <p style={{ fontSize: '0.75rem', color: '#6B7280', margin: 0 }}>Official administrative name and recovery/notification email</p>
+                  </div>
+                </div>
+
+                <form onSubmit={handleUpdateProfileDetails}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+                    <div>
+                      <label className="simple-label">Administrator Full Name / Title</label>
+                      <input
+                        type="text"
+                        className="simple-input"
+                        placeholder="Chief Institutional Administrator"
+                        value={adminFullName}
+                        onChange={e => setAdminFullName(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="simple-label">Administrative Official Email</label>
+                      <input
+                        type="email"
+                        className="simple-input"
+                        placeholder="admin@apex-inst.edu"
+                        value={adminEmail}
+                        onChange={e => setAdminEmail(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={profileUpdating}
+                    className="admin-btn admin-btn-secondary"
+                    style={{ padding: '0.65rem 1.4rem', fontWeight: 600 }}
+                  >
+                    <Save size={15} /> {profileUpdating ? 'Saving...' : 'Save Profile Information'}
+                  </button>
+                </form>
+              </div>
+
             </div>
           )}
 
@@ -3331,6 +4058,14 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                       aspectRatio="wide"
                       helperText="Upload banner header photo for this page from your computer"
                     />
+                    <PdfUploadField
+                      label="Attach Official PDF Document (Optional)"
+                      value={formData.pdfUrl || ''}
+                      pdfName={formData.pdfName || ''}
+                      onChange={(url, name) => setFormData(prev => ({ ...prev, pdfUrl: url, pdfName: name }))}
+                      onToast={onToast}
+                      helperText="Attach a syllabus, prospectus, circular, or brochure PDF for this page"
+                    />
                     <div style={{ marginBottom: '0.75rem' }}>
                       <label className="simple-label">Page Description</label>
                       <textarea rows="3" className="simple-input" value={formData.content || ''} onChange={e => setFormData({ ...formData, content: e.target.value })} />
@@ -3375,7 +4110,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                         <input type="text" className="simple-input" value={formData.badge || ''} onChange={e => setFormData({ ...formData, badge: e.target.value })} />
                       </div>
                       <div>
-                        <label className="simple-label">Layout Style</label>
+                          <label className="simple-label">Layout Style</label>
                         <select className="simple-input" value={formData.layoutType || 'split_content'} onChange={e => setFormData({ ...formData, layoutType: e.target.value })}>
                           <option value="split_content">Image + Text (side by side)</option>
                           <option value="image_banner">Full-width Banner</option>
@@ -3389,8 +4124,16 @@ export default function AdminDashboard({ onToast, onPublicUpdate }) {
                       value={formData.imageUrl || ''}
                       onChange={url => setFormData(prev => ({ ...prev, imageUrl: url }))}
                       onToast={onToast}
-                      aspectRatio="standard"
-                      helperText="Upload section illustration or photograph from your computer"
+                      aspectRatio="wide"
+                      helperText="Upload feature visual for this subsection"
+                    />
+                    <PdfUploadField
+                      label="Attach Section PDF Document (Optional)"
+                      value={formData.pdfUrl || ''}
+                      pdfName={formData.pdfName || ''}
+                      onChange={(url, name) => setFormData(prev => ({ ...prev, pdfUrl: url, pdfName: name }))}
+                      onToast={onToast}
+                      helperText="Attach optional PDF document for this specific content section"
                     />
                     <div style={{ marginBottom: '0.75rem' }}>
                       <label className="simple-label">Content *</label>

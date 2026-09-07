@@ -26,15 +26,15 @@ export default function Footer({ settings = {}, onNavigate, onOpenInquiry }) {
             
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', color: '#94A3B8', fontSize: '0.85rem', marginBottom: '0.6rem' }}>
               <MapPin size={16} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '3px' }} />
-              <span>{settings.contact_address || 'Hirabai Haridas Vidyanagari, Amrutdham, Panchavati, Nashik - 422003, Maharashtra, India'}</span>
+              <span>{settings.contact_address || '666, Upper Indira Nagar, Bibwewadi, Pune - 411037, Maharashtra, India'}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#94A3B8', fontSize: '0.85rem', marginBottom: '0.6rem' }}>
               <Phone size={16} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-              <span>{settings.contact_phone_primary || '+91 253 251 2876'}</span>
+              <span>{settings.contact_phone_primary || '+91 20 2420 2180'}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#94A3B8', fontSize: '0.85rem' }}>
               <Mail size={16} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-              <span>{settings.contact_email_primary || 'principal@apex-inst.edu'}</span>
+              <span>{settings.contact_email_primary || 'principal@vit.edu'}</span>
             </div>
 
             {/* Social Icons */}
@@ -176,10 +176,10 @@ export default function Footer({ settings = {}, onNavigate, onOpenInquiry }) {
         {/* Footer bottom */}
         <div style={{ padding: '1.5rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', fontSize: '0.8125rem', color: '#64748B' }}>
           <div>
-            © {new Date().getFullYear()} {settings.college_name || 'Apex Institute of Engineering & Technology'}. Autonomous Institution. {settings.affiliation || ''}
+            © {new Date().getFullYear()} {settings.college_name || 'Vishwakarma Institute of Technology (VIT Pune)'}. Autonomous Institution. {settings.affiliation || 'Affiliated to Savitribai Phule Pune University (SPPU)'}
           </div>
           <div>
-            <span>Accredited NAAC A++ (CGPA 3.65) | NBA Tier-1 | NIRF Ranked</span>
+            <span>Accredited NAAC A++ (CGPA 3.68) | NBA Tier-1 | SPPU Affiliated | DTE Code: {settings.dte_code || '6277'}</span>
           </div>
         </div>
       </div>

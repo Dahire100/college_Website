@@ -74,6 +74,8 @@ const PageSchema = new mongoose.Schema({
   heroBadge: { type: String },
   heroImageUrl: { type: String },
   content: { type: String },
+  pdfUrl: { type: String },
+  pdfName: { type: String },
   showInHeader: { type: Boolean, default: true },
   showInFooter: { type: Boolean, default: true },
   isActive: { type: Boolean, default: true },
@@ -90,6 +92,8 @@ const SubsectionSchema = new mongoose.Schema({
   badge: { type: String },
   layoutType: { type: String, default: 'split_content' }, // 'image_banner', 'split_content', 'bento_grid', 'card_grid', 'text_only'
   imageUrl: { type: String },
+  pdfUrl: { type: String },
+  pdfName: { type: String },
   content: { type: String },
   ctaText: { type: String },
   ctaLink: { type: String },
@@ -529,6 +533,42 @@ function createCollectionAdapter(modelName) {
         return deleted;
       }
       return null;
+    },
+
+    async deleteOne(filter = {}) {
+      if (isConnectedToMongo) {
+        return await Model.deleteOne(filter).exec();
+      }
+      const items = localStore[modelName] || [];
+      const index = items.findIndex(item => {
+        for (const [k, v] of Object.entries(filter)) {
+          if (item[k] !== v) return false;
+        }
+        return true;
+      });
+      if (index !== -1) {
+        const deleted = items.splice(index, 1)[0];
+        saveLocalStore(localStore);
+        return { deletedCount: 1, deleted };
+      }
+      return { deletedCount: 0 };
+    },
+
+    async deleteMany(filter = {}) {
+      if (isConnectedToMongo) {
+        return await Model.deleteMany(filter).exec();
+      }
+      const items = localStore[modelName] || [];
+      const kept = items.filter(item => {
+        for (const [k, v] of Object.entries(filter)) {
+          if (item[k] === v) return false;
+        }
+        return true;
+      });
+      const deletedCount = items.length - kept.length;
+      localStore[modelName] = kept;
+      saveLocalStore(localStore);
+      return { deletedCount };
     },
 
     async countDocuments(filter = {}) {

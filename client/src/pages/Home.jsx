@@ -186,6 +186,183 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
         </div>
       )}
 
+      {/* 2.5. BENCHMARK QUICK-ACTION NAVIGATION DOCK (VIT Pune, MIT-WPU & VIT Vellore Inspired) */}
+      <section style={{ background: '#0F172A', padding: '1.25rem 0', borderBottom: '2px solid #C59B27' }}>
+        <div className="container">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '0.85rem' }}>
+            {/* Card 1: Admissions */}
+            <div
+              onClick={() => onNavigate('admissions')}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '10px',
+                padding: '1rem',
+                cursor: 'pointer',
+                transition: 'all 180ms ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.borderColor = '#FCD34D';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#EF4444', background: 'rgba(239, 68, 68, 0.2)', padding: '0.15rem 0.45rem', borderRadius: '4px' }}>
+                  DTE CODE: {settings.dte_code || '6277'}
+                </span>
+                <GraduationCap size={16} style={{ color: '#FCD34D' }} />
+              </div>
+              <h4 style={{ color: '#FFFFFF', fontSize: '0.95rem', fontWeight: 700, margin: '0 0 0.25rem 0' }}>Admissions 2026-27</h4>
+              <p style={{ color: '#94A3B8', fontSize: '0.75rem', margin: 0, lineHeight: 1.4 }}>
+                B.Tech (MHT-CET / JEE), DSE & M.Tech CAP Round Guidance.
+              </p>
+            </div>
+
+            {/* Card 2: Placements */}
+            <div
+              onClick={() => onNavigate('placements')}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '10px',
+                padding: '1rem',
+                cursor: 'pointer',
+                transition: 'all 180ms ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.borderColor = '#FCD34D';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#10B981', background: 'rgba(16, 185, 129, 0.2)', padding: '0.15rem 0.45rem', borderRadius: '4px' }}>
+                  ₹54.3 LPA HIGHEST
+                </span>
+                <Briefcase size={16} style={{ color: '#60A5FA' }} />
+              </div>
+              <h4 style={{ color: '#FFFFFF', fontSize: '0.95rem', fontWeight: 700, margin: '0 0 0.25rem 0' }}>Placement Records</h4>
+              <p style={{ color: '#94A3B8', fontSize: '0.75rem', margin: 0, lineHeight: 1.4 }}>
+                350+ marquee recruiters (Microsoft, NVIDIA, Barclays, Siemens).
+              </p>
+            </div>
+
+            {/* Card 3: Academics & Autonomous NEP 2020 */}
+            <div
+              onClick={() => onNavigate('academics')}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '10px',
+                padding: '1rem',
+                cursor: 'pointer',
+                transition: 'all 180ms ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.borderColor = '#FCD34D';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#FCD34D', background: 'rgba(252, 211, 77, 0.2)', padding: '0.15rem 0.45rem', borderRadius: '4px' }}>
+                  NEP 2020 AUTONOMOUS
+                </span>
+                <BookOpen size={16} style={{ color: '#F472B6' }} />
+              </div>
+              <h4 style={{ color: '#FFFFFF', fontSize: '0.95rem', fontWeight: 700, margin: '0 0 0.25rem 0' }}>Autonomous Curricula</h4>
+              <p style={{ color: '#94A3B8', fontSize: '0.75rem', margin: 0, lineHeight: 1.4 }}>
+                8 Minor Degree specializations, semester internships & honors.
+              </p>
+            </div>
+
+            {/* Card 4: Research & CoE */}
+            <div
+              onClick={() => onNavigate('research')}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '10px',
+                padding: '1rem',
+                cursor: 'pointer',
+                transition: 'all 180ms ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.borderColor = '#FCD34D';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#38BDF8', background: 'rgba(56, 189, 248, 0.2)', padding: '0.15rem 0.45rem', borderRadius: '4px' }}>
+                  ₹14.8 CR+ GRANTS
+                </span>
+                <Cpu size={16} style={{ color: '#A78BFA' }} />
+              </div>
+              <h4 style={{ color: '#FFFFFF', fontSize: '0.95rem', fontWeight: 700, margin: '0 0 0.25rem 0' }}>Research & CoE</h4>
+              <p style={{ color: '#94A3B8', fontSize: '0.75rem', margin: 0, lineHeight: 1.4 }}>
+                NVIDIA Supercomputing Lab, Siemens Smart Factory, 45+ Patents.
+              </p>
+            </div>
+
+            {/* Card 5: Student Life & Fests */}
+            <div
+              onClick={() => onNavigate('life')}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '10px',
+                padding: '1rem',
+                cursor: 'pointer',
+                transition: 'all 180ms ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.borderColor = '#FCD34D';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#FB923C', background: 'rgba(251, 146, 60, 0.2)', padding: '0.15rem 0.45rem', borderRadius: '4px' }}>
+                  CAMPUS CULTURE
+                </span>
+                <Sparkles size={16} style={{ color: '#FBBF24' }} />
+              </div>
+              <h4 style={{ color: '#FFFFFF', fontSize: '0.95rem', fontWeight: 700, margin: '0 0 0.25rem 0' }}>Vishwakarandak & Fests</h4>
+              <p style={{ color: '#94A3B8', fontSize: '0.75rem', margin: 0, lineHeight: 1.4 }}>
+                Melange, MindSpark, Formula Student & BAJA SAE Champion Teams.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 3. Key Figures Stats */}
       {isSectionVisible('stats_counter') && (
         <section style={{ background: 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))', color: '#FFFFFF', padding: '3.5rem 0' }}>
@@ -194,22 +371,22 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
               <div>
                 <div style={{ fontFamily: 'var(--font-heading)', fontSize: '3rem', fontWeight: 800, color: '#FCD34D', lineHeight: 1 }}>40+</div>
                 <div style={{ fontWeight: 600, fontSize: '1.05rem', marginTop: '0.5rem' }}>Years of Academic Rigor</div>
-                <div style={{ fontSize: '0.8125rem', color: '#CBD5E1' }}>Autonomous since 2019</div>
+                <div style={{ fontSize: '0.8125rem', color: '#CBD5E1' }}>Autonomous & Affiliated to SPPU</div>
               </div>
               <div>
-                <div style={{ fontFamily: 'var(--font-heading)', fontSize: '3rem', fontWeight: 800, color: '#FCD34D', lineHeight: 1 }}>{latestPlacement.placementRate || '95'}%</div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: '3rem', fontWeight: 800, color: '#FCD34D', lineHeight: 1 }}>{latestPlacement.placementRate || '98.4'}%</div>
                 <div style={{ fontWeight: 600, fontSize: '1.05rem', marginTop: '0.5rem' }}>Placement Track Record</div>
-                <div style={{ fontSize: '0.8125rem', color: '#CBD5E1' }}>Consistent campus recruitments</div>
+                <div style={{ fontSize: '0.8125rem', color: '#CBD5E1' }}>1,420+ Offers (2024-25 Season)</div>
               </div>
               <div>
-                <div style={{ fontFamily: 'var(--font-heading)', fontSize: '3rem', fontWeight: 800, color: '#FCD34D', lineHeight: 1 }}>{latestPlacement.highestPackage || '₹44.2 LPA'}</div>
+                <div style={{ fontFamily: 'var(--font-heading)', fontSize: '3rem', fontWeight: 800, color: '#FCD34D', lineHeight: 1 }}>{latestPlacement.highestPackage || '₹54.3 LPA'}</div>
                 <div style={{ fontWeight: 600, fontSize: '1.05rem', marginTop: '0.5rem' }}>Highest Campus Package</div>
-                <div style={{ fontSize: '0.8125rem', color: '#CBD5E1' }}>Average: {latestPlacement.averagePackage || '₹8.65 LPA'}</div>
+                <div style={{ fontSize: '0.8125rem', color: '#CBD5E1' }}>Circuit Avg: {latestPlacement.averagePackage || '₹12.8 LPA'}</div>
               </div>
               <div>
                 <div style={{ fontFamily: 'var(--font-heading)', fontSize: '3rem', fontWeight: 800, color: '#FCD34D', lineHeight: 1 }}>350+</div>
                 <div style={{ fontWeight: 600, fontSize: '1.05rem', marginTop: '0.5rem' }}>Corporate Partners</div>
-                <div style={{ fontSize: '0.8125rem', color: '#CBD5E1' }}>Fortune 500 tech enterprises</div>
+                <div style={{ fontSize: '0.8125rem', color: '#CBD5E1' }}>Microsoft, NVIDIA, Barclays, Siemens</div>
               </div>
             </div>
           </div>
@@ -224,25 +401,28 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
               <div>
                 <span className="pill-badge-blue">Institutional Heritage & Profile</span>
                 <h2 className="section-title" style={{ marginTop: '0.5rem' }}>
-                  Four Decades of Autonomous Engineering Leadership
+                  Four Decades of Autonomous Engineering Leadership in Pune
                 </h2>
                 <p style={{ color: 'var(--color-text-secondary)', fontSize: '1.025rem', lineHeight: 1.8, marginBottom: '1.25rem' }}>
-                  Established in 1984, {settings.college_name || 'Apex Institute of Engineering & Technology'} has consistently pioneered top-tier technical education in western India. Accredited with NAAC A++ Grade (CGPA 3.65) and NBA Tier-1 status, our campus combines deep engineering rigor with industry-synchronized curricula.
+                  Established in 1983 under Bansilal Ramnath Agarwal Charitable Trust, {settings.college_name || 'Vishwakarma Institute of Technology (VIT Pune)'} has consistently set benchmarks in technical education in Maharashtra. Accredited with NAAC A++ Grade (CGPA 3.68, Cycle-3) and NBA Tier-1 accreditation across all engineering departments, our autonomous campus combines deep academic rigor with experiential research.
                 </p>
                 <p style={{ color: 'var(--color-text-secondary)', fontSize: '1.025rem', lineHeight: 1.8, marginBottom: '1.75rem' }}>
-                  Our autonomous governance allows continuous syllabus enhancements alongside corporate leaders like NVIDIA, Siemens, and Microsoft—preparing ethical innovators who build for global impact.
+                  Our autonomous governance allows continuous syllabus enhancements alongside multinational leaders like NVIDIA, Siemens, Microsoft, and Texas Instruments—preparing ethical engineering leaders who create global impact.
                 </p>
 
                 {/* Key Accreditations / Pills */}
                 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#FEF3C7', color: '#92400E', padding: '0.4rem 0.85rem', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700 }}>
-                    <Award size={15} /> NAAC A++ (CGPA 3.65)
+                    <Award size={15} /> NAAC A++ (CGPA 3.68)
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#EFF6FF', color: '#1E40AF', padding: '0.4rem 0.85rem', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700 }}>
                     <ShieldCheck size={15} /> NBA Tier-1 Programs
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#F0FDF4', color: '#166534', padding: '0.4rem 0.85rem', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700 }}>
-                    <CheckCircle size={15} /> UGC Autonomous
+                    <CheckCircle size={15} /> UGC Autonomous & SPPU
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#FEF2F2', color: '#DC2626', padding: '0.4rem 0.85rem', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700 }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#DC2626' }} /> DTE Code: {settings.dte_code || '6277'}
                   </div>
                 </div>
 
@@ -250,44 +430,44 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
                   <button className="btn btn-primary" onClick={() => onNavigate('about')}>
                     Explore Full Institutional Profile <ArrowRight size={16} />
                   </button>
-                  <button className="btn btn-secondary" onClick={() => onNavigate('academics')}>
-                    View Autonomous Programs
+                  <button className="btn btn-secondary" onClick={() => onNavigate('admissions')}>
+                    Maharashtra CAP Admissions
                   </button>
                 </div>
               </div>
 
               {/* Leadership Spotlight Card */}
               <div style={{ position: 'relative' }}>
-                <div style={{ background: 'linear-gradient(135deg, #0B2545 0%, #133E68 100%)', borderRadius: '20px', padding: '2.5rem', color: '#FFFFFF', boxShadow: 'var(--shadow-xl)', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ background: 'linear-gradient(135deg, #002147 0%, #0F3A65 100%)', borderRadius: '20px', padding: '2.5rem', color: '#FFFFFF', boxShadow: 'var(--shadow-xl)', position: 'relative', overflow: 'hidden', border: '1px solid rgba(197, 155, 39, 0.3)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '1.5rem' }}>
                     <img
-                      src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80"
-                      alt="Principal"
-                      style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #60A5FA' }}
+                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80"
+                      alt="Director"
+                      style={{ width: '72px', height: '72px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #C59B27' }}
                     />
                     <div>
-                      <span style={{ fontSize: '0.72rem', color: '#FCD34D', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>Principal's Desk</span>
-                      <h4 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#FFFFFF', margin: '0.15rem 0 0 0' }}>Dr. K. N. Nandurkar</h4>
-                      <span style={{ fontSize: '0.78rem', color: '#CBD5E1' }}>Ph.D. (IIT Bombay), Executive Director</span>
+                      <span style={{ fontSize: '0.72rem', color: '#FCD34D', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>Director's Desk</span>
+                      <h4 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#FFFFFF', margin: '0.15rem 0 0 0' }}>Dr. Rajesh M. Jalnekar</h4>
+                      <span style={{ fontSize: '0.78rem', color: '#CBD5E1' }}>Director, Ph.D. (Electronics & VLSI)</span>
                     </div>
                   </div>
 
                   <p style={{ color: '#E2E8F0', fontSize: '0.95rem', lineHeight: 1.7, fontStyle: 'italic', margin: '0 0 1.5rem 0' }}>
-                    "Our educational philosophy is anchored on turning theoretical rigor into deployable engineering breakthroughs. We empower students not merely to graduate with honors, but to pioneer sustainable technologies for humanity."
+                    "Our educational philosophy transforms students from passive recipients of engineering concepts into active architects of industry solutions. Backed by autonomous flexibility, our graduates consistently excel across premier global research labs and Fortune 500 tech leaders."
                   </p>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '1.25rem', textAlign: 'center' }}>
                     <div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#FCD34D' }}>40+</div>
-                      <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>Years Legacy</div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#FCD34D' }}>1983</div>
+                      <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>Established</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#FCD34D' }}>12K+</div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#FCD34D' }}>35,000+</div>
                       <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>Global Alumni</div>
                     </div>
                     <div>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#FCD34D' }}>50 Acres</div>
-                      <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>Campus Area</div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#FCD34D' }}>6277</div>
+                      <div style={{ fontSize: '0.7rem', color: '#94A3B8' }}>DTE Pune Code</div>
                     </div>
                   </div>
                 </div>
@@ -872,6 +1052,42 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
           </div>
         </section>
       )}
+
+      {/* Floating Enquire Now Button (VIT Pune Signature Benchmark) */}
+      <button
+        onClick={() => onOpenInquiry()}
+        style={{
+          position: 'fixed',
+          right: '24px',
+          bottom: '28px',
+          zIndex: 999,
+          background: 'linear-gradient(90deg, #021B4C 0%, #003294 100%)',
+          color: '#FFFFFF',
+          border: '2px solid #FCD34D',
+          borderRadius: '50px',
+          padding: '0.65rem 1.35rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.55rem',
+          fontWeight: 700,
+          fontSize: '0.9rem',
+          boxShadow: '0 8px 24px rgba(0, 33, 71, 0.4)',
+          cursor: 'pointer',
+          transition: 'all 200ms ease'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = '#ED2226';
+          e.currentTarget.style.transform = 'scale(1.05)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'linear-gradient(90deg, #021B4C 0%, #003294 100%)';
+          e.currentTarget.style.transform = 'scale(1)';
+        }}
+        aria-label="Enquire Now for Admissions 2026-27"
+      >
+        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22C55E', boxShadow: '0 0 8px #22C55E' }} />
+        <span>Enquire Now</span>
+      </button>
     </div>
   );
 }

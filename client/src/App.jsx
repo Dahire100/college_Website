@@ -20,6 +20,7 @@ import CustomPage from './pages/CustomPage';
 
 import AdminDashboard from './admin/AdminDashboard';
 import { api } from './services/api';
+import { applyTheme } from './styles/themes';
 import './styles/portfolio-academic.css';
 
 export default function App() {
@@ -34,8 +35,11 @@ export default function App() {
       const res = await api.get('/api/v1/public/config');
       if (res.success) {
         setConfig(res.data);
-        if (res.data.settings?.seo_meta_title) {
-          document.title = res.data.settings.seo_meta_title;
+        if (res.data.settings) {
+          applyTheme(res.data.settings);
+          if (res.data.settings.seo_meta_title) {
+            document.title = res.data.settings.seo_meta_title;
+          }
         }
       }
     } catch (err) {
@@ -127,7 +131,7 @@ export default function App() {
 
         {/* Admin CMS Dashboard */}
         {currentRoute === 'admin' && (
-          <AdminDashboard onToast={showToast} onPublicUpdate={fetchConfig} />
+          <AdminDashboard onToast={showToast} onPublicUpdate={fetchConfig} onNavigate={navigate} />
         )}
       </main>
 

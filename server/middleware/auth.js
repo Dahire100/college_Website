@@ -24,8 +24,14 @@ async function requireAdmin(req, res, next) {
       });
     }
 
-    // Verify admin exists in database
-    const admin = await db.Admin.findOne({ username: decoded.username });
+    // Verify admin exists in database (check by id first, fallback to username)
+    let admin = null;
+    if (decoded.id) {
+      admin = await db.Admin.findById(decoded.id);
+    }
+    if (!admin && decoded.username) {
+      admin = await db.Admin.findOne({ username: decoded.username });
+    }
     if (!admin) {
       return res.status(403).json({
         success: false,

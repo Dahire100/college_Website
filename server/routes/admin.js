@@ -1073,7 +1073,7 @@ router.get('/pages', async (req, res) => {
 
 router.post('/pages', async (req, res) => {
   try {
-    const { slug, title, navLabel, heroTitle, heroSubtitle, heroBadge, heroImageUrl, content, showInHeader, showInFooter, isActive } = req.body;
+    const { slug, title, navLabel, heroTitle, heroSubtitle, heroBadge, heroImageUrl, content, pdfUrl, pdfName, showInHeader, showInFooter, isActive } = req.body;
     if (!title) {
       return res.status(400).json({ success: false, message: 'Page title is required' });
     }
@@ -1089,6 +1089,8 @@ router.post('/pages', async (req, res) => {
       heroBadge: heroBadge || 'NEW PAGE',
       heroImageUrl: heroImageUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80',
       content: content || '',
+      pdfUrl: pdfUrl || '',
+      pdfName: pdfName || '',
       showInHeader: showInHeader !== false,
       showInFooter: showInFooter !== false,
       isActive: isActive !== false,
@@ -1122,7 +1124,7 @@ router.put('/pages/:id', async (req, res) => {
       await db.Navigation.updateOne({ path: `#${updated.slug}` }, { title: updated.navLabel, isActive: updated.isActive });
     }
     await logAction(req, 'UPDATE_PAGE', 'pages', req.params.id, req.body.title);
-    return res.json({ success: true, message: 'Page updated', data: updated });
+    return res.json({ success: true, message: 'Page updated successfully', data: updated });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to update page' });
   }
@@ -1135,8 +1137,8 @@ router.patch('/pages/:id/toggle', async (req, res) => {
     const newStatus = !page.isActive;
     const updated = await db.Page.findByIdAndUpdate(req.params.id, { isActive: newStatus }, { new: true });
     await db.Navigation.updateOne({ path: `#${page.slug}` }, { isActive: newStatus });
-    await logAction(req, 'TOGGLE_PAGE', 'pages', req.params.id, `Active: ${newStatus}`);
-    return res.json({ success: true, message: `Page is now ${newStatus ? 'Visible' : 'Hidden'}`, data: updated });
+    await logAction(req, 'TOGGLE_PAGE', 'pages', req.params.id, `Status: ${newStatus}`);
+    return res.json({ success: true, message: `Page is now ${newStatus ? 'Published' : 'Draft'}`, data: updated });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to toggle page visibility' });
   }
@@ -1164,8 +1166,8 @@ router.delete('/pages/:id', async (req, res) => {
 // ----------------------------------------------------
 router.get('/subsections', async (req, res) => {
   try {
-    const { pageSlug } = req.query;
-    const filter = pageSlug ? { pageSlug } : {};
+    const filter = {};
+    if (req.query.pageSlug) filter.pageSlug = req.query.pageSlug;
     const subsections = await db.Subsection.find(filter);
     subsections.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return res.json({ success: true, data: subsections });
@@ -1176,7 +1178,7 @@ router.get('/subsections', async (req, res) => {
 
 router.post('/subsections', async (req, res) => {
   try {
-    const { pageSlug, title, subtitle, badge, layoutType, imageUrl, content, ctaText, ctaLink, isVisible } = req.body;
+    const { pageSlug, title, subtitle, badge, layoutType, imageUrl, pdfUrl, pdfName, content, ctaText, ctaLink, isVisible } = req.body;
     if (!pageSlug || !title) {
       return res.status(400).json({ success: false, message: 'Parent Page and Subsection Title are required' });
     }
@@ -1188,6 +1190,8 @@ router.post('/subsections', async (req, res) => {
       badge: badge || '',
       layoutType: layoutType || 'split_content',
       imageUrl: imageUrl || '',
+      pdfUrl: pdfUrl || '',
+      pdfName: pdfName || '',
       content: content || '',
       ctaText: ctaText || '',
       ctaLink: ctaLink || '',

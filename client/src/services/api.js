@@ -1,7 +1,14 @@
 const TOKEN_KEY = 'apex_admin_token';
 const USER_KEY = 'apex_admin_user';
 
+// Read backend URL from Vite environment variable (set VITE_API_URL on Vercel)
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
 export const api = {
+  getBaseUrl() {
+    return API_BASE_URL;
+  },
+
   getToken() {
     return localStorage.getItem(TOKEN_KEY);
   },
@@ -40,8 +47,10 @@ export const api = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
+    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetch(url, {
         ...options,
         headers
       });
@@ -103,7 +112,7 @@ export const api = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch('/api/v1/admin/upload', {
+    const response = await fetch(`${API_BASE_URL}/api/v1/admin/upload`, {
       method: 'POST',
       headers,
       body: formData

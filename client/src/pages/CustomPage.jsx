@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, ArrowRight, ExternalLink, Compass, BookOpen, Layers, CheckCircle2 } from 'lucide-react';
+import { Sparkles, ArrowRight, ExternalLink, Compass, BookOpen, Layers, CheckCircle2, FileText, Download } from 'lucide-react';
 import { api } from '../services/api';
 
 export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
@@ -172,8 +172,103 @@ export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
         </div>
       </section>
 
+      {/* ATTACHED PDF DOCUMENT DOWNLOAD CARD */}
+      {pageData.pdfUrl && (
+        <div className="container" style={{ maxWidth: '1200px', margin: '-2.5rem auto 2rem auto', padding: '0 1.5rem', position: 'relative', zIndex: 10 }}>
+          <div style={{
+            background: '#FFFFFF',
+            borderRadius: '16px',
+            padding: '1.75rem 2rem',
+            boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+            border: '1px solid var(--color-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1.5rem',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', minWidth: 0, flex: 1 }}>
+              <div style={{
+                width: '54px',
+                height: '54px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #DC2626, #991B1B)',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
+              }}>
+                <FileText size={28} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <span style={{
+                  display: 'inline-block',
+                  background: '#FEE2E2',
+                  color: '#991B1B',
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  padding: '0.2rem 0.6rem',
+                  borderRadius: '9999px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  marginBottom: '0.35rem'
+                }}>
+                  Official Attached Document (PDF)
+                </span>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--color-primary)' }}>
+                  {pageData.pdfName || 'Download Official Document (PDF)'}
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: 0 }}>
+                  Authorized institutional PDF publication available for direct viewing and offline download.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
+              <a
+                href={pageData.pdfUrl}
+                download={pageData.pdfName || 'document.pdf'}
+                className="btn btn-primary"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.75rem 1.4rem',
+                  borderRadius: '10px',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  textDecoration: 'none'
+                }}
+              >
+                <Download size={16} /> Download PDF
+              </a>
+              <a
+                href={pageData.pdfUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-outline"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.75rem 1.25rem',
+                  borderRadius: '10px',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  textDecoration: 'none'
+                }}
+              >
+                <ExternalLink size={16} /> Open in Viewer
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 2. SUBSECTIONS LIST */}
-      <section className="container" style={{ maxWidth: '1200px', margin: '3.5rem auto 0 auto', padding: '0 1.5rem' }}>
+      <section className="container" style={{ maxWidth: '1200px', margin: pageData.pdfUrl ? '1rem auto 0 auto' : '3.5rem auto 0 auto', padding: '0 1.5rem' }}>
         {subsections.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '4rem 1rem', background: '#FFFFFF', borderRadius: '16px', border: '1px dashed var(--color-border)' }}>
             <Layers size={40} style={{ color: 'var(--color-muted)', margin: '0 auto 1rem auto' }} />
