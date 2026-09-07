@@ -27,7 +27,15 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (req, file, cb) => {
+    const allowed = /\.(jpg|jpeg|png|gif|webp|svg|pdf|doc|docx|xls|xlsx)$/i;
+    if (file.originalname.match(allowed)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file format. Only safe images, PDFs, and documents are permitted.'), false);
+    }
+  }
 });
 
 // Helper for audit logging
