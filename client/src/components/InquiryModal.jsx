@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Send } from 'lucide-react';
 import { api } from '../services/api';
+import { getInstitutionProfile, getInquiryOptions } from '../content/institutionProfile';
 
-export default function InquiryModal({ isOpen, onClose, defaultCourse = '', onToast }) {
+export default function InquiryModal({ isOpen, onClose, defaultCourse = '', onToast, settings = {} }) {
+  const profile = getInstitutionProfile(settings);
+  const inquiryOptions = getInquiryOptions([], profile);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     phone: '',
-    courseInterested: defaultCourse || 'B.Tech in Computer Engineering',
+    courseInterested: defaultCourse || inquiryOptions[0] || 'General Inquiry',
     message: ''
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setFormData(prev => ({
+      ...prev,
+      courseInterested: defaultCourse || inquiryOptions[0] || 'General Inquiry'
+    }));
+  }, [isOpen, defaultCourse, inquiryOptions[0]]);
 
   if (!isOpen) return null;
 
@@ -43,7 +54,7 @@ export default function InquiryModal({ isOpen, onClose, defaultCourse = '', onTo
 
         <div className="modal-content-body">
           <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: '1.25rem' }}>
-            Submit your contact details and our admissions counseling team will assist you with eligibility norms, entrance cutoffs, and campus tour reservations.
+            Submit your contact details and our admissions team will help with eligibility, programs, fees, and campus visit requests.
           </p>
 
           <form onSubmit={handleSubmit}>
@@ -92,13 +103,9 @@ export default function InquiryModal({ isOpen, onClose, defaultCourse = '', onTo
                 value={formData.courseInterested}
                 onChange={(e) => setFormData({ ...formData, courseInterested: e.target.value })}
               >
-                <option value="B.Tech in Computer Engineering">B.Tech in Computer Engineering</option>
-                <option value="B.Tech in AI & Data Science">B.Tech in AI & Data Science</option>
-                <option value="B.Tech in Electronics & Telecom">B.Tech in Electronics & Telecom</option>
-                <option value="B.Tech in Mechanical Engineering">B.Tech in Mechanical Engineering</option>
-                <option value="Master of Business Administration (MBA)">Master of Business Administration (MBA)</option>
-                <option value="Master of Computer Applications (MCA)">Master of Computer Applications (MCA)</option>
-                <option value="Ph.D. Research Program">Ph.D. Research Program</option>
+                {inquiryOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
               </select>
             </div>
 
@@ -107,7 +114,7 @@ export default function InquiryModal({ isOpen, onClose, defaultCourse = '', onTo
               <textarea
                 className="input-control"
                 rows="3"
-                placeholder="Ask about MHT-CET cutoff, hostel amenities, or fee installment options..."
+                placeholder="Ask about admissions, course details, hostel, campus visits, or fees..."
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 required

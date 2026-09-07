@@ -1,185 +1,181 @@
-import React from 'react';
-import { MapPin, Phone, Mail, Award, Lock, ExternalLink, ShieldCheck, GraduationCap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Phone, Mail, Lock, ArrowRight, ExternalLink } from 'lucide-react';
+import { getInstitutionProfile } from '../content/institutionProfile';
+import { api } from '../services/api';
 
 export default function Footer({ settings = {}, onNavigate, onOpenInquiry }) {
+  const profile = getInstitutionProfile(settings);
+  const [subInstitutions, setSubInstitutions] = useState([]);
+  const isGroupMode = profile.profileKey === 'group';
+
+  useEffect(() => {
+    if (isGroupMode) {
+      api.get('/api/v1/public/sub-institutions').then(res => {
+        if (res.success) setSubInstitutions(res.data || []);
+      }).catch(() => {});
+    }
+  }, [isGroupMode]);
+
+  const linkStyle = {
+    background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer',
+    padding: 0, textAlign: 'left', fontSize: '0.85rem', fontFamily: "'Inter', sans-serif",
+    transition: 'color 150ms', display: 'block', marginBottom: '0.55rem'
+  };
+
   return (
-    <footer style={{ background: 'var(--color-primary-dark)', color: '#CBD5E1', paddingTop: '4rem', borderTop: '4px solid var(--color-accent)', marginTop: 'auto' }}>
+    <footer style={{ background: 'linear-gradient(180deg, var(--color-primary-dark) 0%, #020617 100%)', color: '#CBD5E1', paddingTop: '4rem', borderTop: '4px solid var(--color-accent)', marginTop: 'auto' }}>
       <div className="container">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '2.5rem', paddingBottom: '3rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-          {/* Col 1: Identity & Accreditations */}
+        {/* Main Footer Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '2.5rem', paddingBottom: '3rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+
+          {/* Column 1: Institution Info */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
               {settings.college_logo ? (
-                <img
-                  src={settings.college_logo}
-                  alt={settings.college_short_name || 'College Logo'}
-                  style={{ width: '42px', height: '42px', objectFit: 'contain', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', padding: '3px' }}
-                />
-              ) : null}
-              <h4 style={{ color: '#FFFFFF', fontSize: '1.25rem', fontWeight: 800, margin: 0 }}>
-                {settings.college_short_name || 'Apex Institute'}
-              </h4>
+                <img src={settings.college_logo} alt={settings.college_short_name || 'Logo'} style={{ width: '42px', height: '42px', objectFit: 'contain', background: 'rgba(255,255,255,0.06)', borderRadius: '8px', padding: '3px' }} />
+              ) : (
+                <div style={{ width: '42px', height: '42px', borderRadius: '8px', background: 'linear-gradient(135deg, var(--color-accent), #B45309)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontWeight: 800, fontSize: '1.1rem', fontFamily: "'Playfair Display', serif" }}>
+                  {(settings.college_short_name || profile.shortName || 'I').charAt(0)}
+                </div>
+              )}
+              <div>
+                <h4 style={{ color: '#FFFFFF', fontSize: '1.15rem', fontWeight: 800, margin: 0, fontFamily: "'Playfair Display', serif" }}>
+                  {settings.college_short_name || profile.shortName}
+                </h4>
+                {isGroupMode && <span style={{ fontSize: '0.68rem', color: 'var(--color-accent)', fontWeight: 600 }}>GROUP OF INSTITUTIONS</span>}
+              </div>
             </div>
-            <p style={{ color: '#94A3B8', fontSize: '0.88rem', marginBottom: '1.25rem', lineHeight: 1.6 }}>
-              {settings.college_tagline || 'Autonomous Institution of Engineering & Technology, fostering critical research, industry innovation, and ethical leadership.'}
+            <p style={{ color: '#94A3B8', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: 1.65 }}>
+              {settings.college_tagline || profile.tagline}
             </p>
-            
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', color: '#94A3B8', fontSize: '0.85rem', marginBottom: '0.6rem' }}>
-              <MapPin size={16} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '3px' }} />
-              <span>{settings.contact_address || '666, Upper Indira Nagar, Bibwewadi, Pune - 411037, Maharashtra, India'}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#94A3B8', fontSize: '0.85rem', marginBottom: '0.6rem' }}>
-              <Phone size={16} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-              <span>{settings.contact_phone_primary || '+91 20 2420 2180'}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#94A3B8', fontSize: '0.85rem' }}>
-              <Mail size={16} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
-              <span>{settings.contact_email_primary || 'principal@vit.edu'}</span>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', color: '#94A3B8', fontSize: '0.85rem' }}>
+                <MapPin size={16} style={{ color: 'var(--color-accent)', flexShrink: 0, marginTop: '2px' }} />
+                <span>{settings.contact_address || 'Campus address managed from admin settings.'}</span>
+              </div>
+              <a href={`tel:${settings.contact_phone_primary || '+91 20 2420 2180'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#94A3B8', fontSize: '0.85rem', textDecoration: 'none', transition: 'color 150ms' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>
+                <Phone size={16} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                <span>{settings.contact_phone_primary || '+91 20 2420 2180'}</span>
+              </a>
+              <a href={`mailto:${settings.contact_email_primary || 'info@example.edu'}`} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#94A3B8', fontSize: '0.85rem', textDecoration: 'none', transition: 'color 150ms' }}
+                onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>
+                <Mail size={16} style={{ color: 'var(--color-accent)', flexShrink: 0 }} />
+                <span>{settings.contact_email_primary || 'info@example.edu'}</span>
+              </a>
             </div>
 
-            {/* Social Icons */}
-            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
-              {settings.social_linkedin && (
-                <a href={settings.social_linkedin} target="_blank" rel="noreferrer" style={{ color: '#94A3B8', fontSize: '0.8rem', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '0.35rem 0.65rem', borderRadius: '6px' }}>LinkedIn</a>
-              )}
-              {settings.social_twitter && (
-                <a href={settings.social_twitter} target="_blank" rel="noreferrer" style={{ color: '#94A3B8', fontSize: '0.8rem', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '0.35rem 0.65rem', borderRadius: '6px' }}>Twitter</a>
-              )}
-              {settings.social_youtube && (
-                <a href={settings.social_youtube} target="_blank" rel="noreferrer" style={{ color: '#94A3B8', fontSize: '0.8rem', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '0.35rem 0.65rem', borderRadius: '6px' }}>YouTube</a>
-              )}
-              {settings.social_instagram && (
-                <a href={settings.social_instagram} target="_blank" rel="noreferrer" style={{ color: '#94A3B8', fontSize: '0.8rem', textDecoration: 'none', background: 'rgba(255,255,255,0.06)', padding: '0.35rem 0.65rem', borderRadius: '6px' }}>Instagram</a>
-              )}
+            {/* Social Media */}
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem' }}>
+              {[
+                { label: 'FB', url: settings.social_facebook },
+                { label: 'IG', url: settings.social_instagram },
+                { label: 'TW', url: settings.social_twitter },
+                { label: 'YT', url: settings.social_youtube },
+                { label: 'LI', url: settings.social_linkedin }
+              ].filter(s => s.url).map((social, i) => (
+                <a key={i} href={social.url} target="_blank" rel="noopener noreferrer" style={{
+                  width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#94A3B8', fontSize: '0.72rem', fontWeight: 700, textDecoration: 'none', transition: 'all 200ms'
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-accent)'; e.currentTarget.style.color = '#FFF'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#94A3B8'; }}>
+                  {social.label}
+                </a>
+              ))}
             </div>
           </div>
 
-          {/* Col 2: Academics, Departments & Research */}
+          {/* Column 2: Academics */}
           <div>
-            <h4 style={{ color: '#FFFFFF', fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem' }}>Academics & Research</h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.88rem' }}>
-              <li style={{ marginBottom: '0.55rem' }}>
-                <button onClick={() => onNavigate('academics')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                  Academic Architecture & Framework
-                </button>
-              </li>
-              <li style={{ marginBottom: '0.55rem' }}>
-                <button onClick={() => onNavigate('departments')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                  Engineering Departments & HODs
-                </button>
-              </li>
-              <li style={{ marginBottom: '0.55rem' }}>
-                <button onClick={() => onNavigate('programs')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                  Undergraduate & PG Degree Catalog
-                </button>
-              </li>
-              <li style={{ marginBottom: '0.55rem' }}>
-                <button onClick={() => onNavigate('research')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                  Centers of Excellence (CoE) & Patents
-                </button>
-              </li>
-              <li style={{ marginBottom: '0.55rem' }}>
-                <button onClick={() => onNavigate('research')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                  Sponsored Research Grants (DRDO/ISRO)
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onNavigate('departments')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                  Specialized Laboratory Infrastructure
-                </button>
-              </li>
+            <h4 style={{ color: '#FFFFFF', fontSize: '1rem', fontWeight: 700, marginBottom: '1rem' }}>Academics</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              <li><button onClick={() => onNavigate('academics')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>Academics & Curriculum</button></li>
+              <li><button onClick={() => onNavigate('departments')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.academicUnitsLabel}</button></li>
+              <li><button onClick={() => onNavigate('programs')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.programsLabel}</button></li>
+              <li><button onClick={() => onNavigate('research')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.researchLabel}</button></li>
+              <li><button onClick={() => onNavigate('campus')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.campusLabel}</button></li>
             </ul>
           </div>
 
-          {/* Col 3: Admissions, Placements & Student Life */}
+          {/* Column 3: Student Zone */}
           <div>
-            <h4 style={{ color: '#FFFFFF', fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem' }}>Admissions & Campus</h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.88rem' }}>
-              <li style={{ marginBottom: '0.55rem' }}>
-                <button onClick={() => onNavigate('admissions')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                  Admissions Roadmap & Deadlines
-                </button>
-              </li>
-              <li style={{ marginBottom: '0.55rem' }}>
-                <button onClick={() => onNavigate('admissions')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                  Approved Annual Fee Charts & Scholarships
-                </button>
-              </li>
-              <li style={{ marginBottom: '0.55rem' }}>
-                <button onClick={() => onNavigate('placements')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                  Placement Reports & Recruiter Tiers
-                </button>
-              </li>
-              <li style={{ marginBottom: '0.55rem' }}>
-                <button onClick={() => onNavigate('campus')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                  50-Acre Campus Facilities & Hostels
-                </button>
-              </li>
-              <li style={{ marginBottom: '0.55rem' }}>
-                <button onClick={() => onNavigate('life')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                  Student Societies & Formula Racing Club
-                </button>
-              </li>
-              <li style={{ marginBottom: '0.55rem' }}>
-                <button onClick={() => onNavigate('news')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                  Official Notices & Academic Circulars
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onNavigate('gallery')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                  Campus Visual Showcase & Media
-                </button>
-              </li>
+            <h4 style={{ color: '#FFFFFF', fontSize: '1rem', fontWeight: 700, marginBottom: '1rem' }}>Student Zone</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              <li><button onClick={() => onNavigate('admissions')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.admissionsLabel}</button></li>
+              <li><button onClick={() => onNavigate('placements')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.placementsLabel}</button></li>
+              <li><button onClick={() => onNavigate('life')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.studentLifeLabel}</button></li>
+              <li><button onClick={() => onNavigate('gallery')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>Gallery</button></li>
+              <li><button onClick={() => onNavigate('news')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.noticeLabel}</button></li>
             </ul>
           </div>
 
-          {/* Col 4: Admission Helpline & Admin */}
+          {/* Column 4: Admissions + Institutes */}
           <div>
-            <h4 style={{ color: '#FFFFFF', fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem' }}>Admissions Helpline</h4>
-            <p style={{ color: '#94A3B8', fontSize: '0.85rem', marginBottom: '1rem', lineHeight: 1.5 }}>
-              Central admissions and counseling desk active Mon–Sat (9 AM to 5 PM IST).
+            <h4 style={{ color: '#FFFFFF', fontSize: '1rem', fontWeight: 700, marginBottom: '1rem' }}>Admissions Helpline</h4>
+            <p style={{ color: '#94A3B8', fontSize: '0.82rem', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+              Admissions and counseling support during office hours.
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#CBD5E1', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-              <Phone size={15} style={{ color: 'var(--color-accent)' }} />
-              <span>{settings.contact_phone_admissions || '+91 253 251 2867'}</span>
+              <Phone size={14} style={{ color: 'var(--color-accent)' }} />
+              <span>{settings.contact_phone_admissions || settings.contact_phone_primary || '+91 20 2420 2115'}</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#CBD5E1', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-              <Mail size={15} style={{ color: 'var(--color-accent)' }} />
-              <span>{settings.contact_email_admissions || 'admissions@apex-inst.edu'}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#CBD5E1', fontSize: '0.85rem', marginBottom: '1rem' }}>
+              <Mail size={14} style={{ color: 'var(--color-accent)' }} />
+              <span>{settings.contact_email_admissions || 'admissions@example.edu'}</span>
             </div>
-            <button className="btn btn-accent btn-sm" style={{ width: '100%', justifyContent: 'center', marginBottom: '0.85rem' }} onClick={() => onOpenInquiry()}>
-              Submit Online Inquiry
+            <button className="btn btn-accent btn-sm" style={{ width: '100%', justifyContent: 'center', marginBottom: '0.65rem', fontFamily: "'Inter', sans-serif" }} onClick={() => onOpenInquiry()}>
+              Submit Online Inquiry <ArrowRight size={14} />
             </button>
-            <button 
-              onClick={() => onNavigate('admin')} 
-              style={{
-                width: '100%',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                color: '#FCD34D',
-                borderRadius: '6px',
-                padding: '0.45rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.35rem'
-              }}
-            >
-              <Lock size={12} /> Institutional CMS Admin Panel
-            </button>
+
+            {/* Sub-institutions in footer (Group mode) */}
+            {isGroupMode && subInstitutions.length > 0 && (
+              <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                <h5 style={{ color: '#FFFFFF', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Our Institutes</h5>
+                {subInstitutions.slice(0, 5).map((inst, i) => (
+                  <a key={i} href={inst.websiteUrl || '#'} target={inst.websiteUrl ? '_blank' : '_self'} rel="noopener noreferrer"
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#94A3B8', fontSize: '0.8rem', marginBottom: '0.4rem', textDecoration: 'none', transition: 'color 150ms' }}
+                    onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>
+                    <span style={{ fontSize: '0.85rem' }}>{inst.iconEmoji || '🏛️'}</span>
+                    <span>{inst.shortName || inst.name}</span>
+                    {inst.websiteUrl && <ExternalLink size={10} style={{ opacity: 0.5 }} />}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Footer bottom */}
-        <div style={{ padding: '1.5rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', fontSize: '0.8125rem', color: '#64748B' }}>
-          <div>
-            © {new Date().getFullYear()} {settings.college_name || 'Vishwakarma Institute of Technology (VIT Pune)'}. Autonomous Institution. {settings.affiliation || 'Affiliated to Savitribai Phule Pune University (SPPU)'}
+        {/* Accreditation badges */}
+        {(settings.accreditation_summary || settings.affiliation) && (
+          <div style={{ padding: '1.25rem 0', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
+            {settings.accreditation_summary && (
+              <span style={{ fontSize: '0.78rem', color: '#FCD34D', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                ⭐ {settings.accreditation_summary}
+              </span>
+            )}
+            {settings.affiliation && (
+              <span style={{ fontSize: '0.78rem', color: '#94A3B8', fontWeight: 500 }}>{settings.affiliation}</span>
+            )}
           </div>
+        )}
+
+        {/* Copyright Bar */}
+        <div style={{ padding: '1.25rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', fontSize: '0.78rem', color: '#475569' }}>
           <div>
-            <span>Accredited NAAC A++ (CGPA 3.68) | NBA Tier-1 | SPPU Affiliated | DTE Code: {settings.dte_code || '6277'}</span>
+            &copy; {new Date().getFullYear()} {settings.college_name || profile.collegeName}. All rights reserved.
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button onClick={() => onNavigate('contact')} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.78rem', fontFamily: "'Inter', sans-serif", transition: 'color 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#94A3B8'} onMouseLeave={e => e.currentTarget.style.color = '#475569'}>
+              Contact
+            </button>
+            <button onClick={() => onNavigate('admin')} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontFamily: "'Inter', sans-serif", transition: 'color 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#475569'}>
+              <Lock size={10} /> Admin
+            </button>
           </div>
         </div>
       </div>

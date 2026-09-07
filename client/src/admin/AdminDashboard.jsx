@@ -73,6 +73,12 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
   const [adminFullName, setAdminFullName] = useState(adminUser?.fullName || 'Chief Institutional Administrator');
   const [adminEmail, setAdminEmail] = useState(adminUser?.email || 'admin@apex-inst.edu');
   const [profileUpdating, setProfileUpdating] = useState(false);
+  const dashboardStats = [
+    { label: 'Pages', value: pagesList.length, note: `${pagesList.filter(p => p.isActive).length} live` },
+    { label: 'Sections', value: sectionsList.filter(s => s.isVisible).length, note: `${sectionsList.length} total` },
+    { label: 'Programs', value: courses.length, note: `${departments.length} academic units` },
+    { label: 'Inquiries', value: inquiries.length, note: 'recent messages' }
+  ];
 
   useEffect(() => {
     if (adminUser) {
@@ -694,102 +700,118 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
   // ============================================
   if (!isAuthenticated) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5F7FA', padding: '1rem' }}>
-        <div style={{ background: '#FFFFFF', borderRadius: '14px', padding: '2.5rem', width: '100%', maxWidth: '400px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', border: '1px solid #E5E7EB' }}>
-          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-            <div style={{ width: "52px", height: "52px", borderRadius: "12px", background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 0.75rem", color: "#2563EB" }}><GraduationCap size={28} /></div>
-            <h2 style={{ fontSize: '1.3rem', color: '#111827', marginBottom: '0.25rem' }}>Admin Login</h2>
-            <p style={{ fontSize: '0.85rem', color: '#6B7280' }}>Sign in to manage your college website</p>
+      <div className="admin-login-shell">
+        <aside className="admin-login-hero">
+          <div>
+            <span className="eyebrow">
+              <Lock size={12} /> Institutional CMS
+            </span>
+            <h2>Manage the whole campus site from one control room.</h2>
+            <p>
+              Update the website for engineering, pharmacy, school, or general college content without changing the layout.
+              Keep branding, admissions, pages, and published sections in one place.
+            </p>
           </div>
 
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '1rem' }}>
-              <label className="simple-label">Username</label>
-              <input
-                type="text"
-                className="simple-input"
-                placeholder="Enter username"
-                value={loginUsername}
-                onChange={e => setLoginUsername(e.target.value)}
-                autoComplete="username"
-                required
-              />
+          <div className="admin-login-badges">
+            <div className="admin-login-badge">
+              <span>One profile switch</span>
+              <strong>Engineering to Pharmacy</strong>
             </div>
-            <div style={{ marginBottom: '1.25rem' }}>
-              <label className="simple-label">Password</label>
-              <div style={{ position: 'relative' }}>
+            <div className="admin-login-badge">
+              <span>Live publishing</span>
+              <strong>CMS edits go live fast</strong>
+            </div>
+            <div className="admin-login-badge">
+              <span>Institutional scope</span>
+              <strong>Pages, admissions, media</strong>
+            </div>
+          </div>
+        </aside>
+
+        <section className="admin-login-card">
+          <div className="admin-login-panel">
+            <div className="login-icon">
+              <GraduationCap size={28} />
+            </div>
+            <h2 style={{ fontSize: '1.7rem', margin: '0 0 0.35rem', fontWeight: 800 }}>Admin Login</h2>
+            <p style={{ fontSize: '0.92rem', color: '#64748B', margin: '0 0 1.5rem', lineHeight: 1.6 }}>
+              Sign in to manage your college website with a profile-based CMS.
+            </p>
+
+            <form onSubmit={handleLogin}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label className="simple-label">Username</label>
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type="text"
                   className="simple-input"
-                  placeholder="Enter password"
-                  value={loginPassword}
-                  onChange={e => setLoginPassword(e.target.value)}
-                  autoComplete="current-password"
-                  style={{ paddingRight: '2.5rem' }}
+                  placeholder="Enter username"
+                  value={loginUsername}
+                  onChange={e => setLoginUsername(e.target.value)}
+                  autoComplete="username"
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(prev => !prev)}
-                  style={{
-                    position: 'absolute',
-                    right: '10px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    color: '#6B7280',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '4px'
-                  }}
-                  title={showPassword ? 'Hide password' : 'Show password'}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
               </div>
-            </div>
-            <button type="submit" className="admin-btn admin-btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.65rem' }}>
-              Sign In
-            </button>
-          </form>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label className="simple-label">Password</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    className="simple-input"
+                    placeholder="Enter password"
+                    value={loginPassword}
+                    onChange={e => setLoginPassword(e.target.value)}
+                    autoComplete="current-password"
+                    style={{ paddingRight: '2.5rem' }}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: '#64748B',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '4px'
+                    }}
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <button type="submit" className="admin-btn admin-btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.7rem' }}>
+                Sign In
+              </button>
+            </form>
 
-          <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid #E5E7EB', textAlign: 'center' }}>
-            <button
-              type="button"
-              onClick={() => {
-                if (onNavigate) {
-                  onNavigate('home');
-                } else {
-                  window.location.hash = '#home';
-                }
-              }}
-              style={{
-                width: '100%',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                padding: '0.65rem 1rem',
-                background: '#F3F4F6',
-                color: '#374151',
-                border: '1px solid #D1D5DB',
-                borderRadius: '8px',
-                fontWeight: 600,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
-              }}
-              onMouseOver={(e) => { e.currentTarget.style.background = '#E5E7EB'; e.currentTarget.style.color = '#111827'; }}
-              onMouseOut={(e) => { e.currentTarget.style.background = '#F3F4F6'; e.currentTarget.style.color = '#374151'; }}
-            >
-              <ArrowLeft size={16} /> Back to Main Website
-            </button>
+            <div style={{ marginTop: '1.15rem', paddingTop: '1.15rem', borderTop: '1px solid #E5EAF1', textAlign: 'center' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onNavigate) {
+                    onNavigate('home');
+                  } else {
+                    window.location.hash = '#home';
+                  }
+                }}
+                className="admin-btn admin-btn-secondary"
+                style={{ width: '100%', justifyContent: 'center', padding: '0.7rem 1rem', fontSize: '0.85rem' }}
+              >
+                <ArrowLeft size={16} /> Back to Website
+              </button>
+            </div>
           </div>
-        </div>
+        </section>
       </div>
     );
   }
@@ -829,20 +851,16 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
     <div className="admin-shell">
       {/* TOP BAR */}
       <header className="admin-topbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <div style={{ width: "34px", height: "34px", borderRadius: "8px", background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center", color: "#2563EB", flexShrink: 0 }}><GraduationCap size={20} /></div>
-          <div>
-            <h1 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', margin: 0 }}>College Website Admin</h1>
-            <p style={{ fontSize: '0.72rem', color: '#9CA3AF', margin: 0 }}>Manage your website content easily</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', minWidth: 0 }}>
+          <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'linear-gradient(135deg, #00529B, #002147)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFFFFF', flexShrink: 0, boxShadow: '0 14px 28px -18px rgba(0, 82, 155, 0.55)' }}>
+            <GraduationCap size={20} />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <h1 style={{ fontSize: '1rem', fontWeight: 800, color: '#0F172A', margin: 0, lineHeight: 1.15 }}>College Website Admin</h1>
+            <p style={{ fontSize: '0.72rem', color: '#64748B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Manage website content, branding, and live publishing</p>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <button className="admin-btn admin-btn-primary" onClick={handleStartCreateNewPage} style={{ fontWeight: 600 }}>
-            <Plus size={14} /> Add New Page
-          </button>
-          <button className="admin-btn admin-btn-success" onClick={() => { handleSaveSettings(); onToast('Changes saved!', 'success'); }}>
-            <Check size={14} /> Save All Changes
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <button
             className={`admin-btn ${currentTab === 'account' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
             onClick={() => { setSelectedStudioPage(null); setCurrentTab('account'); }}
@@ -850,27 +868,74 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
             style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}
           >
             <Shield size={13} />
-            <span>Admin: {adminUser?.username || 'admin'}</span>
-          </button>
-          <button
-            className="admin-btn admin-btn-secondary"
-            onClick={() => {
-              if (onNavigate) {
-                onNavigate('home');
-              } else {
-                window.location.hash = '#home';
-              }
-            }}
-            style={{ cursor: 'pointer' }}
-            title="Return to public college portal"
-          >
-            <Globe size={13} /> Return to Website
+            <span>{adminUser?.username || 'admin'}</span>
           </button>
           <button className="admin-btn admin-btn-secondary" onClick={handleLogout}>
             <LogOut size={13} /> Logout
           </button>
         </div>
       </header>
+
+      <div className="container" style={{ paddingTop: '1rem', paddingBottom: '0.25rem' }}>
+        <div className="admin-workspace-hero">
+          <section className="admin-workspace-panel">
+            <span className="eyebrow" style={{ marginBottom: '0.85rem' }}>
+              <Sparkles size={12} /> Live CMS Workspace
+            </span>
+            <h2 style={{ fontSize: '1.75rem', margin: '0 0 0.55rem', fontWeight: 800 }}>CMS Control Center</h2>
+            <p style={{ margin: 0, maxWidth: '720px' }}>
+              Manage admissions, pages, media, navigation, and institution branding from a single premium dashboard.
+              The same structure works for engineering, pharmacy, school, or a general college profile.
+            </p>
+
+            <div className="admin-workspace-grid" style={{ marginTop: '1.1rem' }}>
+              {dashboardStats.map(stat => (
+                <div key={stat.label} className="admin-mini-card">
+                  <span className="admin-mini-value">{stat.value}</span>
+                  <span className="admin-mini-label">{stat.label}</span>
+                  <span className="admin-mini-note">{stat.note}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <aside className="admin-card" style={{ padding: '1.1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1rem' }}>
+              <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(0,82,155,0.12), rgba(217,119,6,0.12))', color: '#00529B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Shield size={20} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748B', fontWeight: 700 }}>Active Session</div>
+                <div style={{ fontSize: '1rem', fontWeight: 800, color: '#0F172A' }}>{adminUser?.username || 'admin'}</div>
+                <div style={{ fontSize: '0.78rem', color: '#64748B' }}>Authorized CMS editor</div>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gap: '0.65rem' }}>
+              <button className="admin-btn admin-btn-primary" onClick={handleStartCreateNewPage} style={{ width: '100%', justifyContent: 'center' }}>
+                <Plus size={14} /> Create New Page
+              </button>
+              <button className="admin-btn admin-btn-success" onClick={() => { handleSaveSettings(); onToast('Changes saved!', 'success'); }} style={{ width: '100%', justifyContent: 'center' }}>
+                <Check size={14} /> Publish Changes
+              </button>
+              <button
+                className="admin-btn admin-btn-secondary"
+                onClick={() => {
+                  if (onNavigate) {
+                    onNavigate('home');
+                  } else {
+                    window.location.hash = '#home';
+                  }
+                }}
+                style={{ width: '100%', justifyContent: 'center' }}
+                title="Return to public college portal"
+              >
+                <Globe size={13} /> View Public Site
+              </button>
+            </div>
+          </aside>
+        </div>
+      </div>
 
       <div className="admin-body">
         {/* SIDEBAR */}
@@ -2921,7 +2986,189 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                 {/* SETTINGS TAB */}
                 {currentTab === 'settings' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4rem' }}>
-                    
+                    <div style={{ background: '#FFFFFF', padding: '1.5rem', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+                        <div>
+                          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: '#111827', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <School size={20} style={{ color: '#2563EB' }} /> Institutional Profile & Domain Switcher
+                          </h3>
+                          <p style={{ fontSize: '0.8rem', color: '#6B7280', margin: '0.25rem 0 0 0' }}>
+                            Switch this website between Engineering, Pharmacy, Polytechnic, MBA/Management, Law, Arts & Science, School, or an entire Multi-College Group.
+                          </p>
+                        </div>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '9999px', background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE' }}>
+                          Active: {(localSettings.institution_profile || localSettings.institution_type || 'college').toUpperCase()}
+                        </span>
+                      </div>
+
+                      {/* Quick Profile Cards */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem', marginBottom: '1.25rem' }}>
+                        {[
+                          { id: 'engineering', name: 'Engineering Institute', icon: '⚙️', badge: 'B.Tech / M.Tech / Ph.D.', desc: 'Technical education, research, engineering departments & placement stats.' },
+                          { id: 'pharmacy', name: 'Pharmacy Institute', icon: '💊', badge: 'D.Pharm / B.Pharm / M.Pharm', desc: 'PCI/AICTE compliant pharma portal with laboratories, drug research & training.' },
+                          { id: 'polytechnic', name: 'Polytechnic Institute', icon: '📐', badge: 'Diploma Engg / Pharmacy', desc: 'Technical diplomas, workshops, MSBTE/State board affiliation & skill paths.' },
+                          { id: 'management', name: 'Management Institute', icon: '📊', badge: 'MBA / BBA / MCA', desc: 'Business administration, corporate links, leadership & campus placements.' },
+                          { id: 'law', name: 'Law College', icon: '⚖️', badge: 'BA LLB / LLB / LLM', desc: 'Bar Council compliant legal education, moot courts & judicial internships.' },
+                          { id: 'arts_science', name: 'Arts, Science & Commerce', icon: '📚', badge: 'BA / BSc / BCom / MSc', desc: 'Multi-disciplinary degree college with humanities, sciences & commerce.' },
+                          { id: 'group', name: 'Group of Institutions', icon: '🏛️', badge: 'Multi-College Umbrella', desc: 'Multi-campus portal bringing Engineering, Pharmacy, MBA & School together.' },
+                          { id: 'school', name: 'School & Junior College', icon: '🎒', badge: 'K-12 & Junior College', desc: 'Primary, secondary, and junior college portal with parent & academic focus.' },
+                          { id: 'college', name: 'Higher Education Portal', icon: '🎓', badge: 'General Academic', desc: 'Flexible multi-track higher education institutional portal.' }
+                        ].map(p => {
+                          const isSelected = (localSettings.institution_profile || localSettings.institution_type || 'college') === p.id;
+                          return (
+                            <div
+                              key={p.id}
+                              onClick={() => {
+                                const next = {
+                                  ...localSettings,
+                                  institution_profile: p.id,
+                                  institution_type: p.id
+                                };
+                                setLocalSettings(next);
+                                onToast(`Switched profile to ${p.name}! Click "Save All Changes" to publish.`, 'info');
+                              }}
+                              style={{
+                                border: isSelected ? '2px solid #2563EB' : '1px solid #E2E8F0',
+                                background: isSelected ? '#EFF6FF' : '#F8FAFC',
+                                borderRadius: '10px',
+                                padding: '0.85rem',
+                                cursor: 'pointer',
+                                transition: 'all 0.18s ease',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '0.4rem'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: '1.25rem' }}>{p.icon}</span>
+                                <span style={{
+                                  fontSize: '0.65rem',
+                                  fontWeight: 700,
+                                  padding: '0.12rem 0.4rem',
+                                  borderRadius: '4px',
+                                  background: isSelected ? '#2563EB' : '#E2E8F0',
+                                  color: isSelected ? '#FFFFFF' : '#475569'
+                                }}>
+                                  {isSelected ? '✓ ACTIVE' : p.id}
+                                </span>
+                              </div>
+                              <strong style={{ fontSize: '0.88rem', color: '#111827' }}>{p.name}</strong>
+                              <span style={{ fontSize: '0.72rem', color: '#2563EB', fontWeight: 600 }}>{p.badge}</span>
+                              <p style={{ fontSize: '0.73rem', color: '#64748B', margin: 0, lineHeight: 1.35 }}>{p.desc}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Dropdown Alternative */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', background: '#F8FAFC', padding: '1rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                        <div>
+                          <label className="simple-label" style={{ fontWeight: 600 }}>Select Active Profile (Dropdown)</label>
+                          <select
+                            className="simple-input"
+                            value={localSettings.institution_profile || localSettings.institution_type || 'college'}
+                            onChange={e => {
+                              const val = e.target.value;
+                              setLocalSettings({ ...localSettings, institution_profile: val, institution_type: val });
+                              onToast(`Switched profile to ${val}. Click "Save All Changes" to apply.`, 'info');
+                            }}
+                          >
+                            <option value="engineering">⚙️ Engineering Institute (B.Tech, M.Tech, Ph.D.)</option>
+                            <option value="pharmacy">💊 Pharmacy Institute (D.Pharm, B.Pharm, M.Pharm)</option>
+                            <option value="polytechnic">📐 Polytechnic Institute (Diploma Engineering / Pharmacy)</option>
+                            <option value="management">📊 Management Institute (MBA, BBA, MCA)</option>
+                            <option value="law">⚖️ Law College (BA LLB, LLB, LLM)</option>
+                            <option value="arts_science">📚 Arts, Science & Commerce College (BA, BSc, BCom)</option>
+                            <option value="group">🏛️ Group of Institutions (Multi-College / Campus)</option>
+                            <option value="school">🎒 School & Junior College (K-12, +2 Junior College)</option>
+                            <option value="college">🎓 General Higher Education Portal</option>
+                          </select>
+                          <div className="simple-hint" style={{ marginTop: '0.35rem' }}>
+                            All public pages automatically adapt headlines, program filters, degrees, admissions labels, and navigation copy.
+                          </div>
+                        </div>
+
+                        {/* Quick Name Auto-Fill Helper */}
+                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                          <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>
+                            Auto-Configure Brand Defaults
+                          </span>
+                          <button
+                            type="button"
+                            className="admin-btn admin-btn-secondary"
+                            style={{ alignSelf: 'flex-start', fontSize: '0.78rem', padding: '0.45rem 0.85rem' }}
+                            onClick={() => {
+                              const cur = localSettings.institution_profile || 'engineering';
+                              const defaultsMap = {
+                                engineering: {
+                                  college_name: 'Apex Institute of Engineering & Technology',
+                                  college_short_name: 'Apex Engineering',
+                                  college_tagline: 'Premier Technical Education, Industry Placements & Applied Research',
+                                  affiliation: 'Autonomous College affiliated to State Technological University • Approved by AICTE, New Delhi'
+                                },
+                                pharmacy: {
+                                  college_name: 'Apex Institute of Pharmaceutical Sciences & Research',
+                                  college_short_name: 'Apex Pharmacy',
+                                  college_tagline: 'Excellence in Pharmaceutical Education, Advanced Formulation Labs & Healthcare',
+                                  affiliation: 'Approved by Pharmacy Council of India (PCI) & AICTE, New Delhi • Affiliated to State Health University'
+                                },
+                                polytechnic: {
+                                  college_name: 'Apex Polytechnic & Technical Institute',
+                                  college_short_name: 'Apex Polytechnic',
+                                  college_tagline: 'Hands-on Technical Diploma Education, Advanced Workshops & Industry Apprenticeships',
+                                  affiliation: 'Approved by AICTE, New Delhi • Affiliated to Maharashtra State Board of Technical Education (MSBTE)'
+                                },
+                                management: {
+                                  college_name: 'Apex Institute of Management & Computer Applications',
+                                  college_short_name: 'Apex Management',
+                                  college_tagline: 'Developing Future Leaders with MBA, BBA & MCA Programs and Corporate Partnerships',
+                                  affiliation: 'Approved by AICTE, New Delhi • Affiliated to Savitribai Phule Pune University'
+                                },
+                                law: {
+                                  college_name: 'Apex Law College & Judicial Research Centre',
+                                  college_short_name: 'Apex Law',
+                                  college_tagline: 'Comprehensive Legal Education with Active Moot Court Society & Judicial Internships',
+                                  affiliation: 'Approved by Bar Council of India (BCI) • Affiliated to State University'
+                                },
+                                arts_science: {
+                                  college_name: 'Apex College of Arts, Science & Commerce',
+                                  college_short_name: 'Apex Arts & Science',
+                                  college_tagline: 'Liberal Higher Education, Holistic Development & Interdisciplinary Research',
+                                  affiliation: 'Recognized under Section 2(f) & 12(B) of UGC Act • Affiliated to State University'
+                                },
+                                group: {
+                                  college_name: 'Apex Group of Institutions',
+                                  college_short_name: 'Apex Group',
+                                  college_tagline: 'A Multi-Disciplinary Campus: Engineering, Pharmacy, Management, Polytechnic & Schools',
+                                  affiliation: 'Multi-Institutional Academic Campus • AICTE, PCI, BCI & UGC Approved Colleges'
+                                },
+                                school: {
+                                  college_name: 'Apex Public School & Junior College',
+                                  college_short_name: 'Apex School',
+                                  college_tagline: 'Nurturing Academic Excellence, Values & Sports from Kindergarten to Junior College',
+                                  affiliation: 'Affiliated to Central Board of Secondary Education (CBSE) / State Board'
+                                },
+                                college: {
+                                  college_name: 'Apex Higher Education Institute',
+                                  college_short_name: 'Apex Institute',
+                                  college_tagline: 'Fostering Innovation, Academic Rigor and Global Perspectives',
+                                  affiliation: 'Affiliated to State University • Approved by Statutory Regulatory Authorities'
+                                }
+                              };
+                              const patch = defaultsMap[cur] || defaultsMap.engineering;
+                              setLocalSettings({ ...localSettings, ...patch });
+                              onToast(`Applied recommended naming and affiliation for ${cur.toUpperCase()}! Review below and click "Save All Changes".`, 'success');
+                            }}
+                          >
+                            🪄 Auto-Fill Recommended Name & Affiliation for Selected Profile
+                          </button>
+                          <span style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '0.35rem' }}>
+                            Prefills college title, short name, and regulatory affiliations (AICTE / PCI / BCI / UGC) tailored to the profile.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* 0. Website Theme & Color Customizer */}
                     <div style={{ background: '#FFFFFF', padding: '1.5rem', borderRadius: '12px', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>

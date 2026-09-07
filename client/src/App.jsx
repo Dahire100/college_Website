@@ -50,7 +50,6 @@ export default function App() {
   useEffect(() => {
     fetchConfig();
 
-    // Hash sync
     const syncRouteFromHash = () => {
       const hash = window.location.hash.replace('#', '') || 'home';
       setCurrentRoute(hash);
@@ -69,9 +68,7 @@ export default function App() {
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
-    setTimeout(() => {
-      setToast(null);
-    }, 4000);
+    setTimeout(() => setToast(null), 4000);
   };
 
   const openInquiry = (course = '') => {
@@ -83,68 +80,38 @@ export default function App() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Toast Notification */}
-      {toast && (
-        <div className={`toast-msg ${toast.type}`}>
-          <span>{toast.message}</span>
-        </div>
-      )}
+      {toast && <div className={`toast-msg ${toast.type}`}><span>{toast.message}</span></div>}
 
-      {/* Public Header (hidden when on admin tab) */}
       {currentRoute !== 'admin' && (
-        <Header
-          settings={settings}
-          navigation={config?.navigation}
-          currentRoute={currentRoute}
-          onNavigate={navigate}
-          onOpenInquiry={openInquiry}
-        />
+        <Header settings={settings} navigation={config?.navigation} currentRoute={currentRoute} onNavigate={navigate} onOpenInquiry={openInquiry} />
       )}
 
-      {/* Main Page Content */}
       <main style={{ flex: 1 }}>
-        {currentRoute === 'home' && (
-          <Home 
-            onNavigate={navigate} 
-            onOpenInquiry={openInquiry} 
-            settings={settings}
-            sections={config?.sections || []} 
-          />
-        )}
-        {currentRoute === 'about' && <About settings={settings} />}
-        {currentRoute === 'academics' && <Academics onNavigate={navigate} onOpenInquiry={openInquiry} />}
-        {currentRoute === 'departments' && <Departments onNavigate={navigate} />}
-        {currentRoute === 'programs' && <Programs onNavigate={navigate} onOpenInquiry={openInquiry} />}
-        {currentRoute === 'admissions' && <Admissions onOpenInquiry={openInquiry} />}
-        {currentRoute === 'placements' && <Placements onNavigate={navigate} />}
-        {currentRoute === 'campus' && <Campus onNavigate={navigate} />}
-        {currentRoute === 'research' && <Research onNavigate={navigate} onOpenInquiry={openInquiry} />}
-        {currentRoute === 'life' && <StudentLife onNavigate={navigate} />}
+        {currentRoute === 'home' && <Home onNavigate={navigate} onOpenInquiry={openInquiry} settings={settings} sections={config?.sections || []} />}
+        {currentRoute === 'about' && <About settings={settings} onNavigate={navigate} />}
+        {currentRoute === 'academics' && <Academics settings={settings} onNavigate={navigate} onOpenInquiry={openInquiry} />}
+        {currentRoute === 'departments' && <Departments settings={settings} onNavigate={navigate} />}
+        {currentRoute === 'programs' && <Programs settings={settings} onNavigate={navigate} onOpenInquiry={openInquiry} />}
+        {currentRoute === 'admissions' && <Admissions settings={settings} onOpenInquiry={openInquiry} />}
+        {currentRoute === 'placements' && <Placements settings={settings} onNavigate={navigate} />}
+        {currentRoute === 'campus' && <Campus settings={settings} onNavigate={navigate} />}
+        {currentRoute === 'research' && <Research settings={settings} onNavigate={navigate} onOpenInquiry={openInquiry} />}
+        {currentRoute === 'life' && <StudentLife settings={settings} onNavigate={navigate} />}
         {currentRoute === 'gallery' && <Gallery settings={settings} />}
-        {currentRoute === 'news' && <NewsNotices onNavigate={navigate} />}
+        {currentRoute === 'news' && <NewsNotices settings={settings} onNavigate={navigate} />}
         {currentRoute === 'contact' && <Contact settings={settings} onToast={showToast} />}
 
-        {/* Dynamic & Custom Pages with Subsections */}
         {!['home', 'about', 'academics', 'departments', 'programs', 'admissions', 'campus', 'placements', 'research', 'life', 'gallery', 'news', 'contact', 'admin'].includes(currentRoute) && (
           <CustomPage slug={currentRoute} onOpenInquiry={openInquiry} onNavigate={navigate} />
         )}
 
-        {/* Admin CMS Dashboard */}
         {currentRoute === 'admin' && (
           <AdminDashboard onToast={showToast} onPublicUpdate={fetchConfig} onNavigate={navigate} />
         )}
       </main>
 
-      {/* Public Footer (hidden when on admin tab) */}
-      {currentRoute !== 'admin' && (
-        <Footer
-          settings={settings}
-          onNavigate={navigate}
-          onOpenInquiry={openInquiry}
-        />
-      )}
+      {currentRoute !== 'admin' && <Footer settings={settings} onNavigate={navigate} onOpenInquiry={openInquiry} />}
 
-      {/* Quick Floating Action Button for Inquiries */}
       {currentRoute !== 'admin' && (
         <button
           onClick={() => openInquiry()}
@@ -167,16 +134,16 @@ export default function App() {
             gap: '0.5rem'
           }}
         >
-          <span>💬 Admissions Inquiry</span>
+          <span>Admissions Inquiry</span>
         </button>
       )}
 
-      {/* Global Inquiry Modal */}
       <InquiryModal
         isOpen={inquiryModalOpen}
         onClose={() => setInquiryModalOpen(false)}
         defaultCourse={inquiryCourse}
         onToast={showToast}
+        settings={settings}
       />
     </div>
   );

@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
-import { Phone, Mail, Award, Lock, Menu, X, ChevronDown, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Phone, Mail, Lock, Menu, X, ArrowRight, ChevronDown, Globe, ExternalLink } from 'lucide-react';
+import { getInstitutionProfile } from '../content/institutionProfile';
+import { api } from '../services/api';
 
 export default function Header({ settings = {}, navigation = [], currentRoute, onNavigate, onOpenInquiry }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const collegeName = settings?.college_name || settings?.college_short_name || 'College Emblem';
+  const [scrolled, setScrolled] = useState(false);
+  const [subInstitutions, setSubInstitutions] = useState([]);
+  const [instituteDropdownOpen, setInstituteDropdownOpen] = useState(false);
+  const profile = getInstitutionProfile(settings);
+  const collegeName = settings?.college_name || settings?.college_short_name || profile.collegeName || 'Institution';
+  const isGroupMode = profile.profileKey === 'group';
 
-  // Exact 13-stage information architecture:
-  // Home → About → Academics → Departments → Programs → Admissions → Campus → Placements → Research → Student Life → News & Events → Gallery → Contact
   const defaultNavItems = [
     { id: 'home', label: 'Home' },
     { id: 'about', label: 'About Us' },
@@ -35,52 +40,77 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
     }
   }
 
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (isGroupMode) {
+      api.get('/api/v1/public/sub-institutions').then(res => {
+        if (res.success) setSubInstitutions(res.data || []);
+      }).catch(() => {});
+    }
+  }, [isGroupMode]);
+
   const handleNavClick = (id) => {
     setMobileOpen(false);
+    setInstituteDropdownOpen(false);
     onNavigate(id);
   };
 
+  const announcementText = settings?.announcement_text || profile.announcementText || '';
+
   return (
-    <header style={{ width: '100%', position: 'relative', zIndex: 100, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-      {/* =========================================================================
-          1. TOP UTILITY BAR (Authentic Government/Institutional Dark Ribbon)
-          ========================================================================= */}
+    <header style={{ width: '100%', position: 'relative', zIndex: 100 }}>
+
+      {/* Tier 0: Announcement Marquee Bar */}
+      {announcementText && (
+        <div className="announcement-bar">
+          <span className="announcement-text">{announcementText}</span>
+        </div>
+      )}
+
+      {/* Tier 1: Top Utility Bar */}
       <div style={{ background: '#071626', color: '#94A3B8', fontSize: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.08)', padding: '0.35rem 0' }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.6rem' }}>
-          {/* Left: Government Accreditations */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
             <span style={{ background: '#DC2626', color: '#FFFFFF', padding: '0.1rem 0.45rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.7rem', letterSpacing: '0.04em' }}>
-              DTE CODE: {settings.dte_code || '6277'}
+              {profile.shortName}
             </span>
             <span style={{ color: '#F1F5F9', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22C55E', display: 'inline-block' }} />
-              UGC Autonomous
+              {profile.academicUnitsLabel}
             </span>
             <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
             <span style={{ color: '#FCD34D', fontWeight: 600 }}>
-              NAAC 'A++' Grade (CGPA 3.68)
+              {settings.accreditation_summary || 'CMS Managed Institutional Site'}
             </span>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-            <span style={{ color: '#E2E8F0' }}>
-              Affiliated to SPPU, Pune
-            </span>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-            <span style={{ color: '#CBD5E1' }}>
-              NBA Tier-1 Accredited
-            </span>
+            {settings.affiliation && (
+              <>
+                <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
+                <span style={{ color: '#E2E8F0' }}>{settings.affiliation}</span>
+              </>
+            )}
           </div>
 
-          {/* Right: Contact & Portal Links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem', flexWrap: 'wrap' }}>
-            <a href={`tel:${settings.contact_phone_primary || '+91 20 2420 2180'}`} style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <a href={`tel:${settings.contact_phone_primary || '+91 20 2420 2180'}`} style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', transition: 'color 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#CBD5E1'}>
               <Phone size={11} style={{ color: '#94A3B8' }} />
               <span>{settings.contact_phone_primary || '+91 20 2420 2180'}</span>
             </a>
-            <a href={`mailto:${settings.contact_email_primary || 'principal@vit.edu'}`} style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+            <a href={`mailto:${settings.contact_email_primary || 'info@example.edu'}`} style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', transition: 'color 150ms' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#CBD5E1'}>
               <Mail size={11} style={{ color: '#94A3B8' }} />
-              <span>{settings.contact_email_primary || 'principal@vit.edu'}</span>
+              <span>{settings.contact_email_primary || 'info@example.edu'}</span>
             </a>
-            <span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
+            {settings.erp_login_url && (
+              <a href={settings.erp_login_url} target="_blank" rel="noopener noreferrer" style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(255,255,255,0.08)', padding: '0.15rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.15)', fontWeight: 600, fontSize: '0.72rem' }}>
+                <Globe size={10} /> ERP Login
+              </a>
+            )}
             <button
               onClick={() => handleNavClick('admin')}
               style={{
@@ -94,30 +124,26 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
                 alignItems: 'center',
                 gap: '0.3rem',
                 padding: '0.15rem 0.5rem',
-                borderRadius: '4px'
+                borderRadius: '4px',
+                transition: 'all 150ms'
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.18)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(252,211,77,0.15)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
             >
-              <Lock size={10} /> Admin CMS Portal
+              <Lock size={10} /> Admin CMS
             </button>
           </div>
         </div>
       </div>
 
-      {/* =========================================================================
-          2. MAIN INSTITUTIONAL IDENTITY BAR (Classic Academic Heritage / Clean White)
-          ========================================================================= */}
-      <div style={{ background: '#FFFFFF', padding: '1rem 0', borderBottom: '1px solid #E2E8F0' }}>
+      {/* Tier 2: Main Brand Bar */}
+      <div style={{ background: '#FFFFFF', padding: '0.85rem 0', borderBottom: '1px solid #E2E8F0' }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem' }}>
-          
-          {/* Logo & Traditional University Typography */}
           <a
             href="#home"
             onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}
             style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '1.1rem', minWidth: 0 }}
           >
-            {/* Authentic Academic Crest / Uploaded College Logo */}
             <div style={{ flexShrink: 0 }}>
               {settings?.college_logo ? (
                 <img
@@ -126,69 +152,60 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
                   style={{ width: '58px', height: '58px', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,33,71,0.12))' }}
                 />
               ) : (
-                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,33,71,0.15))' }}>
-                  {/* Outer Crest Ring */}
-                  <circle cx="50" cy="50" r="47" fill="#002147" stroke="#C59B27" strokeWidth="3" />
-                  <circle cx="50" cy="50" r="41" fill="#FFFFFF" stroke="#002147" strokeWidth="1.5" />
-                  
-                  {/* Shield Body */}
-                  <path d="M50 18 L68 25 C68 45 50 58 50 58 C50 58 32 45 32 25 Z" fill="#002147" stroke="#C59B27" strokeWidth="1.5" />
-                  
-                  {/* Torch of Knowledge / Book */}
-                  <path d="M43 32 Q50 28 57 32 L57 42 Q50 38 43 42 Z" fill="#C59B27" />
-                  <line x1="50" y1="28" x2="50" y2="44" stroke="#FFFFFF" strokeWidth="1" />
-                  <circle cx="50" cy="24" r="2.5" fill="#EF4444" />
-                  
-                  {/* Gear of Engineering */}
-                  <circle cx="50" cy="69" r="6" stroke="#002147" strokeWidth="2" fill="#C59B27" strokeDasharray="3 2" />
-
-                  {/* Banner ESTD 1983 */}
-                  <rect x="26" y="80" width="48" height="11" rx="2" fill="#002147" stroke="#C59B27" strokeWidth="1" />
-                  <text x="50" y="88.5" fontSize="7" fontWeight="bold" fill="#FFFFFF" textAnchor="middle" fontFamily="sans-serif">
-                    ESTD. 1983
-                  </text>
-                </svg>
+                <div style={{
+                  width: '58px', height: '58px',
+                  background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
+                  borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#FFFFFF', fontWeight: 800, fontSize: '1.5rem', fontFamily: 'var(--font-heading)',
+                  boxShadow: '0 4px 12px rgba(0,33,71,0.25)'
+                }}>
+                  {(collegeName || 'I').charAt(0)}
+                </div>
               )}
             </div>
 
-            {/* University Titles */}
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: '0.72rem', color: '#64748B', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.15rem' }}>
-                Bansilal Ramnath Agarwal Charitable Trust • Autonomous Institute
-              </div>
-              <h1 style={{
-                fontSize: '1.45rem',
-                color: '#002147',
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontWeight: 800,
-                letterSpacing: '-0.015em',
-                margin: 0,
-                lineHeight: 1.2
-              }}>
-                {settings.college_name || 'Vishwakarma Institute of Technology (VIT Pune)'}
+              {isGroupMode && (
+                <div style={{ fontSize: '0.68rem', color: '#D97706', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '0.1rem' }}>
+                  GROUP OF INSTITUTIONS
+                </div>
+              )}
+              <h1 style={{ fontSize: '1.45rem', color: '#002147', fontFamily: 'var(--font-heading)', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, lineHeight: 1.1 }}>
+                {collegeName}
               </h1>
-              <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: '0.25rem', lineHeight: 1.35 }}>
-                Autonomous Institute Affiliated to Savitribai Phule Pune University (SPPU) • Approved by AICTE • DTE Code: {settings.dte_code || '6277'}
+              <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: '0.2rem', lineHeight: 1.35, maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {settings.college_tagline || profile.tagline}
               </div>
             </div>
           </a>
 
-          {/* Right: Institutional Credentials (Desktop) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexShrink: 0 }}>
-            {/* Admissions Help Desk */}
+            {/* Admissions Helpline */}
             <div style={{ borderLeft: '2px solid #E2E8F0', paddingLeft: '1.25rem', textAlign: 'right' }} className="header-helpline-box">
               <span style={{ fontSize: '0.7rem', color: '#DC2626', display: 'block', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.03em' }}>
-                DTE CODE: {settings.dte_code || '6277'}
+                Admissions Office
               </span>
-              <span style={{ fontSize: '0.95rem', color: '#002147', fontWeight: 700, fontFamily: 'monospace' }}>
-                {settings.contact_phone_admissions || '+91 20 2420 2115'}
+              <span style={{ fontSize: '0.95rem', color: '#002147', fontWeight: 700, fontFamily: "'Inter', monospace" }}>
+                {settings.contact_phone_admissions || settings.contact_phone_primary || '+91 20 2420 2115'}
               </span>
               <div style={{ fontSize: '0.7rem', color: '#059669', fontWeight: 600, marginTop: '2px' }}>
-                MHT-CET CAP Counseling Active
+                {profile.admissionsLabel}
               </div>
             </div>
 
-            {/* Mobile Hamburger Toggle */}
+            {/* Apply Now CTA */}
+            {onOpenInquiry && (
+              <button
+                onClick={() => onOpenInquiry()}
+                className="btn btn-accent btn-sm"
+                style={{ display: 'none', fontFamily: "'Inter', sans-serif" }}
+                id="header-apply-btn"
+              >
+                Apply Now <ArrowRight size={14} />
+              </button>
+            )}
+
+            {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle Navigation Menu"
@@ -196,10 +213,11 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
                 display: 'none',
                 background: '#F8FAFC',
                 border: '1px solid #CBD5E1',
-                borderRadius: '6px',
-                padding: '0.45rem',
+                borderRadius: '8px',
+                padding: '0.5rem',
                 cursor: 'pointer',
-                color: '#002147'
+                color: '#002147',
+                transition: 'all 150ms'
               }}
               className="mobile-header-btn"
             >
@@ -209,29 +227,89 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
         </div>
       </div>
 
-      {/* =========================================================================
-          3. MAIN HORIZONTAL NAVIGATION BAR (Regal Oxford Navy #002147)
-          ========================================================================= */}
-      <nav
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 990,
-          background: '#002147',
-          borderBottom: '2.5px solid #C59B27'
-        }}
-      >
+      {/* Tier 3: Navigation Bar */}
+      <nav style={{
+        position: 'sticky', top: 0, zIndex: 990,
+        background: scrolled ? 'rgba(0, 33, 71, 0.97)' : '#002147',
+        backdropFilter: scrolled ? 'blur(12px)' : 'none',
+        borderBottom: '3px solid var(--color-accent)',
+        boxShadow: scrolled ? '0 4px 20px rgba(0,0,0,0.15)' : 'none',
+        transition: 'all 300ms ease'
+      }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', padding: '0 0.5rem' }}>
-          {/* 13 Core Navigation Stages - Flat, Clean, No Scrollbar */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-              flexWrap: 'wrap'
-            }}
-          >
+          <div className="nav-links-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap' }}>
+
+            {/* Institutes Dropdown (Group Mode) */}
+            {isGroupMode && subInstitutions.length > 0 && (
+              <div
+                className="institute-dropdown"
+                style={{ position: 'relative' }}
+                onMouseEnter={() => setInstituteDropdownOpen(true)}
+                onMouseLeave={() => setInstituteDropdownOpen(false)}
+              >
+                <button
+                  style={{
+                    background: 'rgba(217, 119, 6, 0.2)',
+                    color: '#FCD34D',
+                    border: '1px solid rgba(217, 119, 6, 0.4)',
+                    borderRadius: '6px',
+                    padding: '0.55rem 0.8rem',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    letterSpacing: '0.015em',
+                    transition: 'all 150ms',
+                    fontFamily: "'Inter', sans-serif"
+                  }}
+                >
+                  🏛️ Our Institutes <ChevronDown size={14} style={{ transition: 'transform 200ms', transform: instituteDropdownOpen ? 'rotate(180deg)' : 'none' }} />
+                </button>
+
+                {instituteDropdownOpen && (
+                  <div style={{
+                    position: 'absolute', top: '100%', left: 0, minWidth: '320px',
+                    background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px',
+                    boxShadow: '0 20px 50px rgba(0,0,0,0.15)', padding: '0.5rem',
+                    zIndex: 1100, animation: 'fadeInDown 0.2s ease'
+                  }}>
+                    {subInstitutions.map(inst => (
+                      <a
+                        key={inst._id}
+                        href={inst.websiteUrl || '#'}
+                        target={inst.websiteUrl ? '_blank' : '_self'}
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '0.75rem',
+                          padding: '0.65rem 0.85rem', borderRadius: '8px', color: '#1E293B',
+                          fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none',
+                          transition: 'all 150ms'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#00529B'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#1E293B'; }}
+                      >
+                        <span style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0 }}>
+                          {inst.iconEmoji || '🏛️'}
+                        </span>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{inst.name}</div>
+                          {inst.programs && inst.programs.length > 0 && (
+                            <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '1px' }}>
+                              {inst.programs.slice(0, 3).join(' • ')}
+                            </div>
+                          )}
+                        </div>
+                        {inst.websiteUrl && <ExternalLink size={12} style={{ color: '#94A3B8', flexShrink: 0 }} />}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Nav Items */}
             {navItems.map(item => {
               const isActive = currentRoute === item.id;
               return (
@@ -239,30 +317,21 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
                   key={item.id}
                   onClick={() => handleNavClick(item.id)}
                   style={{
-                    background: isActive ? 'rgba(197, 155, 39, 0.25)' : 'transparent',
+                    background: isActive ? 'rgba(217, 119, 6, 0.2)' : 'transparent',
                     color: isActive ? '#FCD34D' : '#F8FAFC',
                     border: 'none',
-                    borderBottom: isActive ? '3px solid #C59B27' : '3px solid transparent',
+                    borderBottom: isActive ? '3px solid var(--color-accent)' : '3px solid transparent',
                     padding: '0.7rem 0.6rem',
                     fontSize: '0.82rem',
                     fontWeight: isActive ? 700 : 500,
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
                     letterSpacing: '0.015em',
-                    transition: 'all 120ms ease'
+                    transition: 'all 150ms ease',
+                    fontFamily: "'Inter', sans-serif"
                   }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.color = '#FFFFFF';
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.color = '#F8FAFC';
-                      e.currentTarget.style.background = 'transparent';
-                    }
-                  }}
+                  onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = '#FCD34D'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; } }}
+                  onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = '#F8FAFC'; e.currentTarget.style.background = 'transparent'; } }}
                 >
                   {item.label}
                 </button>
@@ -271,20 +340,41 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
           </div>
         </div>
 
-        {/* =========================================================================
-            4. RESPONSIVE MOBILE MENU DRAWER
-            ========================================================================= */}
+        {/* Mobile Navigation Drawer */}
         {mobileOpen && (
-          <div
-            style={{
-              background: '#FFFFFF',
-              borderTop: '2px solid #C59B27',
-              boxShadow: '0 15px 30px rgba(0,0,0,0.2)',
-              padding: '1.25rem',
-              maxHeight: 'calc(100vh - 120px)',
-              overflowY: 'auto'
-            }}
-          >
+          <div style={{
+            background: '#FFFFFF', borderTop: '2px solid var(--color-accent)',
+            boxShadow: '0 15px 30px rgba(0,0,0,0.2)', padding: '1.25rem',
+            maxHeight: 'calc(100vh - 120px)', overflowY: 'auto',
+            animation: 'fadeInDown 0.3s ease'
+          }}>
+            {/* Sub-institutions in mobile */}
+            {isGroupMode && subInstitutions.length > 0 && (
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>
+                  Our Institutions
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                  {subInstitutions.map(inst => (
+                    <a
+                      key={inst._id}
+                      href={inst.websiteUrl || '#'}
+                      target={inst.websiteUrl ? '_blank' : '_self'}
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                        padding: '0.5rem 0.65rem', borderRadius: '8px', border: '1px solid #E2E8F0',
+                        background: '#F8FAFC', textDecoration: 'none', color: '#334155', fontSize: '0.8rem', fontWeight: 500
+                      }}
+                    >
+                      <span style={{ fontSize: '1rem' }}>{inst.iconEmoji || '🏛️'}</span>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inst.shortName || inst.name}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.5rem', marginBottom: '1.25rem' }}>
               {navItems.map(item => {
                 const isActive = currentRoute === item.id;
@@ -293,19 +383,13 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
                     key={item.id}
                     onClick={() => handleNavClick(item.id)}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '0.65rem 0.85rem',
-                      borderRadius: '6px',
-                      border: '1px solid',
-                      borderColor: isActive ? '#002147' : '#E2E8F0',
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '0.65rem 0.85rem', borderRadius: '8px',
+                      border: '1px solid', borderColor: isActive ? '#002147' : '#E2E8F0',
                       background: isActive ? '#EFF6FF' : '#F8FAFC',
                       color: isActive ? '#002147' : '#334155',
-                      fontWeight: isActive ? 700 : 500,
-                      fontSize: '0.85rem',
-                      cursor: 'pointer',
-                      textAlign: 'left'
+                      fontWeight: isActive ? 700 : 500, fontSize: '0.85rem',
+                      cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif"
                     }}
                   >
                     <span>{item.label}</span>
@@ -316,12 +400,8 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
             </div>
 
             <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '0.85rem' }}>
-              <button
-                className="btn btn-secondary"
-                style={{ width: '100%', justifyContent: 'center' }}
-                onClick={() => handleNavClick('admin')}
-              >
-                <Lock size={14} /> Admin CMS Portal
+              <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center', fontFamily: "'Inter', sans-serif" }} onClick={() => handleNavClick('admin')}>
+                <Lock size={14} /> CMS Admin
               </button>
             </div>
           </div>

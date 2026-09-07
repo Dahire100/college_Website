@@ -757,12 +757,37 @@ router.get('/inquiries', async (req, res) => {
 
 router.put('/inquiries/:id', async (req, res) => {
   try {
-    const { status, notes } = req.body;
-    const updated = await db.Inquiry.findByIdAndUpdate(req.params.id, { status, notes }, { new: true });
+    const { status, notes, readAt } = req.body;
+    const updateData = { status, notes };
+    if (readAt !== undefined) updateData.readAt = readAt;
+    const updated = await db.Inquiry.findByIdAndUpdate(req.params.id, updateData, { new: true });
     await logAction(req, 'UPDATE_INQUIRY', 'inquiries', req.params.id, `Status updated to ${status}`);
     return res.json({ success: true, message: 'Inquiry updated', data: updated });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to update inquiry' });
+  }
+});
+
+router.post('/inquiries/:id/reply', async (req, res) => {
+  try {
+    const { replyMessage, status = 'contacted' } = req.body;
+    if (!replyMessage || !replyMessage.trim()) {
+      return res.status(400).json({ success: false, message: 'Reply message is required' });
+    }
+
+    const updated = await db.Inquiry.findByIdAndUpdate(req.params.id, {
+      adminReply: replyMessage.trim(),
+      repliedBy: req.admin.username,
+      repliedAt: new Date(),
+      readAt: new Date(),
+      status,
+      notes: req.body.notes || ''
+    }, { new: true });
+
+    await logAction(req, 'REPLY_INQUIRY', 'inquiries', req.params.id, `Replied by ${req.admin.username}`);
+    return res.json({ success: true, message: 'Reply saved', data: updated });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Failed to save reply' });
   }
 });
 
@@ -1235,6 +1260,61 @@ router.delete('/subsections/:id', async (req, res) => {
     return res.json({ success: true, message: 'Subsection deleted' });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to delete subsection' });
+  }
+});
+
+// ----------------------------------------------------
+// SUB-INSTITUTIONS (Group of Institutions)
+// ----------------------------------------------------
+router.get('/sub-institutions', async (req, res) => {
+  try {
+    const items = await db.SubInstitution.find({}, { sortOrder: 1 });
+    return res.json({ success: true, data: items });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Failed to fetch sub-institutions' });
+  }
+});
+
+router.post('/sub-institutions', async (req, res) => {
+  try {
+    const { name, shortName, slug, description, iconEmoji, websiteUrl, imageUrl, programs, sortOrder, isActive } = req.body;
+    const created = await db.SubInstitution.create({
+      name, shortName, slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+      description, iconEmoji, websiteUrl, imageUrl,
+      programs: Array.isArray(programs) ? programs : (programs || '').split(',').map(p => p.trim()).filter(Boolean),
+      sortOrder: sortOrder || 0, isActive: isActive !== false
+    });
+    await logAction(req, 'CREATE_SUB_INSTITUTION', 'sub-institutions', created._id, `Created: ${name}`);
+    return res.json({ success: true, data: created });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Failed to create sub-institution' });
+  }
+});
+
+router.put('/sub-institutions/:id', async (req, res) => {
+  try {
+    const { name, shortName, slug, description, iconEmoji, websiteUrl, imageUrl, programs, sortOrder, isActive } = req.body;
+    const updated = await db.SubInstitution.findByIdAndUpdate(req.params.id, {
+      $set: {
+        name, shortName, slug, description, iconEmoji, websiteUrl, imageUrl,
+        programs: Array.isArray(programs) ? programs : (programs || '').split(',').map(p => p.trim()).filter(Boolean),
+        sortOrder, isActive
+      }
+    }, { new: true });
+    await logAction(req, 'UPDATE_SUB_INSTITUTION', 'sub-institutions', req.params.id, `Updated: ${name}`);
+    return res.json({ success: true, data: updated });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Failed to update sub-institution' });
+  }
+});
+
+router.delete('/sub-institutions/:id', async (req, res) => {
+  try {
+    await db.SubInstitution.findByIdAndDelete(req.params.id);
+    await logAction(req, 'DELETE_SUB_INSTITUTION', 'sub-institutions', req.params.id, 'Deleted sub-institution');
+    return res.json({ success: true, message: 'Sub-institution deleted' });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Failed to delete sub-institution' });
   }
 });
 

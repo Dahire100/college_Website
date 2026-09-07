@@ -326,11 +326,17 @@ const InquirySchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   email: { type: String, required: true },
   phone: { type: String, required: true },
+  source: { type: String, default: 'inquiry' },
+  subject: { type: String, default: '' },
   courseInterested: { type: String },
   departmentCode: { type: String },
   message: { type: String, required: true },
   status: { type: String, enum: ['new', 'contacted', 'resolved'], default: 'new' },
   notes: { type: String, default: '' },
+  adminReply: { type: String, default: '' },
+  repliedBy: { type: String, default: '' },
+  repliedAt: { type: Date },
+  readAt: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -353,6 +359,21 @@ const MediaSchema = new mongoose.Schema({
   sizeBytes: { type: Number, required: true },
   filePath: { type: String, required: true },
   category: { type: String, default: 'general' },
+  createdAt: { type: Date, default: Date.now }
+});
+
+// 23. Sub-Institutions (for Group of Institutions mode)
+const SubInstitutionSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  shortName: { type: String },
+  slug: { type: String, required: true, unique: true },
+  description: { type: String },
+  iconEmoji: { type: String, default: '🏛️' },
+  websiteUrl: { type: String },
+  imageUrl: { type: String },
+  programs: [{ type: String }],
+  sortOrder: { type: Number, default: 0 },
+  isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -381,7 +402,8 @@ const Models = {
   Gallery: mongoose.model('Gallery', GallerySchema),
   Inquiry: mongoose.model('Inquiry', InquirySchema),
   AuditLog: mongoose.model('AuditLog', AuditLogSchema),
-  Media: mongoose.model('Media', MediaSchema)
+  Media: mongoose.model('Media', MediaSchema),
+  SubInstitution: mongoose.model('SubInstitution', SubInstitutionSchema)
 };
 
 // ----------------------------------------------------

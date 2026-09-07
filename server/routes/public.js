@@ -276,7 +276,9 @@ router.get('/gallery', async (req, res) => {
 // POST /api/v1/public/inquiries (Submit Contact / Admission Inquiry)
 router.post('/inquiries', async (req, res) => {
   try {
-    const { fullName, email, phone, courseInterested, departmentCode, message } = req.body;
+    const name = req.body.fullName || req.body.name;
+    const { email, phone, courseInterested, departmentCode, message, source, subject } = req.body;
+    const fullName = name;
 
     if (!fullName || !email || !phone || !message) {
       return res.status(400).json({
@@ -289,11 +291,17 @@ router.post('/inquiries', async (req, res) => {
       fullName: fullName.trim(),
       email: email.trim().toLowerCase(),
       phone: phone.trim(),
+      source: String(source || 'inquiry').trim().toLowerCase(),
+      subject: String(subject || courseInterested || departmentCode || '').trim(),
       courseInterested: courseInterested || '',
       departmentCode: departmentCode || '',
       message: message.trim(),
       status: 'new',
-      notes: ''
+      notes: '',
+      adminReply: '',
+      repliedBy: '',
+      repliedAt: null,
+      readAt: null
     });
 
     return res.status(201).json({
@@ -358,4 +366,16 @@ router.get('/subsections', async (req, res) => {
   }
 });
 
+// GET /api/v1/public/sub-institutions
+router.get('/sub-institutions', async (req, res) => {
+  try {
+    const items = await db.SubInstitution.find({ isActive: true });
+    items.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    return res.json({ success: true, data: items });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Failed to load sub-institutions' });
+  }
+});
+
 module.exports = router;
+

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Calendar, FileText, ArrowRight, DollarSign } from 'lucide-react';
+import { CheckCircle2, FileText, ArrowRight } from 'lucide-react';
 import { api } from '../services/api';
+import { getInstitutionProfile } from '../content/institutionProfile';
 
-export default function Admissions({ onOpenInquiry }) {
+export default function Admissions({ settings = {}, onOpenInquiry }) {
+  const profile = getInstitutionProfile(settings);
   const [pageData, setPageData] = useState(null);
   const [subsections, setSubsections] = useState([]);
   const [admissions, setAdmissions] = useState([]);
@@ -43,13 +45,13 @@ export default function Admissions({ onOpenInquiry }) {
       }}>
         <div className="container">
           <span className="pill-badge" style={{ background: 'rgba(217, 119, 6, 0.25)', color: '#FCD34D', borderColor: 'rgba(217, 119, 6, 0.4)' }}>
-            {pageData?.heroBadge || 'ENROLLMENT 2026-27'}
+            {profile.admissionsLabel || pageData?.heroBadge}
           </span>
           <h1 style={{ color: '#FFFFFF', fontSize: '2.75rem', marginTop: '0.75rem' }}>
-            {pageData?.heroTitle || 'Admission Procedure & Roadmap'}
+            {profile.admissionsLabel || pageData?.heroTitle || 'Admissions and Roadmap'}
           </h1>
           <p style={{ color: '#CBD5E1', fontSize: '1.2rem', maxWidth: '720px', marginTop: '0.5rem' }}>
-            {pageData?.heroSubtitle || 'Comprehensive admission walkthrough for First Year B.Tech, Lateral Entry DSE, M.Tech, MBA and MCA programs.'}
+            {profile.admissionsNote || pageData?.heroSubtitle}
           </p>
         </div>
       </div>
@@ -57,8 +59,8 @@ export default function Admissions({ onOpenInquiry }) {
       <div className="section container">
         <div className="section-header">
           <span className="pill-badge-blue">Step-by-Step Flow</span>
-          <h2 className="section-title">Centralized & Institutional Admission Process</h2>
-          <p className="section-desc">Follow these official steps to confirm your seat allotment and enrollment.</p>
+          <h2 className="section-title">Centralized Admission Process</h2>
+          <p className="section-desc">Follow the official steps to complete counseling, verification, and enrollment.</p>
         </div>
 
         {loading ? (
@@ -71,15 +73,10 @@ export default function Admissions({ onOpenInquiry }) {
                   <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--color-secondary)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.25rem', flexShrink: 0 }}>
                     {s.stepNumber || '1'}
                   </div>
-
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
                       <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary)' }}>{s.title}</h3>
-                      {s.deadline && (
-                        <span className="pill-badge" style={{ fontSize: '0.75rem' }}>
-                          Target Date: {s.deadline}
-                        </span>
-                      )}
+                      {s.deadline && <span className="pill-badge" style={{ fontSize: '0.75rem' }}>Target Date: {s.deadline}</span>}
                     </div>
                     <p style={{ color: 'var(--color-text-secondary)', marginBottom: '0.75rem', lineHeight: 1.6 }}>{s.description}</p>
                     <div style={{ background: 'var(--color-bg)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', fontSize: '0.8125rem' }}>
@@ -90,17 +87,16 @@ export default function Admissions({ onOpenInquiry }) {
               ))}
             </div>
 
-            {/* Approved Fees Section */}
             <div className="section-header">
               <span className="pill-badge">Fee Structure</span>
               <h2 className="section-title">Approved Annual Fee Charts</h2>
-              <p className="section-desc">Sanctioned by the State Fee Regulating Authority (FRA) with scholarship concessions.</p>
+              <p className="section-desc">Fee details can be managed by the administrator and shown by program or stream.</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
               {fees.map(f => (
                 <div key={f._id || f.id} className="academic-card">
-                  <span className="pill-badge-blue" style={{ marginBottom: '0.5rem' }}>Annual Approved Fee</span>
+                  <span className="pill-badge-blue" style={{ marginBottom: '0.5rem' }}>Annual Fee</span>
                   <h3 style={{ fontSize: '1.25rem', marginTop: '0.5rem', marginBottom: '0.5rem' }}>{f.title}</h3>
                   <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-accent)', marginBottom: '0.75rem' }}>
                     {f.feeAnnual}
@@ -109,18 +105,17 @@ export default function Admissions({ onOpenInquiry }) {
                     {f.description}
                   </p>
                   <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                    <strong>Concession Eligibility:</strong> {f.eligibilityCriteria || 'As per State FRA and scholarship norms'}
+                    <strong>Concession Eligibility:</strong> {f.eligibilityCriteria || 'As per institutional policy'}
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Dynamic CMS Subsections (e.g. Merit Scholarships) */}
             {subsections && subsections.length > 0 && (
               <div style={{ marginTop: '3.5rem' }}>
                 <div className="section-header">
                   <span className="pill-badge">Special Opportunities</span>
-                  <h2 className="section-title">Scholarships & Institutional Programs</h2>
+                  <h2 className="section-title">Scholarships and Institutional Programs</h2>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                   {subsections.map((sub, idx) => (

@@ -4,9 +4,9 @@
   "description": "Production-ready Modern College Portal and MongoDB Atlas Admin CMS",
   "main": "server/index.js",
   "scripts": {
-    "start": "node server/index.js",
+    "start": "nodemon node server/index.js",
     "build": "npm --prefix client install && npm --prefix client run build",
-    "dev": "node server/index.js",
+    "dev": "nodemon node server/index.js",
     "seed": "node server/seed.js"
   },
   "dependencies": {
@@ -16,6 +16,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "nodemon": "^3.1.14"
   }
 }
