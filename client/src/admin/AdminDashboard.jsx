@@ -5,7 +5,7 @@ import {
   CheckCircle, Plus, Trash2, Edit, ArrowUp, ArrowDown, ArrowLeft, Eye, EyeOff,
   Upload, X, Check, Save, HelpCircle, ExternalLink, Globe, Sliders,
   ChevronDown, ChevronUp, FileText, Search, Home, BookOpen, Users,
-  Building2, ClipboardList, School, Microscope, Image, Newspaper, Phone, Key, Lock, Palette
+  Building2, ClipboardList, School, Microscope, Image, Newspaper, Phone, Key, Lock, Palette, Mail, Send, MessageSquare, Clock, Inbox, Bell
 } from 'lucide-react';
 import { api } from '../services/api';
 import ImageUploadField from './ImageUploadField';
@@ -36,6 +36,12 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
   const [selectedStudioPage, setSelectedStudioPage] = useState(null);
   const [pageEditorData, setPageEditorData] = useState(null);
   const [inquiries, setInquiries] = useState([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [inquirySearch, setInquirySearch] = useState('');
+  const [inquiryFilter, setInquiryFilter] = useState('all');
+  const [replyTextMap, setReplyTextMap] = useState({});
+  const [replyingInquiryId, setReplyingInquiryId] = useState(null);
+  const [submittingReply, setSubmittingReply] = useState(false);
   const [settingsList, setSettingsList] = useState([]);
   const [navItems, setNavItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -86,6 +92,56 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
       if (adminUser.email) setAdminEmail(adminUser.email);
     }
   }, [adminUser]);
+
+  
+  const handleSendInquiryReply = async (inquiryId, statusOverride = 'replied') => {
+    const text = (replyTextMap[inquiryId] || '').trim();
+    if (!text) {
+      onToast('Please enter a reply message before saving', 'error');
+      return;
+    }
+    setSubmittingReply(true);
+    try {
+      const res = await api.post(`/api/v1/admin/inquiries/${inquiryId}/reply`, {
+        replyMessage: text,
+        status: statusOverride
+      });
+      if (res.success) {
+        onToast('Reply saved and inquiry status updated!', 'success');
+        setInquiries(prev => prev.map(i => (i._id === inquiryId || i.id === inquiryId ? (res.data || { ...i, adminReply: text, status: statusOverride, repliedBy: adminUser?.username || 'admin', repliedAt: new Date() }) : i)));
+        setReplyingInquiryId(null);
+      }
+    } catch (err) {
+      onToast(err.message || 'Failed to save reply', 'error');
+    } finally {
+      setSubmittingReply(false);
+    }
+  };
+
+  const handleUpdateInquiryStatus = async (inquiryId, newStatus) => {
+    try {
+      const res = await api.put(`/api/v1/admin/inquiries/${inquiryId}`, { status: newStatus });
+      if (res.success) {
+        onToast(`Inquiry status updated to ${newStatus}`, 'success');
+        setInquiries(prev => prev.map(i => (i._id === inquiryId || i.id === inquiryId ? { ...i, status: newStatus } : i)));
+      }
+    } catch (err) {
+      onToast(err.message || 'Failed to update status', 'error');
+    }
+  };
+
+  const handleDeleteInquiry = async (inquiryId) => {
+    if (!window.confirm('Are you sure you want to delete this student inquiry?')) return;
+    try {
+      const res = await api.delete(`/api/v1/admin/inquiries/${inquiryId}`);
+      if (res.success) {
+        onToast('Inquiry deleted successfully', 'success');
+        setInquiries(prev => prev.filter(i => i._id !== inquiryId && i.id !== inquiryId));
+      }
+    } catch (err) {
+      onToast(err.message || 'Failed to delete inquiry', 'error');
+    }
+  };
 
   const handleUpdateUsername = async (e) => {
     e.preventDefault();
@@ -381,8 +437,8 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
   // Safe Page Deletion
   const handleDeletePage = async (page) => {
     if (!page) return;
-    if (page.isSystem) {
-      onToast('Core institutional system pages cannot be deleted. You can toggle them hidden instead.', 'error');
+    if (page.slug === 'home') {
+      onToast('The Homepage is the primary root landing page and cannot be deleted.', 'error');
       return;
     }
     const confirmed = window.confirm(`Are you sure you want to delete the page "${page.title}"?\n\nThis will permanently remove the page, its menu link, and any content subsections.`);
@@ -861,6 +917,130 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {/* Topbar Notification Center */}
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              className="admin-btn"
+              style={{
+                background: notificationsOpen ? '#EFF6FF' : '#FFFFFF',
+                border: inquiries.some(i => i.status === 'new') ? '1.5px solid #EF4444' : '1px solid #CBD5E1',
+                color: '#1E293B',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                padding: '0.45rem 0.85rem',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06)'
+              }}
+              title="Recent Inquiries and Notifications"
+            >
+              <Bell size={16} style={{ color: inquiries.some(i => i.status === 'new') ? '#DC2626' : '#64748B' }} />
+              <span>Inquiries</span>
+              <span style={{
+                background: inquiries.some(i => i.status === 'new') ? '#DC2626' : '#2563EB',
+                color: '#FFFFFF',
+                fontSize: '0.7rem',
+                fontWeight: 800,
+                padding: '0.12rem 0.5rem',
+                borderRadius: '9999px'
+              }}>
+                {inquiries.filter(i => i.status === 'new').length || inquiries.length}
+              </span>
+            </button>
+
+            {notificationsOpen && (
+              <div style={{
+                position: 'absolute',
+                top: 'calc(100% + 8px)',
+                right: 0,
+                width: '380px',
+                maxWidth: '92vw',
+                background: '#FFFFFF',
+                borderRadius: '12px',
+                boxShadow: '0 20px 50px rgba(0,0,0,0.22)',
+                border: '1px solid #CBD5E1',
+                zIndex: 2000,
+                overflow: 'hidden',
+                animation: 'fadeIn 0.15s ease'
+              }}>
+                <div style={{ padding: '0.85rem 1rem', background: 'linear-gradient(135deg, #0F172A, #1E293B)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Bell size={16} style={{ color: '#FCD34D' }} />
+                    <strong style={{ fontSize: '0.92rem' }}>Student Inquiries ({inquiries.length})</strong>
+                  </div>
+                  <span style={{ fontSize: '0.7rem', background: 'rgba(255,255,255,0.2)', padding: '0.15rem 0.5rem', borderRadius: '9999px', fontWeight: 700 }}>
+                    {inquiries.filter(i => i.status === 'new').length} New
+                  </span>
+                </div>
+
+                <div style={{ maxHeight: '340px', overflowY: 'auto' }}>
+                  {inquiries.length === 0 ? (
+                    <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: '#64748B', fontSize: '0.85rem' }}>
+                      No prospective student inquiries yet.
+                    </div>
+                  ) : (
+                    inquiries.slice(0, 6).map(inq => (
+                      <div
+                        key={inq._id || inq.id}
+                        onClick={() => {
+                          setNotificationsOpen(false);
+                          setSelectedStudioPage(null);
+                          setCurrentTab('inquiries');
+                        }}
+                        style={{
+                          padding: '0.8rem 1rem',
+                          borderBottom: '1px solid #F1F5F9',
+                          cursor: 'pointer',
+                          background: inq.status === 'new' ? '#F0F7FF' : '#FFFFFF',
+                          transition: 'background 0.15s'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+                          <strong style={{ fontSize: '0.88rem', color: '#0F172A' }}>{inq.fullName || inq.name || 'Prospective Student'}</strong>
+                          <span style={{
+                            fontSize: '0.65rem',
+                            fontWeight: 700,
+                            padding: '0.1rem 0.4rem',
+                            borderRadius: '4px',
+                            background: inq.status === 'new' ? '#FEE2E2' : inq.status === 'replied' ? '#DCFCE7' : '#E0E7FF',
+                            color: inq.status === 'new' ? '#B91C1C' : inq.status === 'replied' ? '#15803D' : '#3730A3'
+                          }}>
+                            {(inq.status || 'new').toUpperCase()}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: '#475569', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {inq.message || 'Direct inquiry submission'}
+                        </div>
+                        <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: '0.25rem' }}>
+                          🎯 {inq.courseInterested || inq.programInterested || inq.subject || 'General'} • 🕒 {new Date(inq.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div style={{ padding: '0.75rem', background: '#F8FAFC', borderTop: '1px solid #E2E8F0', textAlign: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNotificationsOpen(false);
+                      setSelectedStudioPage(null);
+                      setCurrentTab('inquiries');
+                    }}
+                    style={{ background: 'none', border: 'none', color: '#2563EB', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                  >
+                    <Mail size={14} /> Open Full Inbox and Send Replies →
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <button
             className={`admin-btn ${currentTab === 'account' ? 'admin-btn-primary' : 'admin-btn-secondary'}`}
             onClick={() => { setSelectedStudioPage(null); setCurrentTab('account'); }}
@@ -910,6 +1090,40 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                 <div style={{ fontSize: '0.78rem', color: '#64748B' }}>Authorized CMS editor</div>
               </div>
             </div>
+
+            {/* Live Inquiries Notification Alert */}
+            <div
+              onClick={() => {
+                setSelectedStudioPage(null);
+                setCurrentTab('inquiries');
+              }}
+              style={{
+                background: inquiries.some(i => i.status === 'new') ? '#FEF2F2' : '#EFF6FF',
+                border: '1.5px solid',
+                borderColor: inquiries.some(i => i.status === 'new') ? '#FCA5A5' : '#BFDBFE',
+                borderRadius: '8px',
+                padding: '0.65rem 0.85rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: '0.85rem',
+                transition: 'all 0.18s ease'
+              }}
+              title="Click to open Inquiries Inbox and Send Replies"
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+                <Bell size={18} style={{ color: inquiries.some(i => i.status === 'new') ? '#DC2626' : '#2563EB' }} />
+                <div>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 800, color: inquiries.some(i => i.status === 'new') ? '#991B1B' : '#1E40AF' }}>
+                    {inquiries.filter(i => i.status === 'new').length} New Student Inquiries
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{inquiries.length} total received • Click to reply</div>
+                </div>
+              </div>
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#2563EB', background: '#FFFFFF', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #BFDBFE' }}>Reply →</span>
+            </div>
+
 
             <div style={{ display: 'grid', gap: '0.65rem' }}>
               <button className="admin-btn admin-btn-primary" onClick={handleStartCreateNewPage} style={{ width: '100%', justifyContent: 'center' }}>
@@ -978,6 +1192,25 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                 <span className={`status-dot ${p.isActive ? 'active' : 'hidden'}`} title={p.isActive ? 'Visible' : 'Hidden'} />
               </button>
             ))}
+
+            
+            <div className="admin-section-label">Communication & Leads</div>
+
+            <button className={`admin-nav-item ${currentTab === 'inquiries' ? 'active' : ''}`}
+              onClick={() => { setSelectedStudioPage(null); setCurrentTab('inquiries'); }}>
+              <Mail size={16} /> Inquiries & Messages
+              <span style={{
+                marginLeft: 'auto',
+                background: inquiries.some(i => i.status === 'new') ? '#DC2626' : '#2563EB',
+                color: '#FFFFFF',
+                padding: '0.1rem 0.45rem',
+                borderRadius: '9999px',
+                fontSize: '0.7rem',
+                fontWeight: 800
+              }}>
+                {inquiries.length}
+              </span>
+            </button>
 
             <div className="admin-section-label">Content</div>
 
@@ -1242,7 +1475,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                         onClick={() => { setSelectedStudioPage(page); setPageEditorData({ ...page }); }}>
                         <Edit size={12} /> Edit
                       </button>
-                      {!page.isSystem && (
+                      {page.slug !== 'home' && (
                         <button
                           type="button"
                           className="admin-btn admin-btn-danger"
@@ -1345,7 +1578,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                     </a>
                   )}
 
-                  {!selectedStudioPage.isNew && !selectedStudioPage.isSystem && (
+                  {!selectedStudioPage.isNew && selectedStudioPage.slug !== 'home' && (
                     <button
                       type="button"
                       className="admin-btn admin-btn-danger"
@@ -3613,6 +3846,368 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                   <Save size={16} /> Save & Publish Settings Live
                 </button>
               </form>
+            </div>
+          )}
+
+          
+          {/* ======== INQUIRIES & MESSAGES TAB ======== */}
+          {currentTab === 'inquiries' && (
+            <div>
+              <div style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                  <h2 style={{ fontSize: '1.35rem', fontWeight: 800, margin: '0 0 0.25rem 0', color: '#111827', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Mail size={22} style={{ color: '#2563EB' }} /> Student Inquiries & Admission Leads
+                  </h2>
+                  <p style={{ fontSize: '0.85rem', color: '#6B7280', margin: 0 }}>
+                    Messages submitted from the website Contact page and Admissions counseling modals. Reply directly, track progress, or contact via WhatsApp/Email.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <span style={{ fontSize: '0.8rem', background: '#EFF6FF', color: '#1D4ED8', padding: '0.35rem 0.75rem', borderRadius: '8px', border: '1px solid #BFDBFE', fontWeight: 700 }}>
+                    Total: {inquiries.length} | New: {inquiries.filter(i => i.status === 'new').length}
+                  </span>
+                </div>
+              </div>
+
+              {/* Filter and Search Bar */}
+              <div style={{ background: '#FFFFFF', padding: '1rem', borderRadius: '12px', border: '1px solid #E2E8F0', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.85rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {[
+                    { id: 'all', label: `All (${inquiries.length})` },
+                    { id: 'new', label: `New (${inquiries.filter(i => i.status === 'new').length})` },
+                    { id: 'contacted', label: `Contacted (${inquiries.filter(i => i.status === 'contacted').length})` },
+                    { id: 'replied', label: `Replied (${inquiries.filter(i => i.status === 'replied').length})` },
+                    { id: 'resolved', label: `Resolved (${inquiries.filter(i => i.status === 'resolved' || i.status === 'closed').length})` }
+                  ].map(f => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => setInquiryFilter(f.id)}
+                      style={{
+                        background: inquiryFilter === f.id ? '#2563EB' : '#F1F5F9',
+                        color: inquiryFilter === f.id ? '#FFFFFF' : '#475569',
+                        border: 'none',
+                        padding: '0.35rem 0.85rem',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ position: 'relative', minWidth: '220px' }}>
+                  <input
+                    type="text"
+                    className="simple-input"
+                    placeholder="Search by student name, email, course..."
+                    value={inquirySearch}
+                    onChange={e => setInquirySearch(e.target.value)}
+                    style={{ fontSize: '0.82rem', padding: '0.4rem 0.75rem 0.4rem 2rem' }}
+                  />
+                  <Search size={14} style={{ position: 'absolute', left: '0.65rem', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+                </div>
+              </div>
+
+              {/* Inquiries Cards List */}
+              {inquiries
+                .filter(inq => {
+                  if (inquiryFilter === 'new') return inq.status === 'new';
+                  if (inquiryFilter === 'contacted') return inq.status === 'contacted';
+                  if (inquiryFilter === 'replied') return inq.status === 'replied';
+                  if (inquiryFilter === 'resolved') return inq.status === 'resolved' || inq.status === 'closed';
+                  return true;
+                })
+                .filter(inq => {
+                  if (!inquirySearch.trim()) return true;
+                  const q = inquirySearch.toLowerCase();
+                  return (
+                    (inq.fullName || inq.name || '').toLowerCase().includes(q) ||
+                    (inq.email || '').toLowerCase().includes(q) ||
+                    (inq.phone || '').includes(q) ||
+                    (inq.courseInterested || inq.programInterested || inq.subject || '').toLowerCase().includes(q) ||
+                    (inq.message || '').toLowerCase().includes(q)
+                  );
+                })
+                .length === 0 ? (
+                  <div style={{ background: '#FFFFFF', padding: '3.5rem 1.5rem', borderRadius: '12px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
+                    <Inbox size={48} style={{ color: '#CBD5E1', margin: '0 auto 1rem auto' }} />
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#334155', margin: '0 0 0.4rem 0' }}>No Inquiries Found</h3>
+                    <p style={{ fontSize: '0.85rem', color: '#64748B', maxWidth: '420px', margin: '0 auto' }}>
+                      {inquiries.length === 0
+                        ? 'Prospective students submitting the Contact Form or Admission Modal will appear here in real time.'
+                        : 'No inquiries match the current filter or search criteria.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    {inquiries
+                      .filter(inq => {
+                        if (inquiryFilter === 'new') return inq.status === 'new';
+                        if (inquiryFilter === 'contacted') return inq.status === 'contacted';
+                        if (inquiryFilter === 'replied') return inq.status === 'replied';
+                        if (inquiryFilter === 'resolved') return inq.status === 'resolved' || inq.status === 'closed';
+                        return true;
+                      })
+                      .filter(inq => {
+                        if (!inquirySearch.trim()) return true;
+                        const q = inquirySearch.toLowerCase();
+                        return (
+                          (inq.fullName || inq.name || '').toLowerCase().includes(q) ||
+                          (inq.email || '').toLowerCase().includes(q) ||
+                          (inq.phone || '').includes(q) ||
+                          (inq.courseInterested || inq.programInterested || inq.subject || '').toLowerCase().includes(q) ||
+                          (inq.message || '').toLowerCase().includes(q)
+                        );
+                      })
+                      .map(inq => {
+                        const inqId = inq._id || inq.id;
+                        const isReplying = replyingInquiryId === inqId;
+                        const currentText = replyTextMap[inqId] !== undefined ? replyTextMap[inqId] : (inq.adminReply || '');
+                        const cleanPhone = (inq.phone || '').replace(/[^0-9]/g, '');
+
+                        return (
+                          <div
+                            key={inqId}
+                            style={{
+                              background: '#FFFFFF',
+                              borderRadius: '12px',
+                              border: inq.status === 'new' ? '1.5px solid #3B82F6' : '1px solid #E2E8F0',
+                              boxShadow: inq.status === 'new' ? '0 4px 12px rgba(59,130,246,0.08)' : '0 1px 3px rgba(0,0,0,0.04)',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            {/* Card Top Header */}
+                            <div style={{ padding: '1rem 1.25rem', background: inq.status === 'new' ? '#F8FAFC' : '#FCFDFE', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.65rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                <strong style={{ fontSize: '1.05rem', color: '#0F172A' }}>
+                                  {inq.fullName || inq.name}
+                                </strong>
+                                <span style={{ background: '#EFF6FF', color: '#2563EB', padding: '0.15rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>
+                                  🎯 {inq.courseInterested || inq.programInterested || inq.subject || 'General Inquiry'}
+                                </span>
+                                {inq.source && (
+                                  <span style={{ fontSize: '0.72rem', color: '#64748B', background: '#F1F5F9', padding: '0.1rem 0.45rem', borderRadius: '4px' }}>
+                                    Source: {inq.source}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                                <span style={{
+                                  fontSize: '0.72rem',
+                                  fontWeight: 800,
+                                  padding: '0.2rem 0.6rem',
+                                  borderRadius: '9999px',
+                                  background: inq.status === 'new' ? '#FEE2E2' : inq.status === 'replied' ? '#DCFCE7' : inq.status === 'contacted' ? '#DBEAFE' : '#F1F5F9',
+                                  color: inq.status === 'new' ? '#DC2626' : inq.status === 'replied' ? '#16A34A' : inq.status === 'contacted' ? '#2563EB' : '#475569'
+                                }}>
+                                  {(inq.status || 'new').toUpperCase()}
+                                </span>
+                                <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                                  🕒 {new Date(inq.createdAt).toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Card Body */}
+                            <div style={{ padding: '1.25rem' }}>
+                              {/* Contact Details & Quick Links */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap', marginBottom: '1rem', fontSize: '0.84rem' }}>
+                                <a
+                                  href={`mailto:${inq.email}?subject=Re: Your Inquiry for ${inq.courseInterested || 'College Admissions'}&body=Dear ${inq.fullName || inq.name},\n\nThank you for reaching out to us regarding ${inq.courseInterested || 'admissions'}.\n\n`}
+                                  style={{ color: '#2563EB', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}
+                                  title="Click to compose email"
+                                >
+                                  <Mail size={15} /> {inq.email}
+                                </a>
+                                <a
+                                  href={`tel:${inq.phone}`}
+                                  style={{ color: '#0F172A', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600 }}
+                                >
+                                  <Phone size={15} style={{ color: '#16A34A' }} /> {inq.phone}
+                                </a>
+                                {cleanPhone && (
+                                  <a
+                                    href={`https://wa.me/${cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone}?text=Hello ${encodeURIComponent(inq.fullName || inq.name)}, regarding your inquiry for ${encodeURIComponent(inq.courseInterested || 'Admissions')} at our campus:`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{ color: '#16A34A', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600, background: '#DCFCE7', padding: '0.15rem 0.55rem', borderRadius: '6px' }}
+                                  >
+                                    💬 Open WhatsApp Chat
+                                  </a>
+                                )}
+                              </div>
+
+                              {/* Student Message Box */}
+                              <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '8px', borderLeft: '3px solid #2563EB', marginBottom: '1.1rem' }}>
+                                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
+                                  Student Message:
+                                </div>
+                                <p style={{ fontSize: '0.92rem', color: '#1E293B', margin: 0, lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                                  {inq.message || '(No message provided)'}
+                                </p>
+                              </div>
+
+                              {/* Existing Admin Reply Banner */}
+                              {inq.adminReply && !isReplying && (
+                                <div style={{ background: '#F0FDF4', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid #BBF7D0', marginBottom: '1rem' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#166534', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                                      ✅ Replied by {inq.repliedBy || 'Admin'} {inq.repliedAt && `on ${new Date(inq.repliedAt).toLocaleString()}`}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setReplyTextMap(prev => ({ ...prev, [inqId]: inq.adminReply }));
+                                        setReplyingInquiryId(inqId);
+                                      }}
+                                      style={{ background: 'none', border: 'none', color: '#2563EB', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                                    >
+                                      Edit Reply
+                                    </button>
+                                  </div>
+                                  <p style={{ fontSize: '0.88rem', color: '#14532D', margin: 0, lineHeight: 1.45, whiteSpace: 'pre-wrap' }}>
+                                    {inq.adminReply}
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Inline Reply Box (When Opened) */}
+                              {isReplying ? (
+                                <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '10px', border: '1.5px solid #93C5FD', marginTop: '0.85rem' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+                                    <strong style={{ fontSize: '0.88rem', color: '#1E40AF', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                      <Send size={15} /> Compose Official Response to {inq.fullName || inq.name}
+                                    </strong>
+                                    <button
+                                      type="button"
+                                      onClick={() => setReplyingInquiryId(null)}
+                                      style={{ background: 'none', border: 'none', color: '#64748B', fontSize: '0.75rem', cursor: 'pointer' }}
+                                    >
+                                      ✕ Cancel
+                                    </button>
+                                  </div>
+
+                                  {/* Quick Reply Templates */}
+                                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
+                                    <span style={{ fontSize: '0.7rem', color: '#64748B', alignSelf: 'center', fontWeight: 600 }}>Quick Templates:</span>
+                                    {[
+                                      "Admissions for 2026-27 are open. Please visit our admissions cell with your academic marksheet.",
+                                      "Thank you for contacting us. Our counselor will call you shortly on your registered number.",
+                                      "Please find our curriculum and fee structure on the website programs section."
+                                    ].map((tpl, idx) => (
+                                      <button
+                                        key={idx}
+                                        type="button"
+                                        onClick={() => setReplyTextMap(prev => ({ ...prev, [inqId]: (prev[inqId] ? prev[inqId] + ' ' : '') + tpl }))}
+                                        style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.7rem', color: '#334155', cursor: 'pointer' }}
+                                      >
+                                        + Template {idx + 1}
+                                      </button>
+                                    ))}
+                                  </div>
+
+                                  <textarea
+                                    rows="3"
+                                    className="simple-input"
+                                    placeholder="Type your official counseling reply / response here..."
+                                    value={currentText}
+                                    onChange={e => setReplyTextMap({ ...replyTextMap, [inqId]: e.target.value })}
+                                    style={{ fontSize: '0.85rem', marginBottom: '0.75rem' }}
+                                  />
+
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                      <button
+                                        type="button"
+                                        className="admin-btn admin-btn-primary"
+                                        disabled={submittingReply}
+                                        onClick={() => handleSendInquiryReply(inqId, 'replied')}
+                                        style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem' }}
+                                      >
+                                        <Save size={14} /> {submittingReply ? 'Saving...' : 'Save & Mark as Replied'}
+                                      </button>
+
+                                      <a
+                                        href={`mailto:${inq.email}?subject=Re: Admission Inquiry - ${inq.courseInterested || 'College Portal'}&body=${encodeURIComponent((currentText || '').trim())}`}
+                                        className="admin-btn admin-btn-secondary"
+                                        style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem', textDecoration: 'none' }}
+                                        onClick={() => handleSendInquiryReply(inqId, 'replied')}
+                                      >
+                                        <Mail size={14} /> Send via Email Client
+                                      </a>
+                                    </div>
+
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                      <span style={{ fontSize: '0.75rem', color: '#64748B' }}>Status:</span>
+                                      <select
+                                        className="simple-input"
+                                        value={inq.status || 'new'}
+                                        onChange={e => handleUpdateInquiryStatus(inqId, e.target.value)}
+                                        style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', width: 'auto' }}
+                                      >
+                                        <option value="new">New</option>
+                                        <option value="in_progress">In Progress</option>
+                                        <option value="contacted">Contacted</option>
+                                        <option value="replied">Replied</option>
+                                        <option value="resolved">Resolved</option>
+                                        <option value="closed">Closed</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #F1F5F9' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                                    <button
+                                      type="button"
+                                      className="admin-btn admin-btn-primary"
+                                      onClick={() => {
+                                        setReplyTextMap(prev => ({ ...prev, [inqId]: inq.adminReply || '' }));
+                                        setReplyingInquiryId(inqId);
+                                      }}
+                                      style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}
+                                    >
+                                      <Send size={13} /> {inq.adminReply ? 'Edit Response' : 'Reply to Student'}
+                                    </button>
+
+                                    <select
+                                      className="simple-input"
+                                      value={inq.status || 'new'}
+                                      onChange={e => handleUpdateInquiryStatus(inqId, e.target.value)}
+                                      style={{ fontSize: '0.75rem', padding: '0.35rem 0.6rem', width: 'auto' }}
+                                      title="Update Inquiry Status"
+                                    >
+                                      <option value="new">Status: New</option>
+                                      <option value="in_progress">Status: In Progress</option>
+                                      <option value="contacted">Status: Contacted</option>
+                                      <option value="replied">Status: Replied</option>
+                                      <option value="resolved">Status: Resolved</option>
+                                      <option value="closed">Status: Closed</option>
+                                    </select>
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteInquiry(inqId)}
+                                    style={{ background: 'none', border: 'none', color: '#EF4444', fontSize: '0.78rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.3rem 0.5rem', borderRadius: '4px' }}
+                                    title="Delete Inquiry"
+                                  >
+                                    <Trash2 size={13} /> Delete
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
             </div>
           )}
 

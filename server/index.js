@@ -6,13 +6,38 @@ const fs = require('node:fs');
 const { connectDB, db } = require('./db');
 const { seed } = require('./seed');
 
+const helmet = require('helmet');
+const compression = require('compression');
+const { apiLimiter } = require('./middleware/rateLimit');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Security Middleware (Helmet HTTP Headers with permissive CSP for React SPA & CDNs)
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+      imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
+      connectSrc: ["'self'", "https:", "http:", "ws:", "wss:"]
+    }
+  },
+  crossOriginEmbedderPolicy: false
+}));
+
+// Performance / Caching Compression (Gzip / Deflate)
+app.use(compression());
 
 // Security & Parsing Middleware
 app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+
+// Apply API Rate Limiting to /api routes
+app.use('/api', apiLimiter);
 
 // Ensure public uploads directory exists
 const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
@@ -20,12 +45,26 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Serve uploaded media
-app.use('/uploads', express.static(uploadsDir));
+// Serve uploaded media with client caching headers (7 days)
+app.use('/uploads', express.static(uploadsDir, {
+  maxAge: '7d',
+  immutable: true
+}));
 
-// Serve Frontend Static Assets
+// Serve Frontend Static Assets with HTTP Caching (1 day for general assets, 1 year for immutable hashed assets)
 const publicDir = path.join(__dirname, '..', 'public');
-app.use(express.static(publicDir));
+app.use(express.static(publicDir, {
+  maxAge: '1d',
+  setHeaders: (res, filePath) => {
+    if (filePath.includes('assets') || filePath.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$/)) {
+      // 1 year cache for hashed production bundles & static media
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else {
+      // index.html or root documents should revalidate
+      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    }
+  }
+}));
 
 // Mount REST API Routes
 const authRoutes = require('./routes/auth');

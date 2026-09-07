@@ -331,7 +331,7 @@ const InquirySchema = new mongoose.Schema({
   courseInterested: { type: String },
   departmentCode: { type: String },
   message: { type: String, required: true },
-  status: { type: String, enum: ['new', 'contacted', 'resolved'], default: 'new' },
+  status: { type: String, enum: ['new', 'in_progress', 'contacted', 'replied', 'resolved', 'closed'], default: 'new' },
   notes: { type: String, default: '' },
   adminReply: { type: String, default: '' },
   repliedBy: { type: String, default: '' },

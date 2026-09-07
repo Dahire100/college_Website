@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/TestSprite/testsprite-cli/v0.10.0/schemas/plan.schema.json",
+  "projectId": "6950e593-e7e8-40e5-b18e-6d0f16fb1b11",
+  "type": "frontend",
+  "name": "Homepage, Header Navigation and Institution Identity",
+  "priority": "p0",
+  "planSteps": [
+    {
+      "type": "action",
+      "description": "Navigate to the homepage at /#home"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the college branding header, emblem logo, and navigation items (Home, About, Academics, Departments, Programs, Admissions, Placements, Campus, Contact) are visible"
+    },
+    {
+      "type": "assertion",
+      "description": "Verify the Hero section, announcement bar, and accreditation badges render properly without errors"
+    }
+  ]
+}

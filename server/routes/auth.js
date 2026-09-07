@@ -4,9 +4,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { db } = require('../db');
 const { requireAdmin, JWT_SECRET } = require('../middleware/auth');
+const { authLimiter } = require('../middleware/rateLimit');
 
-// POST /api/v1/auth/login
-router.post('/login', async (req, res) => {
+// POST /api/v1/auth/login (Protected by rate limiting against brute-force attacks)
+router.post('/login', authLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
 

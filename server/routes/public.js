@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../db');
+const { inquiryLimiter } = require('../middleware/rateLimit');
 
 // GET /api/v1/public/config
 // Returns site settings, navigation menus, and homepage sections order/visibility
@@ -273,8 +274,8 @@ router.get('/gallery', async (req, res) => {
   }
 });
 
-// POST /api/v1/public/inquiries (Submit Contact / Admission Inquiry)
-router.post('/inquiries', async (req, res) => {
+// POST /api/v1/public/inquiries (Submit Contact / Admission Inquiry with Rate Limiting)
+router.post('/inquiries', inquiryLimiter, async (req, res) => {
   try {
     const name = req.body.fullName || req.body.name;
     const { email, phone, courseInterested, departmentCode, message, source, subject } = req.body;

@@ -1173,14 +1173,14 @@ router.delete('/pages/:id', async (req, res) => {
   try {
     const page = await db.Page.findById(req.params.id);
     if (!page) return res.status(404).json({ success: false, message: 'Page not found' });
-    if (page.isSystem) {
-      return res.status(400).json({ success: false, message: 'Core system pages cannot be deleted. You can hide them instead.' });
+    if (page.slug === 'home') {
+      return res.status(400).json({ success: false, message: 'The Homepage is the primary root landing page and cannot be deleted. You can edit its contents or banner slides.' });
     }
     await db.Page.findByIdAndDelete(req.params.id);
-    await db.Navigation.deleteOne({ path: `#${page.slug}` });
+    await db.Navigation.deleteMany({ path: { $in: [`#${page.slug}`, `/${page.slug}`] } });
     await db.Subsection.deleteMany({ pageSlug: page.slug });
-    await logAction(req, 'DELETE_PAGE', 'pages', req.params.id, 'Deleted custom page');
-    return res.json({ success: true, message: 'Page deleted successfully' });
+    await logAction(req, 'DELETE_PAGE', 'pages', req.params.id, `Deleted page: ${page.title} (${page.slug})`);
+    return res.json({ success: true, message: `Page "${page.title}" deleted successfully` });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to delete page' });
   }
