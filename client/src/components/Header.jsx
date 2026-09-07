@@ -30,15 +30,93 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
     { id: 'contact', label: 'Contact' }
   ];
 
+  // Known KK Wagh & Academic Subpage registry to ensure subpages always nest inside parent dropdowns
+  const KNOWN_SUBPAGE_REGISTRY = {
+    'overview': { parent: 'about', title: 'Overview' },
+    'our-legacy': { parent: 'about', title: 'Our Legacy' },
+    'leadership': { parent: 'about', title: 'Leadership & Governance' },
+    'our-leadership': { parent: 'about', title: 'Leadership & Governance' },
+    'milestones': { parent: 'about', title: 'Milestones' },
+    'accreditation': { parent: 'about', title: 'Accreditation & Recognition' },
+    'accreditation-and-recognition': { parent: 'about', title: 'Accreditation & Recognition' },
+    'academic-calendar': { parent: 'academics', title: 'Academic Calendar' },
+    'curriculum': { parent: 'academics', title: 'Curriculum & Syllabus' },
+    'curriculum-syllabus': { parent: 'academics', title: 'Curriculum & Syllabus' },
+    'fee-structure': { parent: 'admissions', title: 'Fee Structure' },
+    'scholarships': { parent: 'admissions', title: 'Scholarships & Financial Aid' },
+    'academic-facilities': { parent: 'campus', title: 'Academic Facilities & IDEA Lab' },
+    'sports-facilities': { parent: 'campus', title: 'Sports Facilities & Gymkhana' }
+  };
+
   // Group active subpages by parentSlug
   const subpagesByParent = {};
-  if (Array.isArray(pages)) {
-    pages.filter(p => p.isActive && p.showInHeader !== false && p.parentSlug).forEach(p => {
-      const parentKey = p.parentSlug.toLowerCase().trim();
-      if (!subpagesByParent[parentKey]) subpagesByParent[parentKey] = [];
-      subpagesByParent[parentKey].push(p);
+
+  const addSubpage = (parentKey, subObj) => {
+    if (!parentKey || !subObj?.slug) return;
+    const pk = parentKey.toLowerCase().trim();
+    if (!subpagesByParent[pk]) subpagesByParent[pk] = [];
+    const idx = subpagesByParent[pk].findIndex(s => s.slug === subObj.slug);
+    if (idx >= 0) {
+      subpagesByParent[pk][idx] = { ...subpagesByParent[pk][idx], ...subObj };
+    } else {
+      subpagesByParent[pk].push(subObj);
+    }
+  };
+
+  // 1. Initialize known subpages baseline
+  Object.entries(KNOWN_SUBPAGE_REGISTRY).forEach(([slug, info]) => {
+    addSubpage(info.parent, {
+      slug,
+      title: info.title,
+      parentSlug: info.parent,
+      isActive: true,
+      showInHeader: true
+    });
+  });
+
+  // 2. Add from navigation items where parentId is set
+  if (Array.isArray(navigation)) {
+    navigation.forEach(n => {
+      if (n.isActive === false) return;
+      const cleanId = (n.path || '').replace('#', '').trim();
+      const parentId = (n.parentId || '').trim().toLowerCase();
+      if (parentId && parentId !== '0' && cleanId) {
+        addSubpage(parentId, {
+          slug: cleanId,
+          title: n.title,
+          parentSlug: parentId,
+          isActive: true,
+          showInHeader: true
+        });
+      }
     });
   }
+
+  // 3. Add / override from pages collection (CMS data)
+  if (Array.isArray(pages)) {
+    pages.forEach(p => {
+      if (!p.isActive || p.showInHeader === false) return;
+      if (p.parentSlug) {
+        addSubpage(p.parentSlug, p);
+      }
+    });
+  }
+
+  const isSubpageItem = (cleanId, navItem) => {
+    if (!cleanId) return false;
+    // Explicit parentId from navigation
+    const navParent = (navItem?.parentId || '').trim().toLowerCase();
+    if (navParent && navParent !== '0') return true;
+
+    // In known subpage registry
+    if (KNOWN_SUBPAGE_REGISTRY[cleanId]) return true;
+
+    // In pages collection
+    const pageObj = (pages || []).find(p => p.slug === cleanId);
+    if (pageObj && pageObj.parentSlug) return true;
+
+    return false;
+  };
 
   let navItems = defaultNavItems.map(d => ({
     ...d,
@@ -46,24 +124,28 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
   }));
 
   if (Array.isArray(navigation) && navigation.length > 0) {
-    const activePaths = new Set(navigation.filter(n => n.isActive !== false).map(n => n.path.replace('#', '')));
+    const activePaths = new Set(
+      navigation
+        .filter(n => n.isActive !== false && !isSubpageItem((n.path || '').replace('#', '').trim(), n))
+        .map(n => (n.path || '').replace('#', '').trim())
+    );
+
     if (activePaths.size > 0) {
       const coreNavs = defaultNavItems
-        .filter(item => activePaths.has(item.id) || item.id === 'home' || item.id === 'programs' || item.id === 'research')
+        .filter(item => activePaths.has(item.id) || ['home', 'about', 'academics', 'programs', 'admissions', 'campus', 'placements', 'research', 'life', 'news', 'contact'].includes(item.id))
         .map(d => ({ ...d, subpages: subpagesByParent[d.id] || [] }));
 
-      // Custom top-level pages only (exclude pages that belong to a parent as a subpage)
+      // Custom top-level pages only (strictly exclude any subpages)
       const customNavs = navigation
         .filter(n => {
           if (n.isActive === false) return false;
-          const cleanId = n.path.replace('#', '');
+          const cleanId = (n.path || '').replace('#', '').trim();
           if (defaultNavItems.some(d => d.id === cleanId)) return false;
-          const pageObj = (pages || []).find(p => p.slug === cleanId);
-          if (pageObj && pageObj.parentSlug) return false;
+          if (isSubpageItem(cleanId, n)) return false;
           return true;
         })
         .map(n => {
-          const cleanId = n.path.replace('#', '');
+          const cleanId = (n.path || '').replace('#', '').trim();
           return { id: cleanId, label: n.title, subpages: subpagesByParent[cleanId] || [] };
         });
 
@@ -358,7 +440,7 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
         transition: 'all 300ms ease'
       }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', padding: '0 0.5rem' }}>
-          <div className="nav-links-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'wrap' }}>
+          <div className="nav-links-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
             {/* Institutes Dropdown (Group Mode) */}
             {isGroupMode && subInstitutions.length > 0 && (

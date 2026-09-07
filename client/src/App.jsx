@@ -34,11 +34,22 @@ export default function App() {
     try {
       const res = await api.get('/api/v1/public/config');
       if (res.success) {
-        setConfig(res.data);
-        if (res.data.settings) {
-          applyTheme(res.data.settings);
-          if (res.data.settings.seo_meta_title) {
-            document.title = res.data.settings.seo_meta_title;
+        let fullConfig = res.data;
+        if (!fullConfig.pages || fullConfig.pages.length === 0) {
+          try {
+            const pagesRes = await api.get('/api/v1/public/pages');
+            if (pagesRes?.success && Array.isArray(pagesRes.data)) {
+              fullConfig = { ...fullConfig, pages: pagesRes.data };
+            }
+          } catch (e) {
+            // Ignore if pages endpoint fails
+          }
+        }
+        setConfig(fullConfig);
+        if (fullConfig.settings) {
+          applyTheme(fullConfig.settings);
+          if (fullConfig.settings.seo_meta_title) {
+            document.title = fullConfig.settings.seo_meta_title;
           }
         }
       }
