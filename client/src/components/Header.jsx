@@ -55,7 +55,11 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
     if (!parentKey || !subObj?.slug) return;
     const pk = parentKey.toLowerCase().trim();
     if (!subpagesByParent[pk]) subpagesByParent[pk] = [];
-    const idx = subpagesByParent[pk].findIndex(s => s.slug === subObj.slug);
+    const normTitle = (subObj.title || subObj.navLabel || '').trim().toLowerCase();
+    const idx = subpagesByParent[pk].findIndex(s =>
+      s.slug === subObj.slug ||
+      (normTitle && (s.title || s.navLabel || '').trim().toLowerCase() === normTitle)
+    );
     if (idx >= 0) {
       subpagesByParent[pk][idx] = { ...subpagesByParent[pk][idx], ...subObj };
     } else {
