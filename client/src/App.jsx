@@ -83,7 +83,7 @@ export default function App() {
       {toast && <div className={`toast-msg ${toast.type}`}><span>{toast.message}</span></div>}
 
       {currentRoute !== 'admin' && (
-        <Header settings={settings} navigation={config?.navigation} currentRoute={currentRoute} onNavigate={navigate} onOpenInquiry={openInquiry} />
+        <Header settings={settings} navigation={config?.navigation} pages={config?.pages} currentRoute={currentRoute} onNavigate={navigate} onOpenInquiry={openInquiry} />
       )}
 
       <main style={{ flex: 1 }}>
@@ -102,7 +102,7 @@ export default function App() {
         {currentRoute === 'contact' && <Contact settings={settings} onToast={showToast} />}
 
         {!['home', 'about', 'academics', 'departments', 'programs', 'admissions', 'campus', 'placements', 'research', 'life', 'gallery', 'news', 'contact', 'admin'].includes(currentRoute) && (
-          <CustomPage slug={currentRoute} onOpenInquiry={openInquiry} onNavigate={navigate} />
+          <CustomPage slug={currentRoute.includes('/') ? currentRoute.split('/').pop() : currentRoute} onOpenInquiry={openInquiry} onNavigate={navigate} />
         )}
 
         {currentRoute === 'admin' && (

@@ -69,6 +69,7 @@ const PageSchema = new mongoose.Schema({
   slug: { type: String, required: true, unique: true },
   title: { type: String, required: true },
   navLabel: { type: String },
+  parentSlug: { type: String, default: '' },
   heroTitle: { type: String },
   heroSubtitle: { type: String },
   heroBadge: { type: String },

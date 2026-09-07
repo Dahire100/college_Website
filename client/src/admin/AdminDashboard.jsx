@@ -22,6 +22,8 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
   const [pagesList, setPagesList] = useState([]);
   const [subsectionsList, setSubsectionsList] = useState([]);
   const [expandedPages, setExpandedPages] = useState({});
+  const [expandedParentPages, setExpandedParentPages] = useState({});
+  const [pageFilterMode, setPageFilterMode] = useState('all');
   const [pageSearch, setPageSearch] = useState('');
   const [banners, setBanners] = useState([]);
   const [galleryList, setGalleryList] = useState([]);
@@ -410,16 +412,77 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
     }
   };
 
-  // Open Full-Page Studio directly to Create New Page (NO POPUP MODAL CARD)
-  const handleStartCreateNewPage = () => {
+  // KK Wagh Subpage Quick Templates
+  const KK_WAGH_TEMPLATES = [
+    {
+      title: 'Our Legacy',
+      parentSlug: 'about',
+      badge: 'HERITAGE',
+      heroTitle: 'Our Glorious Legacy & Heritage',
+      heroSubtitle: 'Imparting technical excellence, value-based education, and visionary leadership since 1984.',
+      content: 'K. K. Wagh Education Society was established with the noble objective of providing higher technical education to students across Maharashtra. Over four decades, the institute has produced thousands of distinguished engineers, entrepreneurs, and researchers who contribute significantly to society and global industries.'
+    },
+    {
+      title: 'Milestones',
+      parentSlug: 'about',
+      badge: 'MILESTONES',
+      heroTitle: 'Four Decades of Institutional Milestones',
+      heroSubtitle: 'A chronologically celebrated journey of academic autonomy, NAAC A+ accreditations, and research milestones.',
+      content: 'From the inception of the engineering polytechnic and degree engineering college in Nashik to achieving UGC autonomous status and establishing international collaborative centers, explore the defining moments of our growth.'
+    },
+    {
+      title: 'Our Leadership',
+      parentSlug: 'about',
+      badge: 'GOVERNANCE',
+      heroTitle: 'Board of Trustees & Leadership',
+      heroSubtitle: 'Distinguished governance, board of trustees, and administrative leadership guiding institutional vision.',
+      content: 'Under the dynamic leadership of our Chairman, Board of Trustees, and Academic Advisory Board, the institute continually fosters industry collaboration, state-of-the-art infrastructure, and holistic student development.'
+    },
+    {
+      title: 'Accreditation & Recognition',
+      parentSlug: 'about',
+      badge: 'NAAC A GRADE',
+      heroTitle: 'National Accreditations & Approvals',
+      heroSubtitle: 'Approved by AICTE New Delhi, recognized by DTE Maharashtra, NAAC Accredited with Grade A, and NBA accredited programs.',
+      content: 'Quality education is our paramount ethos. K. K. Wagh is recognized by the All India Council for Technical Education (AICTE), affiliated to Savitribai Phule Pune University (SPPU), accredited with NAAC Grade A, and holds multiple NBA accreditations across its core engineering departments.'
+    },
+    {
+      title: 'Academic Calendar',
+      parentSlug: 'academics',
+      badge: 'CALENDAR',
+      heroTitle: 'Official Annual Academic Calendar',
+      heroSubtitle: 'Term commencement dates, internal continuous evaluations, semester end exams, and holiday schedules.',
+      content: 'View the complete academic schedule including syllabus milestones, industrial training intervals, seminar presentations, technical symposium dates, and examination cycles for all undergraduate and postgraduate engineering courses.'
+    },
+    {
+      title: 'Fee Structure',
+      parentSlug: 'admissions',
+      badge: 'FRA APPROVED',
+      heroTitle: 'Annual Fee Structure & Payment Guidelines',
+      heroSubtitle: 'Approved by Fee Regulating Authority (FRA) Maharashtra for Open, OBC, EBC, SC/ST, and TFWS categories.',
+      content: 'Comprehensive and transparent tuition fees, development charges, and hostel fees approved by the Fee Regulating Authority of Maharashtra.'
+    },
+    {
+      title: 'Academic Facilities & IDEA Lab',
+      parentSlug: 'campus',
+      badge: 'INFRASTRUCTURE',
+      heroTitle: 'State-of-the-Art Labs & AICTE IDEA Lab',
+      heroSubtitle: 'Equipped with cutting-edge maker spaces, advanced robotics setups, IoT clusters, and high-performance computing.',
+      content: 'Our campus boasts the renowned AICTE IDEA Lab, state-of-the-art departmental computing and hardware laboratories, modern seminar halls, digital libraries, and specialized prototyping centers designed to cultivate hands-on innovation.'
+    }
+  ];
+
+  // Open Full-Page Studio directly to Create New Page / Subpage
+  const handleStartCreateNewPage = (parentSlug = '') => {
     const newDraft = {
       isNew: true,
       title: '',
       slug: '',
       navLabel: '',
+      parentSlug: parentSlug || '',
       heroTitle: '',
       heroSubtitle: '',
-      heroBadge: 'NEW PAGE',
+      heroBadge: parentSlug ? 'SUBPAGE' : 'NEW PAGE',
       heroImageUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80',
       content: '',
       pdfUrl: '',
@@ -432,6 +495,22 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
     setPageEditorData(newDraft);
     setCurrentTab('pages');
     setModalOpen(false);
+  };
+
+  const handleApplyTemplate = (tpl) => {
+    const genSlug = tpl.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    setPageEditorData(prev => ({
+      ...prev,
+      title: tpl.title,
+      slug: genSlug,
+      navLabel: tpl.title,
+      parentSlug: tpl.parentSlug,
+      heroTitle: tpl.heroTitle,
+      heroSubtitle: tpl.heroSubtitle,
+      heroBadge: tpl.badge,
+      content: tpl.content
+    }));
+    onToast(`Applied template: "${tpl.title}" (Subpage of ${tpl.parentSlug})`, 'success');
   };
 
   // Safe Page Deletion
@@ -475,6 +554,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
         const payload = {
           ...pageEditorData,
           slug: cleanSlug,
+          parentSlug: pageEditorData.parentSlug || '',
           navLabel: pageEditorData.navLabel || pageEditorData.title,
           heroTitle: pageEditorData.heroTitle || pageEditorData.title
         };
@@ -492,8 +572,9 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
         const res = await api.put(`/api/v1/admin/pages/${id}`, pageEditorData);
         if (res.success) {
           onToast(`Page "${pageEditorData.title}" details updated live!`, 'success');
-          fetchAllData();
+          await fetchAllData();
           setSelectedStudioPage(res.data);
+          setPageEditorData(res.data);
           onPublicUpdate?.();
         }
       }
@@ -895,9 +976,15 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
   };
 
   const filteredPages = pagesList.filter(p => {
+    if (pageFilterMode === 'root' && p.parentSlug) return false;
+    if (pageFilterMode === 'subpages' && !p.parentSlug) return false;
     if (!pageSearch) return true;
     const q = pageSearch.toLowerCase();
-    return (p.title || '').toLowerCase().includes(q) || (p.slug || '').toLowerCase().includes(q);
+    return (
+      (p.title || '').toLowerCase().includes(q) ||
+      (p.slug || '').toLowerCase().includes(q) ||
+      (p.parentSlug || '').toLowerCase().includes(q)
+    );
   });
 
   // ============================================
@@ -1182,14 +1269,104 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
               </button>
             </div>
 
-            {/* List each page */}
-            {pagesList.map(p => (
-              <button key={p.slug}
-                className={`admin-nav-item ${currentTab === 'pages' && selectedStudioPage?.slug === p.slug ? 'active' : ''}`}
-                onClick={() => { setSelectedStudioPage(p); setPageEditorData({ ...p }); setCurrentTab('pages'); }}>
-                {renderPageIcon(p.slug, 16)}
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{p.title}</span>
-                <span className={`status-dot ${p.isActive ? 'active' : 'hidden'}`} title={p.isActive ? 'Visible' : 'Hidden'} />
+            {/* Hierarchical Sidebar Page List with Nested Subpages */}
+            {pagesList.filter(p => !p.parentSlug).map(p => {
+              const childSubpages = pagesList.filter(s => s.parentSlug === p.slug);
+              const isParentActive = currentTab === 'pages' && selectedStudioPage?.slug === p.slug;
+              return (
+                <div key={p.slug} style={{ marginBottom: '0.15rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                    <button
+                      className={`admin-nav-item ${isParentActive ? 'active' : ''}`}
+                      style={{ flex: 1, paddingRight: '2.2rem' }}
+                      onClick={() => { setSelectedStudioPage(p); setPageEditorData({ ...p }); setCurrentTab('pages'); }}
+                    >
+                      {renderPageIcon(p.slug, 16)}
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, textAlign: 'left' }}>{p.title}</span>
+                      {childSubpages.length > 0 && (
+                        <span style={{ fontSize: '0.65rem', background: '#EFF6FF', color: '#2563EB', padding: '0.05rem 0.35rem', borderRadius: '9999px', fontWeight: 700, marginRight: '0.35rem' }}>
+                          {childSubpages.length}
+                        </span>
+                      )}
+                      <span className={`status-dot ${p.isActive ? 'active' : 'hidden'}`} title={p.isActive ? 'Visible' : 'Hidden'} />
+                    </button>
+                    {/* Quick + Add Subpage under this parent */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStartCreateNewPage(p.slug);
+                      }}
+                      title={`+ Add Subpage under ${p.title}`}
+                      style={{
+                        position: 'absolute',
+                        right: '0.3rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#94A3B8',
+                        cursor: 'pointer',
+                        padding: '0.2rem',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.color = '#2563EB'; e.currentTarget.style.background = '#EFF6FF'; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <Plus size={12} />
+                    </button>
+                  </div>
+
+                  {/* Render Nested Subpages in Sidebar */}
+                  {childSubpages.length > 0 && (
+                    <div style={{ marginLeft: '1.25rem', borderLeft: '1.5px solid #E2E8F0', paddingLeft: '0.35rem', marginTop: '0.1rem', marginBottom: '0.25rem', display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+                      {childSubpages.map(sub => {
+                        const isSubActive = currentTab === 'pages' && selectedStudioPage?.slug === sub.slug;
+                        return (
+                          <button
+                            key={sub.slug}
+                            onClick={() => { setSelectedStudioPage(sub); setPageEditorData({ ...sub }); setCurrentTab('pages'); }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              width: '100%',
+                              padding: '0.3rem 0.5rem',
+                              borderRadius: '6px',
+                              border: 'none',
+                              background: isSubActive ? '#EFF6FF' : 'transparent',
+                              color: isSubActive ? '#2563EB' : '#64748B',
+                              fontWeight: isSubActive ? 700 : 500,
+                              fontSize: '0.78rem',
+                              cursor: 'pointer',
+                              textAlign: 'left',
+                              transition: 'all 120ms'
+                            }}
+                            onMouseEnter={e => { if (!isSubActive) e.currentTarget.style.background = '#F8FAFC'; }}
+                            onMouseLeave={e => { if (!isSubActive) e.currentTarget.style.background = 'transparent'; }}
+                          >
+                            <span style={{ color: isSubActive ? '#2563EB' : '#94A3B8', fontSize: '0.75rem', fontWeight: 700 }}>↳</span>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{sub.title}</span>
+                            <span className={`status-dot ${sub.isActive ? 'active' : 'hidden'}`} style={{ width: '6px', height: '6px' }} title={sub.isActive ? 'Live' : 'Hidden'} />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {/* Standalone subpages without matching root */}
+            {pagesList.filter(p => p.parentSlug && !pagesList.some(r => !r.parentSlug && r.slug === p.parentSlug)).map(sub => (
+              <button key={sub.slug}
+                className={`admin-nav-item ${currentTab === 'pages' && selectedStudioPage?.slug === sub.slug ? 'active' : ''}`}
+                onClick={() => { setSelectedStudioPage(sub); setPageEditorData({ ...sub }); setCurrentTab('pages'); }}>
+                <span style={{ color: '#2563EB', fontWeight: 700 }}>↳</span>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{sub.title}</span>
+                <span className={`status-dot ${sub.isActive ? 'active' : 'hidden'}`} title={sub.isActive ? 'Visible' : 'Hidden'} />
               </button>
             ))}
 
@@ -1388,7 +1565,16 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                             {sec.title}
                           </span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <button
+                            type="button"
+                            className="admin-btn admin-btn-primary"
+                            style={{ fontSize: '0.72rem', padding: '0.25rem 0.55rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                            onClick={() => openModal('section', sec)}
+                            title={`Edit ${sec.title}`}
+                          >
+                            <Edit size={11} /> Edit
+                          </button>
                           <span style={{ fontSize: '0.75rem', color: sec.isVisible ? '#059669' : '#9CA3AF' }}>
                             {sec.isVisible ? 'Showing' : 'Hidden'}
                           </span>
@@ -1427,69 +1613,360 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
           {/* ======== ALL PAGES TAB (no page selected) ======== */}
           {currentTab === 'pages' && !selectedStudioPage && (
             <div>
+              {/* Header with Title & Action Buttons */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div>
-                  <h2 style={{ fontSize: '1.3rem', fontWeight: 700, margin: 0 }}>All Pages</h2>
-                  <p style={{ fontSize: '0.85rem', color: '#6B7280', margin: 0 }}>Click any page to edit its content, title, and images.</p>
+                  <h2 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0, color: '#111827' }}>
+                    Website Pages & Subpages Manager
+                  </h2>
+                  <p style={{ fontSize: '0.85rem', color: '#6B7280', margin: '0.2rem 0 0 0' }}>
+                    Organize root pages and hierarchical dropdown subpages (modeled after K. K. Wagh Institute).
+                  </p>
                 </div>
-                <button className="admin-btn admin-btn-primary" onClick={handleStartCreateNewPage}>
-                  <Plus size={14} /> Add New Page
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <button className="admin-btn admin-btn-secondary" onClick={() => handleStartCreateNewPage('about')} style={{ fontSize: '0.85rem' }}>
+                    <Plus size={14} /> + Add Subpage
+                  </button>
+                  <button className="admin-btn admin-btn-primary" onClick={() => handleStartCreateNewPage('')} style={{ fontSize: '0.85rem' }}>
+                    <Plus size={14} /> + Add Root Page
+                  </button>
+                </div>
+              </div>
+
+              {/* Filter Pills & Search */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={() => setPageFilterMode('all')}
+                    style={{
+                      background: pageFilterMode === 'all' ? '#002147' : '#FFFFFF',
+                      color: pageFilterMode === 'all' ? '#FFFFFF' : '#475569',
+                      border: '1px solid',
+                      borderColor: pageFilterMode === 'all' ? '#002147' : '#CBD5E1',
+                      borderRadius: '9999px',
+                      padding: '0.35rem 0.85rem',
+                      fontSize: '0.8rem',
+                      fontWeight: pageFilterMode === 'all' ? 700 : 500,
+                      cursor: 'pointer',
+                      transition: 'all 120ms'
+                    }}
+                  >
+                    All Pages ({pagesList.length})
+                  </button>
+                  <button
+                    onClick={() => setPageFilterMode('root')}
+                    style={{
+                      background: pageFilterMode === 'root' ? '#002147' : '#FFFFFF',
+                      color: pageFilterMode === 'root' ? '#FFFFFF' : '#475569',
+                      border: '1px solid',
+                      borderColor: pageFilterMode === 'root' ? '#002147' : '#CBD5E1',
+                      borderRadius: '9999px',
+                      padding: '0.35rem 0.85rem',
+                      fontSize: '0.8rem',
+                      fontWeight: pageFilterMode === 'root' ? 700 : 500,
+                      cursor: 'pointer',
+                      transition: 'all 120ms'
+                    }}
+                  >
+                    Root Menus ({pagesList.filter(p => !p.parentSlug).length})
+                  </button>
+                  <button
+                    onClick={() => setPageFilterMode('subpages')}
+                    style={{
+                      background: pageFilterMode === 'subpages' ? '#2563EB' : '#FFFFFF',
+                      color: pageFilterMode === 'subpages' ? '#FFFFFF' : '#475569',
+                      border: '1px solid',
+                      borderColor: pageFilterMode === 'subpages' ? '#2563EB' : '#CBD5E1',
+                      borderRadius: '9999px',
+                      padding: '0.35rem 0.85rem',
+                      fontSize: '0.8rem',
+                      fontWeight: pageFilterMode === 'subpages' ? 700 : 500,
+                      cursor: 'pointer',
+                      transition: 'all 120ms'
+                    }}
+                  >
+                    Subpages ({pagesList.filter(p => p.parentSlug).length})
+                  </button>
+                </div>
+
+                {/* Search */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '0.4rem 0.75rem', minWidth: '240px' }}>
+                  <Search size={15} style={{ color: '#9CA3AF' }} />
+                  <input type="text" placeholder="Search title, slug, or parent..." value={pageSearch} onChange={e => setPageSearch(e.target.value)}
+                    style={{ border: 'none', outline: 'none', flex: 1, fontSize: '0.84rem', color: '#111827', background: 'transparent' }} />
+                  {pageSearch && <button onClick={() => setPageSearch('')} style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer' }}><X size={13} /></button>}
+                </div>
+              </div>
+
+              {/* KK Wagh Quick Inspiration Banner */}
+              <div style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.06), rgba(217,119,6,0.06))', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '0.75rem 1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.6rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <span style={{ fontSize: '1.1rem' }}>🏛️</span>
+                  <div>
+                    <strong style={{ fontSize: '0.84rem', color: '#002147' }}>K. K. Wagh Subpage Structure:</strong>
+                    <span style={{ fontSize: '0.78rem', color: '#64748B', marginLeft: '0.4rem' }}>
+                      Add subpages under <strong>About Us</strong> (Legacy, Milestones, Leadership, NAAC), <strong>Academics</strong> (Calendar), or <strong>Admissions</strong> (Fees).
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn-secondary"
+                  style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem' }}
+                  onClick={() => handleStartCreateNewPage('about')}
+                >
+                  Create K.K. Wagh Subpage →
                 </button>
               </div>
 
-              {/* Search */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', background: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '0.5rem 0.75rem' }}>
-                <Search size={16} style={{ color: '#9CA3AF' }} />
-                <input type="text" placeholder="Search pages..." value={pageSearch} onChange={e => setPageSearch(e.target.value)}
-                  style={{ border: 'none', outline: 'none', flex: 1, fontSize: '0.875rem', color: '#111827', background: 'transparent' }} />
-                {pageSearch && <button onClick={() => setPageSearch('')} style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer' }}><X size={14} /></button>}
-              </div>
+              {/* Hierarchical Page List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                {pageFilterMode !== 'subpages' && !pageSearch ? (
+                  <>
+                    {pagesList.filter(p => !p.parentSlug).map(parentPage => {
+                      const childSubpages = pagesList.filter(s => s.parentSlug === parentPage.slug);
+                      const pageSubs = subsectionsList.filter(s => s.pageSlug === parentPage.slug);
+                      const isExpanded = expandedParentPages[parentPage.slug] !== false;
 
-              {/* Page List */}
-              {filteredPages.map(page => {
-                const pageSubs = subsectionsList.filter(s => s.pageSlug === page.slug);
-                return (
-                  <div key={page._id || page.slug} className="page-list-item"
-                    onClick={() => { setSelectedStudioPage(page); setPageEditorData({ ...page }); }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
-                      <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center", color: "#2563EB", flexShrink: 0 }}>{renderPageIcon(page.slug, 18)}</div>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                          <strong style={{ fontSize: '0.92rem', color: '#111827' }}>{page.title}</strong>
-                          {page.isSystem && <span style={{ background: '#EFF6FF', color: '#2563EB', padding: '0.05rem 0.35rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700 }}>CORE</span>}
-                          {page.pdfUrl && <span style={{ background: '#FEE2E2', color: '#DC2626', padding: '0.05rem 0.35rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700 }}>PDF</span>}
+                      return (
+                        <div key={parentPage._id || parentPage.slug} style={{ border: '1px solid #E2E8F0', borderRadius: '10px', background: '#FFFFFF', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                          {/* Parent Row */}
+                          <div
+                            className="page-list-item"
+                            style={{ margin: 0, borderRadius: 0, border: 'none', background: '#FFFFFF' }}
+                            onClick={() => { setSelectedStudioPage(parentPage); setPageEditorData({ ...parentPage }); }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1, minWidth: 0 }}>
+                              {childSubpages.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedParentPages(prev => ({ ...prev, [parentPage.slug]: !isExpanded }));
+                                  }}
+                                  style={{
+                                    background: 'none', border: 'none', color: '#64748B', cursor: 'pointer',
+                                    padding: '0.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                  }}
+                                  title={isExpanded ? 'Collapse subpages' : 'Expand subpages'}
+                                >
+                                  <ChevronDown size={16} style={{ transform: isExpanded ? 'none' : 'rotate(-90deg)', transition: 'transform 150ms' }} />
+                                </button>
+                              )}
+                              <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center", color: "#2563EB", flexShrink: 0 }}>
+                                {renderPageIcon(parentPage.slug, 18)}
+                              </div>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                  <strong style={{ fontSize: '0.92rem', color: '#111827' }}>{parentPage.title}</strong>
+                                  {parentPage.isSystem && <span style={{ background: '#EFF6FF', color: '#2563EB', padding: '0.05rem 0.35rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700 }}>CORE</span>}
+                                  {childSubpages.length > 0 && (
+                                    <span style={{ background: '#FEF3C7', color: '#92400E', padding: '0.05rem 0.45rem', borderRadius: '9999px', fontSize: '0.68rem', fontWeight: 700, border: '1px solid #FDE68A' }}>
+                                      {childSubpages.length} subpage{childSubpages.length !== 1 ? 's' : ''}
+                                    </span>
+                                  )}
+                                  {parentPage.pdfUrl && <span style={{ background: '#FEE2E2', color: '#DC2626', padding: '0.05rem 0.35rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700 }}>PDF</span>}
+                                </div>
+                                <div style={{ fontSize: '0.78rem', color: '#9CA3AF' }}>/{parentPage.slug} • {pageSubs.length} content section{pageSubs.length !== 1 ? 's' : ''}</div>
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={e => e.stopPropagation()}>
+                              {/* Add Subpage Button */}
+                              <button
+                                type="button"
+                                className="admin-btn admin-btn-secondary"
+                                style={{ fontSize: '0.74rem', padding: '0.28rem 0.6rem', color: '#00529B', fontWeight: 600 }}
+                                onClick={() => handleStartCreateNewPage(parentPage.slug)}
+                                title={`Add new subpage under ${parentPage.title}`}
+                              >
+                                <Plus size={12} /> Subpage
+                              </button>
+
+                              <span style={{ fontSize: '0.75rem', color: parentPage.isActive ? '#059669' : '#9CA3AF' }}>
+                                {parentPage.isActive ? '✓ Visible' : 'Hidden'}
+                              </span>
+                              <button className={`toggle-switch ${parentPage.isActive ? 'on' : ''}`}
+                                onClick={() => handleToggleEntity('pages', parentPage._id || parentPage.id)}>
+                                <span className="toggle-switch-knob" />
+                              </button>
+                              <button className="admin-btn admin-btn-primary" style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem' }}
+                                onClick={() => { setSelectedStudioPage(parentPage); setPageEditorData({ ...parentPage }); }}>
+                                <Edit size={12} /> Edit
+                              </button>
+                              {parentPage.slug !== 'home' && (
+                                <button
+                                  type="button"
+                                  className="admin-btn admin-btn-danger"
+                                  style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem' }}
+                                  onClick={() => handleDeletePage(parentPage)}
+                                  title="Delete this page"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Nested Subpages */}
+                          {childSubpages.length > 0 && isExpanded && (
+                            <div style={{ background: '#F8FAFC', borderTop: '1px solid #F1F5F9', padding: '0.4rem 0.6rem 0.6rem 2.25rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0.2rem 0' }}>
+                                Dropdown Subpages under {parentPage.title} ({childSubpages.length})
+                              </div>
+                              {childSubpages.map(sub => {
+                                const subSections = subsectionsList.filter(s => s.pageSlug === sub.slug);
+                                return (
+                                  <div
+                                    key={sub._id || sub.slug}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      padding: '0.5rem 0.75rem',
+                                      background: '#FFFFFF',
+                                      borderRadius: '8px',
+                                      border: '1px solid #E2E8F0',
+                                      cursor: 'pointer',
+                                      transition: 'all 120ms ease'
+                                    }}
+                                    onClick={() => { setSelectedStudioPage(sub); setPageEditorData({ ...sub }); }}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+                                      <span style={{ color: '#2563EB', fontWeight: 700, fontSize: '0.9rem' }}>↳</span>
+                                      <div style={{ minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                          <strong style={{ fontSize: '0.86rem', color: '#1E293B' }}>{sub.title}</strong>
+                                          <span style={{ fontSize: '0.64rem', padding: '0.1rem 0.35rem', borderRadius: '4px', background: '#EFF6FF', color: '#2563EB', fontWeight: 700 }}>
+                                            SUBPAGE
+                                          </span>
+                                          {sub.heroBadge && (
+                                            <span style={{ fontSize: '0.64rem', padding: '0.1rem 0.35rem', borderRadius: '4px', background: '#FEF3C7', color: '#92400E', fontWeight: 600 }}>
+                                              {sub.heroBadge}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <div style={{ fontSize: '0.74rem', color: '#94A3B8' }}>
+                                          /{sub.slug} • {subSections.length} section{subSections.length !== 1 ? 's' : ''}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }} onClick={e => e.stopPropagation()}>
+                                      <span style={{ fontSize: '0.72rem', color: sub.isActive ? '#059669' : '#94A3B8' }}>
+                                        {sub.isActive ? 'Live' : 'Hidden'}
+                                      </span>
+                                      <button
+                                        className={`toggle-switch ${sub.isActive ? 'on' : ''}`}
+                                        style={{ transform: 'scale(0.85)' }}
+                                        onClick={() => handleToggleEntity('pages', sub._id || sub.id)}
+                                      >
+                                        <span className="toggle-switch-knob" />
+                                      </button>
+                                      <button
+                                        className="admin-btn admin-btn-primary"
+                                        style={{ fontSize: '0.72rem', padding: '0.25rem 0.55rem' }}
+                                        onClick={() => { setSelectedStudioPage(sub); setPageEditorData({ ...sub }); }}
+                                      >
+                                        <Edit size={11} /> Edit
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="admin-btn admin-btn-danger"
+                                        style={{ fontSize: '0.72rem', padding: '0.25rem 0.45rem' }}
+                                        onClick={() => handleDeletePage(sub)}
+                                        title="Delete this subpage"
+                                      >
+                                        <Trash2 size={11} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
-                        <div style={{ fontSize: '0.78rem', color: '#9CA3AF' }}>/{page.slug} • {pageSubs.length} section{pageSubs.length !== 1 ? 's' : ''}</div>
-                      </div>
-                    </div>
+                      );
+                    })}
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }} onClick={e => e.stopPropagation()}>
-                      <span style={{ fontSize: '0.75rem', color: page.isActive ? '#059669' : '#9CA3AF' }}>
-                        {page.isActive ? '✓ Visible' : 'Hidden'}
-                      </span>
-                      <button className={`toggle-switch ${page.isActive ? 'on' : ''}`}
-                        onClick={() => handleToggleEntity('pages', page._id || page.id)}>
-                        <span className="toggle-switch-knob" />
-                      </button>
-                      <button className="admin-btn admin-btn-primary" style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem' }}
+                    {pagesList.filter(p => p.parentSlug && !pagesList.some(r => !r.parentSlug && r.slug === p.parentSlug)).length > 0 && (
+                      <div style={{ marginTop: '1rem' }}>
+                        <h4 style={{ fontSize: '0.9rem', color: '#64748B', fontWeight: 700, margin: '0 0 0.5rem 0' }}>
+                          Other Subpages
+                        </h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                          {pagesList.filter(p => p.parentSlug && !pagesList.some(r => !r.parentSlug && r.slug === p.parentSlug)).map(sub => (
+                            <div key={sub._id || sub.slug} className="page-list-item" onClick={() => { setSelectedStudioPage(sub); setPageEditorData({ ...sub }); }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ color: '#2563EB', fontWeight: 700 }}>↳</span>
+                                <div>
+                                  <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>{sub.title}</div>
+                                  <div style={{ fontSize: '0.75rem', color: '#64748B' }}>/{sub.slug} • Under: /{sub.parentSlug}</div>
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={e => e.stopPropagation()}>
+                                <button className="admin-btn admin-btn-primary" style={{ fontSize: '0.72rem', padding: '0.25rem 0.55rem' }} onClick={() => { setSelectedStudioPage(sub); setPageEditorData({ ...sub }); }}><Edit size={11} /> Edit</button>
+                                <button className="admin-btn admin-btn-danger" style={{ fontSize: '0.72rem', padding: '0.25rem 0.45rem' }} onClick={() => handleDeletePage(sub)}><Trash2 size={11} /></button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  filteredPages.map(page => {
+                    const pageSubs = subsectionsList.filter(s => s.pageSlug === page.slug);
+                    return (
+                      <div key={page._id || page.slug} className="page-list-item"
                         onClick={() => { setSelectedStudioPage(page); setPageEditorData({ ...page }); }}>
-                        <Edit size={12} /> Edit
-                      </button>
-                      {page.slug !== 'home' && (
-                        <button
-                          type="button"
-                          className="admin-btn admin-btn-danger"
-                          style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem' }}
-                          onClick={() => handleDeletePage(page)}
-                          title="Delete this custom page"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+                          <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center", color: "#2563EB", flexShrink: 0 }}>{renderPageIcon(page.slug, 18)}</div>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                              <strong style={{ fontSize: '0.92rem', color: '#111827' }}>{page.title}</strong>
+                              {page.parentSlug ? (
+                                <span style={{ background: '#FEF3C7', color: '#92400E', padding: '0.05rem 0.4rem', borderRadius: '4px', fontSize: '0.68rem', fontWeight: 700 }}>
+                                  SUBPAGE OF: /{page.parentSlug}
+                                </span>
+                              ) : (
+                                <span style={{ background: '#F1F5F9', color: '#475569', padding: '0.05rem 0.35rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700 }}>ROOT PAGE</span>
+                              )}
+                              {page.isSystem && <span style={{ background: '#EFF6FF', color: '#2563EB', padding: '0.05rem 0.35rem', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700 }}>CORE</span>}
+                            </div>
+                            <div style={{ fontSize: '0.78rem', color: '#9CA3AF' }}>/{page.slug} • {pageSubs.length} section{pageSubs.length !== 1 ? 's' : ''}</div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }} onClick={e => e.stopPropagation()}>
+                          <span style={{ fontSize: '0.75rem', color: page.isActive ? '#059669' : '#9CA3AF' }}>
+                            {page.isActive ? '✓ Visible' : 'Hidden'}
+                          </span>
+                          <button className={`toggle-switch ${page.isActive ? 'on' : ''}`}
+                            onClick={() => handleToggleEntity('pages', page._id || page.id)}>
+                            <span className="toggle-switch-knob" />
+                          </button>
+                          <button className="admin-btn admin-btn-primary" style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem' }}
+                            onClick={() => { setSelectedStudioPage(page); setPageEditorData({ ...page }); }}>
+                            <Edit size={12} /> Edit
+                          </button>
+                          {page.slug !== 'home' && (
+                            <button
+                              type="button"
+                              className="admin-btn admin-btn-danger"
+                              style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem' }}
+                              onClick={() => handleDeletePage(page)}
+                              title="Delete this custom page"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           )}
 
@@ -1729,26 +2206,118 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                       </div>
 
                       {/* Homepage Sections Controls */}
-                      <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '1rem' }}>
-                        <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 0.5rem 0', color: '#111827' }}>
-                          Homepage Section Modules & Order ({sectionsList.length})
-                        </h4>
-                        <p style={{ fontSize: '0.76rem', color: '#6B7280', margin: '0 0 0.75rem 0' }}>
-                          Toggle any section on or off, or change its position on the homepage.
-                        </p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', maxHeight: '280px', overflowY: 'auto' }}>
+                      <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '1.25rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          <div>
+                            <h4 style={{ fontSize: '0.98rem', fontWeight: 700, margin: 0, color: '#111827', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              <Sliders size={16} style={{ color: '#2563EB' }} /> Homepage Section Modules & Order ({sectionsList.length})
+                            </h4>
+                            <p style={{ fontSize: '0.76rem', color: '#6B7280', margin: '0.15rem 0 0 0' }}>
+                              Click <strong>Edit</strong> on any section to customize titles, badges, taglines, CTA buttons, or use arrows to reorder.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            className="admin-btn admin-btn-primary"
+                            style={{ fontSize: '0.76rem', padding: '0.3rem 0.65rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                            onClick={() => openModal('section')}
+                          >
+                            <Plus size={12} /> Add Module
+                          </button>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '440px', overflowY: 'auto', paddingRight: '0.25rem' }}>
                           {sectionsList.map((sec, idx) => (
-                            <div key={sec._id || sec.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', background: '#FFFFFF', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#2563EB', background: '#EFF6FF', width: '22px', height: '22px', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{idx + 1}</span>
-                                <span style={{ fontSize: '0.84rem', fontWeight: 600, color: sec.isVisible ? '#111827' : '#9CA3AF' }}>{sec.title}</span>
+                            <div
+                              key={sec._id || sec.id || idx}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '0.65rem 0.85rem',
+                                background: '#FFFFFF',
+                                borderRadius: '8px',
+                                border: '1px solid #E2E8F0',
+                                gap: '0.75rem',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1, minWidth: 0 }}>
+                                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#2563EB', background: '#EFF6FF', width: '24px', height: '24px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                  {idx + 1}
+                                </span>
+                                <div style={{ minWidth: 0 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                    <strong style={{ fontSize: '0.88rem', color: sec.isVisible ? '#111827' : '#9CA3AF' }}>
+                                      {sec.title}
+                                    </strong>
+                                    {sec.badge && (
+                                      <span style={{ fontSize: '0.64rem', padding: '0.05rem 0.35rem', borderRadius: '4px', background: '#FEF3C7', color: '#92400E', fontWeight: 700 }}>
+                                        {sec.badge}
+                                      </span>
+                                    )}
+                                    <code style={{ fontSize: '0.68rem', color: '#64748B', background: '#F1F5F9', padding: '0.05rem 0.35rem', borderRadius: '4px' }}>
+                                      {sec.sectionKey}
+                                    </code>
+                                  </div>
+                                  {sec.subtitle && (
+                                    <p style={{ fontSize: '0.75rem', color: '#64748B', margin: '0.15rem 0 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      {sec.subtitle}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                                <button type="button" className={`toggle-switch ${sec.isVisible ? 'on' : ''}`} style={{ transform: 'scale(0.85)' }} onClick={() => handleToggleSection(sec._id || sec.id)}>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                                <button
+                                  type="button"
+                                  className="admin-btn admin-btn-primary"
+                                  style={{ fontSize: '0.72rem', padding: '0.25rem 0.55rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                                  onClick={() => openModal('section', sec)}
+                                  title={`Edit ${sec.title} module settings`}
+                                >
+                                  <Edit size={11} /> Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`toggle-switch ${sec.isVisible ? 'on' : ''}`}
+                                  style={{ transform: 'scale(0.85)' }}
+                                  onClick={() => handleToggleSection(sec._id || sec.id)}
+                                  title={sec.isVisible ? 'Visible (click to hide)' : 'Hidden (click to show)'}
+                                >
                                   <span className="toggle-switch-knob" />
                                 </button>
-                                <button type="button" className="admin-btn admin-btn-secondary" style={{ padding: '0.2rem 0.4rem' }} disabled={idx === 0} onClick={() => handleMoveSection(idx, 'up')}><ArrowUp size={11} /></button>
-                                <button type="button" className="admin-btn admin-btn-secondary" style={{ padding: '0.2rem 0.4rem' }} disabled={idx === sectionsList.length - 1} onClick={() => handleMoveSection(idx, 'down')}><ArrowDown size={11} /></button>
+                                <button
+                                  type="button"
+                                  className="admin-btn admin-btn-secondary"
+                                  style={{ padding: '0.22rem 0.4rem' }}
+                                  disabled={idx === 0}
+                                  onClick={() => handleMoveSection(idx, 'up')}
+                                  title="Move section up"
+                                >
+                                  <ArrowUp size={11} />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="admin-btn admin-btn-secondary"
+                                  style={{ padding: '0.22rem 0.4rem' }}
+                                  disabled={idx === sectionsList.length - 1}
+                                  onClick={() => handleMoveSection(idx, 'down')}
+                                  title="Move section down"
+                                >
+                                  <ArrowDown size={11} />
+                                </button>
+                                {sec.sectionKey?.startsWith('custom_') && (
+                                  <button
+                                    type="button"
+                                    className="admin-btn admin-btn-danger"
+                                    style={{ padding: '0.22rem 0.4rem' }}
+                                    onClick={() => handleDelete('section', sec._id || sec.id)}
+                                    title="Delete custom module"
+                                  >
+                                    <Trash2 size={11} />
+                                  </button>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -2521,6 +3090,96 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                         </p>
                       </div>
                     </div>
+
+                    {/* Subpage Parent Selector */}
+                    <div style={{ marginBottom: '1.25rem', background: '#F0F9FF', border: '1.5px solid #BAE6FD', borderRadius: '10px', padding: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                        <label className="simple-label" style={{ color: '#0369A1', fontWeight: 700, margin: 0 }}>
+                          Page Hierarchy / Parent Menu (Dropdown Grouping)
+                        </label>
+                        {pageEditorData?.parentSlug && (
+                          <span style={{ background: '#0284C7', color: '#FFFFFF', fontSize: '0.68rem', fontWeight: 700, padding: '0.15rem 0.5rem', borderRadius: '9999px' }}>
+                            Subpage Mode
+                          </span>
+                        )}
+                      </div>
+                      <select
+                        className="simple-input"
+                        value={pageEditorData?.parentSlug || ''}
+                        onChange={e => {
+                          const pSlug = e.target.value;
+                          setPageEditorData(prev => ({
+                            ...prev,
+                            parentSlug: pSlug,
+                            heroBadge: pSlug ? (prev?.heroBadge === 'NEW PAGE' ? 'SUBPAGE' : prev?.heroBadge || 'SUBPAGE') : (prev?.heroBadge === 'SUBPAGE' ? 'NEW PAGE' : prev?.heroBadge)
+                          }));
+                        }}
+                        style={{ background: '#FFFFFF', fontWeight: 600, fontSize: '0.9rem' }}
+                      >
+                        <option value="">● Root Page (Top-Level Navigation Item — no parent)</option>
+                        <optgroup label="Institutional Main Categories">
+                          <option value="about">About Us (/about)</option>
+                          <option value="academics">Academics (/academics)</option>
+                          <option value="admissions">Admissions (/admissions)</option>
+                          <option value="departments">Departments (/departments)</option>
+                          <option value="programs">Programs (/programs)</option>
+                          <option value="placements">Placements (/placements)</option>
+                          <option value="campus">Campus & Facilities (/campus)</option>
+                          <option value="research">Research & Innovation (/research)</option>
+                          <option value="life">Student Life (/life)</option>
+                          <option value="news">News & Events (/news)</option>
+                        </optgroup>
+                        {pagesList.filter(p => !p.parentSlug && !['home', 'about', 'academics', 'admissions', 'departments', 'programs', 'placements', 'campus', 'research', 'life', 'news', selectedStudioPage?.slug].includes(p.slug)).length > 0 && (
+                          <optgroup label="Other Root Pages">
+                            {pagesList.filter(p => !p.parentSlug && !['home', 'about', 'academics', 'admissions', 'departments', 'programs', 'placements', 'campus', 'research', 'life', 'news', selectedStudioPage?.slug].includes(p.slug)).map(p => (
+                              <option key={p.slug} value={p.slug}>{p.title} (/{p.slug})</option>
+                            ))}
+                          </optgroup>
+                        )}
+                      </select>
+                      <div style={{ fontSize: '0.76rem', color: '#0369A1', marginTop: '0.4rem', lineHeight: 1.4 }}>
+                        {pageEditorData?.parentSlug ? (
+                          <span>
+                            ✓ This page will be nested as a <strong>dropdown subpage</strong> under the <strong>/{pageEditorData.parentSlug}</strong> menu on the website header!
+                          </span>
+                        ) : (
+                          <span>This is a primary top-level navigation item. Select a parent above to make it a subpage.</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* KK Wagh Quick Templates (Shown for new pages or quick fill) */}
+                    {selectedStudioPage.isNew && (
+                      <div style={{ marginBottom: '1.25rem', background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', padding: '0.85rem' }}>
+                        <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#92400E', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem' }}>
+                          ⚡ KK Wagh Subpage Quick Templates (1-Click Fill):
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
+                          {KK_WAGH_TEMPLATES.map(tpl => (
+                            <button
+                              key={tpl.title}
+                              type="button"
+                              onClick={() => handleApplyTemplate(tpl)}
+                              style={{
+                                background: '#FFFFFF',
+                                border: '1px solid #F59E0B',
+                                borderRadius: '6px',
+                                padding: '0.3rem 0.6rem',
+                                fontSize: '0.75rem',
+                                color: '#92400E',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                transition: 'all 120ms'
+                              }}
+                              onMouseEnter={e => { e.currentTarget.style.background = '#F59E0B'; e.currentTarget.style.color = '#FFFFFF'; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#92400E'; }}
+                            >
+                              + {tpl.title} ({tpl.parentSlug})
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     <div style={{ marginBottom: '1.1rem' }}>
                       <label className="simple-label">Page Title *</label>
@@ -5091,16 +5750,134 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                   </>
                 )}
 
-                {/* SECTION FORM */}
+                {/* HOMEPAGE SECTION FORM */}
                 {modalType === 'section' && (
                   <>
-                    <div style={{ marginBottom: '0.75rem' }}>
-                      <label className="simple-label">Section Name *</label>
-                      <input type="text" className="simple-input" value={formData.title || ''} onChange={e => setFormData({ ...formData, title: e.target.value })} required />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '0.75rem', marginBottom: '0.85rem' }}>
+                      <div>
+                        <label className="simple-label">Section Title / Headline *</label>
+                        <input
+                          type="text"
+                          className="simple-input"
+                          placeholder="e.g. Academic Programs & Degrees"
+                          value={formData.title || ''}
+                          onChange={e => setFormData({ ...formData, title: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="simple-label">Badge Pill Tag</label>
+                        <input
+                          type="text"
+                          className="simple-input"
+                          placeholder="e.g. NAAC A++ / ADMISSIONS 2026"
+                          value={formData.badge || ''}
+                          onChange={e => setFormData({ ...formData, badge: e.target.value })}
+                        />
+                      </div>
                     </div>
-                    <div style={{ marginBottom: '0.75rem' }}>
-                      <label className="simple-label">Content</label>
-                      <textarea rows="3" className="simple-input" value={formData.content || ''} onChange={e => setFormData({ ...formData, content: e.target.value })} />
+
+                    <div style={{ marginBottom: '0.85rem' }}>
+                      <label className="simple-label">Subtitle / Introductory Tagline</label>
+                      <input
+                        type="text"
+                        className="simple-input"
+                        placeholder="Brief summary or overarching theme of this homepage section..."
+                        value={formData.subtitle || ''}
+                        onChange={e => setFormData({ ...formData, subtitle: e.target.value })}
+                      />
+                    </div>
+
+                    <div style={{ marginBottom: '0.85rem' }}>
+                      <label className="simple-label">Section Content / Description</label>
+                      <textarea
+                        rows="3"
+                        className="simple-input"
+                        placeholder="Detailed narrative, promotional copy, or overview text..."
+                        value={formData.content || ''}
+                        onChange={e => setFormData({ ...formData, content: e.target.value })}
+                        style={{ resize: 'vertical', lineHeight: 1.5 }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.85rem' }}>
+                      <div>
+                        <label className="simple-label">Call-to-Action (CTA) Button Text</label>
+                        <input
+                          type="text"
+                          className="simple-input"
+                          placeholder="e.g. Apply Now, View Placements, Explore"
+                          value={formData.ctaText || ''}
+                          onChange={e => setFormData({ ...formData, ctaText: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label className="simple-label">CTA Link / Route</label>
+                        <input
+                          type="text"
+                          className="simple-input"
+                          placeholder="e.g. #admissions, #programs, or /contact"
+                          value={formData.ctaLink || ''}
+                          onChange={e => setFormData({ ...formData, ctaLink: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.85rem' }}>
+                      <div>
+                        <label className="simple-label">Presentation Layout</label>
+                        <select
+                          className="simple-input"
+                          value={formData.layoutType || 'standard'}
+                          onChange={e => setFormData({ ...formData, layoutType: e.target.value })}
+                        >
+                          <option value="standard">Standard Grid / Interactive Module</option>
+                          <option value="split_content">Split Content (Showcase Image + Text)</option>
+                          <option value="image_banner">Hero / Full-Width Feature Banner</option>
+                          <option value="card_grid">Curated Cards Showcase</option>
+                          <option value="marquee">Continuous Marquee Partner Banner</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="simple-label">Section Key / Identifier</label>
+                        <input
+                          type="text"
+                          className="simple-input"
+                          value={formData.sectionKey || ''}
+                          onChange={e => setFormData({ ...formData, sectionKey: e.target.value })}
+                          disabled={editingItem && !editingItem.sectionKey?.startsWith('custom_')}
+                          style={{ fontFamily: 'monospace', fontSize: '0.82rem', background: (editingItem && !editingItem.sectionKey?.startsWith('custom_')) ? '#F1F5F9' : '#FFFFFF' }}
+                        />
+                        <div className="simple-hint">
+                          {editingItem && !editingItem.sectionKey?.startsWith('custom_') ? 'System key linking this module to homepage components' : 'Unique identifier for custom homepage section'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <ImageUploadField
+                      label="Section Showcase / Background Image"
+                      value={formData.imageUrl || ''}
+                      onChange={url => setFormData(prev => ({ ...prev, imageUrl: url }))}
+                      onToast={onToast}
+                      helperText="Optional image for split banners or background showcases (1920x800 recommended)"
+                    />
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1rem', padding: '0.75rem 1rem', background: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                      <button
+                        type="button"
+                        className={`toggle-switch ${formData.isVisible !== false ? 'on' : ''}`}
+                        onClick={() => setFormData({ ...formData, isVisible: formData.isVisible === false ? true : false })}
+                      >
+                        <span className="toggle-switch-knob" />
+                      </button>
+                      <div>
+                        <div style={{ fontSize: '0.86rem', fontWeight: 600, color: formData.isVisible !== false ? '#059669' : '#64748B' }}>
+                          {formData.isVisible !== false ? '✓ Visible on Live Homepage' : '○ Hidden from Live Homepage'}
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                          Toggle whether visitors see this section module on the live homepage.
+                        </div>
+                      </div>
                     </div>
                   </>
                 )}

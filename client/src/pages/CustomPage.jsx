@@ -5,6 +5,8 @@ import { api } from '../services/api';
 export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
   const [pageData, setPageData] = useState(null);
   const [subsections, setSubsections] = useState([]);
+  const [parentPage, setParentPage] = useState(null);
+  const [siblings, setSiblings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -19,6 +21,8 @@ export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
           if (isMounted) {
             setPageData(res.data.page);
             setSubsections(res.data.subsections || []);
+            setParentPage(res.data.parentPage || null);
+            setSiblings(res.data.siblings || []);
           }
         } else {
           // Fallback: try fetching all pages to see if match exists
@@ -28,6 +32,12 @@ export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
             setPageData(matched);
             const subs = await api.get(`/api/v1/public/subsections?pageSlug=${slug}`);
             setSubsections(subs.data || []);
+            if (matched.parentSlug) {
+              const par = (allRes.data || []).find(p => p.slug === matched.parentSlug);
+              setParentPage(par || null);
+              const sibs = (allRes.data || []).filter(p => p.parentSlug === matched.parentSlug);
+              setSiblings(sibs);
+            }
           } else if (isMounted) {
             setError('Page not found or is currently inactive.');
           }
@@ -58,8 +68,8 @@ export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
 
   if (error || !pageData) {
     return (
-      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)', padding: '2rem' }}>
-        <div style={{ maxWidth: '540px', textAlign: 'center', background: '#FFFFFF', padding: '3rem 2rem', borderRadius: '16px', boxShadow: 'var(--shadow-md)', border: '1px solid var(--color-border)' }}>
+      <div style={{ minHeight: '60vh', display: 'center', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)', padding: '2rem' }}>
+        <div style={{ maxWidth: '540px', textAlign: 'center', background: '#FFFFFF', padding: '3rem 2rem', borderRadius: '16px', boxShadow: 'var(--shadow-md)', border: '1px solid var(--color-border)', margin: '4rem auto' }}>
           <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#FEF2F2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem auto', fontSize: '1.75rem' }}>
             ⚠
           </div>
@@ -94,15 +104,59 @@ export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
       <section 
         style={{
           position: 'relative',
-          padding: '6rem 1.5rem 5rem 1.5rem',
-          backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.88)), url(${pageData.heroImageUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80'})`,
+          padding: '4.5rem 1.5rem 4.5rem 1.5rem',
+          backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.9)), url(${pageData.heroImageUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80'})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           color: '#FFFFFF',
           textAlign: 'center'
         }}
       >
-        <div className="container" style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div className="container" style={{ maxWidth: '960px', margin: '0 auto' }}>
+          {/* Breadcrumbs */}
+          <nav aria-label="Breadcrumb" style={{ marginBottom: '1.25rem' }}>
+            <ol style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              listStyle: 'none',
+              padding: '0.35rem 0.9rem',
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(8px)',
+              borderRadius: '9999px',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              fontSize: '0.78rem',
+              margin: 0
+            }}>
+              <li>
+                <button
+                  onClick={() => onNavigate('home')}
+                  style={{ background: 'none', border: 'none', color: '#93C5FD', cursor: 'pointer', padding: 0, fontWeight: 600 }}
+                >
+                  Home
+                </button>
+              </li>
+              <li style={{ color: 'rgba(255, 255, 255, 0.4)' }}>/</li>
+              {parentPage ? (
+                <>
+                  <li>
+                    <button
+                      onClick={() => onNavigate(parentPage.slug)}
+                      style={{ background: 'none', border: 'none', color: '#93C5FD', cursor: 'pointer', padding: 0, fontWeight: 600 }}
+                    >
+                      {parentPage.title}
+                    </button>
+                  </li>
+                  <li style={{ color: 'rgba(255, 255, 255, 0.4)' }}>/</li>
+                </>
+              ) : null}
+              <li style={{ color: '#FCD34D', fontWeight: 700 }}>
+                {pageData.title}
+              </li>
+            </ol>
+          </nav>
+
           {pageData.heroBadge && (
             <span 
               style={{
@@ -118,7 +172,7 @@ export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
                 fontWeight: 700,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                marginBottom: '1.25rem'
+                marginBottom: '1rem'
               }}
             >
               <Sparkles size={13} /> {pageData.heroBadge}
@@ -171,6 +225,80 @@ export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
           )}
         </div>
       </section>
+
+      {/* IN-SECTION SIBLING SUBPAGES NAVIGATOR BAR */}
+      {(parentPage || siblings.length > 0) && (
+        <div style={{ background: '#FFFFFF', borderBottom: '1px solid #E2E8F0', padding: '0.75rem 0', boxShadow: '0 1px 3px rgba(0,0,0,0.03)', position: 'relative', zIndex: 15 }}>
+          <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.76rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                {parentPage ? `${parentPage.title} Section:` : 'Explore Section:'}
+              </span>
+              {parentPage && (
+                <button
+                  onClick={() => onNavigate(parentPage.slug)}
+                  style={{
+                    background: pageData.slug === parentPage.slug ? '#002147' : '#F1F5F9',
+                    color: pageData.slug === parentPage.slug ? '#FFFFFF' : '#334155',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '9999px',
+                    padding: '0.3rem 0.85rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    transition: 'all 120ms'
+                  }}
+                >
+                  Overview
+                </button>
+              )}
+              {siblings.map(sib => {
+                const isCur = sib.slug === pageData.slug;
+                return (
+                  <button
+                    key={sib._id || sib.slug}
+                    onClick={() => onNavigate(sib.slug)}
+                    style={{
+                      background: isCur ? 'linear-gradient(135deg, #00529B, #003366)' : '#F8FAFC',
+                      color: isCur ? '#FFFFFF' : '#334155',
+                      border: '1px solid',
+                      borderColor: isCur ? '#00529B' : '#E2E8F0',
+                      borderRadius: '9999px',
+                      padding: '0.3rem 0.85rem',
+                      fontSize: '0.8rem',
+                      fontWeight: isCur ? 700 : 500,
+                      cursor: 'pointer',
+                      boxShadow: isCur ? '0 2px 6px rgba(0,82,155,0.25)' : 'none',
+                      transition: 'all 120ms'
+                    }}
+                  >
+                    {sib.navLabel || sib.title}
+                  </button>
+                );
+              })}
+            </div>
+
+            {onOpenInquiry && (
+              <button
+                onClick={() => onOpenInquiry(pageData.title)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#D97706',
+                  fontWeight: 700,
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.3rem'
+                }}
+              >
+                Inquire About This <ArrowRight size={13} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ATTACHED PDF DOCUMENT DOWNLOAD CARD */}
       {pageData.pdfUrl && (

@@ -19,12 +19,16 @@ router.get('/config', async (req, res) => {
     const sections = await db.HomepageSection.find({ isVisible: true });
     sections.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
+    const pages = await db.Page.find({ isActive: true });
+    pages.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+
     return res.json({
       success: true,
       data: {
         settings,
         navigation,
-        sections
+        sections,
+        pages
       }
     });
   } catch (err) {
@@ -341,11 +345,26 @@ router.get('/pages/:slug', async (req, res) => {
     const subsections = await db.Subsection.find({ pageSlug: slug, isVisible: true });
     subsections.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
+    let parentPage = null;
+    let siblings = [];
+    if (page.parentSlug) {
+      parentPage = await db.Page.findOne({ slug: page.parentSlug, isActive: true });
+      siblings = await db.Page.find({ parentSlug: page.parentSlug, isActive: true });
+      siblings.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    } else {
+      // Find subpages of this parent
+      const subpages = await db.Page.find({ parentSlug: page.slug, isActive: true });
+      subpages.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+      siblings = subpages;
+    }
+
     return res.json({
       success: true,
       data: {
         page,
-        subsections
+        subsections,
+        parentPage,
+        siblings
       }
     });
   } catch (err) {

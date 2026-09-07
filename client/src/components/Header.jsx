@@ -3,11 +3,13 @@ import { Phone, Mail, Lock, Menu, X, ArrowRight, ChevronDown, Globe, ExternalLin
 import { getInstitutionProfile } from '../content/institutionProfile';
 import { api } from '../services/api';
 
-export default function Header({ settings = {}, navigation = [], currentRoute, onNavigate, onOpenInquiry }) {
+export default function Header({ settings = {}, navigation = [], pages = [], currentRoute, onNavigate, onOpenInquiry }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [subInstitutions, setSubInstitutions] = useState([]);
   const [instituteDropdownOpen, setInstituteDropdownOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [mobileExpanded, setMobileExpanded] = useState({});
   const profile = getInstitutionProfile(settings);
   const collegeName = settings?.college_name || settings?.college_short_name || profile.collegeName || 'Institution';
   const isGroupMode = profile.profileKey === 'group';
@@ -28,14 +30,43 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
     { id: 'contact', label: 'Contact' }
   ];
 
-  let navItems = defaultNavItems;
+  // Group active subpages by parentSlug
+  const subpagesByParent = {};
+  if (Array.isArray(pages)) {
+    pages.filter(p => p.isActive && p.showInHeader !== false && p.parentSlug).forEach(p => {
+      const parentKey = p.parentSlug.toLowerCase().trim();
+      if (!subpagesByParent[parentKey]) subpagesByParent[parentKey] = [];
+      subpagesByParent[parentKey].push(p);
+    });
+  }
+
+  let navItems = defaultNavItems.map(d => ({
+    ...d,
+    subpages: subpagesByParent[d.id] || []
+  }));
+
   if (Array.isArray(navigation) && navigation.length > 0) {
     const activePaths = new Set(navigation.filter(n => n.isActive !== false).map(n => n.path.replace('#', '')));
     if (activePaths.size > 0) {
-      const coreNavs = defaultNavItems.filter(item => activePaths.has(item.id) || item.id === 'home' || item.id === 'programs' || item.id === 'research');
+      const coreNavs = defaultNavItems
+        .filter(item => activePaths.has(item.id) || item.id === 'home' || item.id === 'programs' || item.id === 'research')
+        .map(d => ({ ...d, subpages: subpagesByParent[d.id] || [] }));
+
+      // Custom top-level pages only (exclude pages that belong to a parent as a subpage)
       const customNavs = navigation
-        .filter(n => n.isActive !== false && !defaultNavItems.some(d => d.id === n.path.replace('#', '')))
-        .map(n => ({ id: n.path.replace('#', ''), label: n.title }));
+        .filter(n => {
+          if (n.isActive === false) return false;
+          const cleanId = n.path.replace('#', '');
+          if (defaultNavItems.some(d => d.id === cleanId)) return false;
+          const pageObj = (pages || []).find(p => p.slug === cleanId);
+          if (pageObj && pageObj.parentSlug) return false;
+          return true;
+        })
+        .map(n => {
+          const cleanId = n.path.replace('#', '');
+          return { id: cleanId, label: n.title, subpages: subpagesByParent[cleanId] || [] };
+        });
+
       navItems = [...coreNavs, ...customNavs];
     }
   }
@@ -399,32 +430,194 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
               </div>
             )}
 
-            {/* Nav Items */}
+            {/* Nav Items with Multi-level Subpage Dropdowns */}
             {navItems.map(item => {
-              const isActive = currentRoute === item.id;
+              const hasSubpages = item.subpages && item.subpages.length > 0;
+              const isSubpageActive = hasSubpages && item.subpages.some(s => s.slug === currentRoute);
+              const isActive = currentRoute === item.id || isSubpageActive;
+              const isDropdownOpen = activeDropdown === item.id;
+
+              if (!hasSubpages) {
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleNavClick(item.id)}
+                    style={{
+                      background: isActive ? 'rgba(217, 119, 6, 0.2)' : 'transparent',
+                      color: isActive ? '#FCD34D' : '#F8FAFC',
+                      border: 'none',
+                      borderBottom: isActive ? '3px solid var(--color-accent)' : '3px solid transparent',
+                      padding: '0.7rem 0.6rem',
+                      fontSize: '0.82rem',
+                      fontWeight: isActive ? 700 : 500,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      letterSpacing: '0.015em',
+                      transition: 'all 150ms ease',
+                      fontFamily: "'Inter', sans-serif"
+                    }}
+                    onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = '#FCD34D'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; } }}
+                    onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = '#F8FAFC'; e.currentTarget.style.background = 'transparent'; } }}
+                  >
+                    {item.label}
+                  </button>
+                );
+              }
+
               return (
-                <button
+                <div
                   key={item.id}
-                  onClick={() => handleNavClick(item.id)}
-                  style={{
-                    background: isActive ? 'rgba(217, 119, 6, 0.2)' : 'transparent',
-                    color: isActive ? '#FCD34D' : '#F8FAFC',
-                    border: 'none',
-                    borderBottom: isActive ? '3px solid var(--color-accent)' : '3px solid transparent',
-                    padding: '0.7rem 0.6rem',
-                    fontSize: '0.82rem',
-                    fontWeight: isActive ? 700 : 500,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    letterSpacing: '0.015em',
-                    transition: 'all 150ms ease',
-                    fontFamily: "'Inter', sans-serif"
-                  }}
-                  onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = '#FCD34D'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; } }}
-                  onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = '#F8FAFC'; e.currentTarget.style.background = 'transparent'; } }}
+                  style={{ position: 'relative' }}
+                  onMouseEnter={() => setActiveDropdown(item.id)}
+                  onMouseLeave={() => setActiveDropdown(null)}
                 >
-                  {item.label}
-                </button>
+                  <button
+                    onClick={() => handleNavClick(item.id)}
+                    style={{
+                      background: isActive ? 'rgba(217, 119, 6, 0.2)' : 'transparent',
+                      color: isActive ? '#FCD34D' : '#F8FAFC',
+                      border: 'none',
+                      borderBottom: isActive ? '3px solid var(--color-accent)' : '3px solid transparent',
+                      padding: '0.7rem 0.6rem',
+                      fontSize: '0.82rem',
+                      fontWeight: isActive ? 700 : 500,
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
+                      letterSpacing: '0.015em',
+                      transition: 'all 150ms ease',
+                      fontFamily: "'Inter', sans-serif",
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.3rem'
+                    }}
+                    onMouseEnter={e => { if (!isActive) { e.currentTarget.style.color = '#FCD34D'; e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; } }}
+                    onMouseLeave={e => { if (!isActive) { e.currentTarget.style.color = '#F8FAFC'; e.currentTarget.style.background = 'transparent'; } }}
+                  >
+                    <span>{item.label}</span>
+                    <ChevronDown
+                      size={13}
+                      style={{
+                        transition: 'transform 200ms ease',
+                        transform: isDropdownOpen ? 'rotate(180deg)' : 'none',
+                        opacity: 0.8
+                      }}
+                    />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isDropdownOpen && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        minWidth: '270px',
+                        background: '#FFFFFF',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '10px',
+                        boxShadow: '0 16px 40px rgba(0, 33, 71, 0.22)',
+                        padding: '0.45rem',
+                        zIndex: 1100,
+                        animation: 'fadeInDown 0.18s ease'
+                      }}
+                    >
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0.5rem 0.75rem 0.4rem 0.75rem',
+                        borderBottom: '1px solid #F1F5F9',
+                        marginBottom: '0.3rem'
+                      }}>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          {item.label}
+                        </span>
+                        <button
+                          onClick={() => handleNavClick(item.id)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#00529B',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            padding: 0
+                          }}
+                        >
+                          Overview →
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem' }}>
+                        {item.subpages.map(sub => {
+                          const isSubActive = currentRoute === sub.slug;
+                          return (
+                            <button
+                              key={sub._id || sub.slug}
+                              onClick={() => handleNavClick(sub.slug)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                width: '100%',
+                                padding: '0.55rem 0.75rem',
+                                borderRadius: '6px',
+                                background: isSubActive ? '#EFF6FF' : 'transparent',
+                                color: isSubActive ? '#00529B' : '#1E293B',
+                                border: 'none',
+                                textAlign: 'left',
+                                cursor: 'pointer',
+                                transition: 'all 120ms ease',
+                                fontFamily: "'Inter', sans-serif"
+                              }}
+                              onMouseEnter={e => {
+                                e.currentTarget.style.background = '#F8FAFC';
+                                e.currentTarget.style.color = '#00529B';
+                              }}
+                              onMouseLeave={e => {
+                                e.currentTarget.style.background = isSubActive ? '#EFF6FF' : 'transparent';
+                                e.currentTarget.style.color = isSubActive ? '#00529B' : '#1E293B';
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', minWidth: 0 }}>
+                                <span style={{
+                                  width: '6px',
+                                  height: '6px',
+                                  borderRadius: '50%',
+                                  background: isSubActive ? '#2563EB' : '#94A3B8',
+                                  flexShrink: 0
+                                }} />
+                                <span style={{
+                                  fontSize: '0.84rem',
+                                  fontWeight: isSubActive ? 700 : 500,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}>
+                                  {sub.navLabel || sub.title}
+                                </span>
+                              </div>
+                              {sub.heroBadge && (
+                                <span style={{
+                                  fontSize: '0.62rem',
+                                  padding: '0.1rem 0.4rem',
+                                  borderRadius: '4px',
+                                  background: '#EFF6FF',
+                                  color: '#2563EB',
+                                  fontWeight: 700,
+                                  marginLeft: '0.5rem',
+                                  flexShrink: 0
+                                }}>
+                                  {sub.heroBadge}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -465,26 +658,112 @@ export default function Header({ settings = {}, navigation = [], currentRoute, o
               </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.5rem', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginBottom: '1.25rem' }}>
               {navItems.map(item => {
-                const isActive = currentRoute === item.id;
+                const hasSubpages = item.subpages && item.subpages.length > 0;
+                const isSubpageActive = hasSubpages && item.subpages.some(s => s.slug === currentRoute);
+                const isActive = currentRoute === item.id || isSubpageActive;
+                const isExpanded = mobileExpanded[item.id];
+
+                if (!hasSubpages) {
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleNavClick(item.id)}
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '0.65rem 0.85rem', borderRadius: '8px',
+                        border: '1px solid', borderColor: isActive ? '#002147' : '#E2E8F0',
+                        background: isActive ? '#EFF6FF' : '#F8FAFC',
+                        color: isActive ? '#002147' : '#334155',
+                        fontWeight: isActive ? 700 : 500, fontSize: '0.85rem',
+                        cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif"
+                      }}
+                    >
+                      <span>{item.label}</span>
+                      <ArrowRight size={13} style={{ opacity: isActive ? 1 : 0.3 }} />
+                    </button>
+                  );
+                }
+
                 return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleNavClick(item.id)}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '0.65rem 0.85rem', borderRadius: '8px',
-                      border: '1px solid', borderColor: isActive ? '#002147' : '#E2E8F0',
+                  <div key={item.id} style={{ border: '1px solid #E2E8F0', borderRadius: '8px', overflow: 'hidden', background: '#FFFFFF' }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
                       background: isActive ? '#EFF6FF' : '#F8FAFC',
-                      color: isActive ? '#002147' : '#334155',
-                      fontWeight: isActive ? 700 : 500, fontSize: '0.85rem',
-                      cursor: 'pointer', textAlign: 'left', fontFamily: "'Inter', sans-serif"
-                    }}
-                  >
-                    <span>{item.label}</span>
-                    <ArrowRight size={13} style={{ opacity: isActive ? 1 : 0.3 }} />
-                  </button>
+                      padding: '0.55rem 0.75rem'
+                    }}>
+                      <button
+                        onClick={() => handleNavClick(item.id)}
+                        style={{
+                          background: 'none', border: 'none', textAlign: 'left',
+                          color: isActive ? '#002147' : '#1E293B',
+                          fontWeight: isActive ? 700 : 600,
+                          fontSize: '0.86rem', cursor: 'pointer', flex: 1, padding: 0
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                      <button
+                        onClick={() => setMobileExpanded(prev => ({ ...prev, [item.id]: !prev[item.id] }))}
+                        style={{
+                          background: 'rgba(0,0,0,0.04)',
+                          border: 'none',
+                          borderRadius: '6px',
+                          padding: '0.25rem 0.45rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.2rem',
+                          fontSize: '0.72rem',
+                          color: '#64748B',
+                          fontWeight: 600
+                        }}
+                      >
+                        <span>{item.subpages.length}</span>
+                        <ChevronDown size={13} style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }} />
+                      </button>
+                    </div>
+
+                    {isExpanded && (
+                      <div style={{ padding: '0.35rem 0.5rem', background: '#FFFFFF', borderTop: '1px solid #F1F5F9' }}>
+                        {item.subpages.map(sub => {
+                          const isSubActive = currentRoute === sub.slug;
+                          return (
+                            <button
+                              key={sub._id || sub.slug}
+                              onClick={() => handleNavClick(sub.slug)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                width: '100%',
+                                padding: '0.5rem 0.75rem',
+                                borderRadius: '6px',
+                                background: isSubActive ? '#EFF6FF' : 'transparent',
+                                color: isSubActive ? '#00529B' : '#475569',
+                                border: 'none',
+                                textAlign: 'left',
+                                cursor: 'pointer',
+                                fontSize: '0.82rem',
+                                fontWeight: isSubActive ? 700 : 500,
+                                fontFamily: "'Inter', sans-serif"
+                              }}
+                            >
+                              <span>↳ {sub.navLabel || sub.title}</span>
+                              {sub.heroBadge && (
+                                <span style={{ fontSize: '0.62rem', background: '#EFF6FF', color: '#2563EB', padding: '0.05rem 0.35rem', borderRadius: '4px' }}>
+                                  {sub.heroBadge}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>

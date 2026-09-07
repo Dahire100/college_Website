@@ -130,8 +130,45 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
 
   const isSectionVisible = (key) => {
     if (!sections || sections.length === 0) return true;
-    const match = sections.find(s => s.sectionKey === key || (key === 'hero_carousel' && s.sectionKey === 'hero_banners'));
+    const match = sections.find(s => 
+      s.sectionKey === key || 
+      (key === 'hero_carousel' && (s.sectionKey === 'hero_banners' || s.sectionKey === 'hero_carousel')) ||
+      (key === 'programs_section' && (s.sectionKey === 'programs_showcase' || s.sectionKey === 'programs_section')) ||
+      (key === 'departments_section' && (s.sectionKey === 'departments_overview' || s.sectionKey === 'departments_section')) ||
+      (key === 'placements_section' && (s.sectionKey === 'placement_highlights' || s.sectionKey === 'placements_section')) ||
+      (key === 'facilities_section' && (s.sectionKey === 'campus_highlights' || s.sectionKey === 'facilities_section')) ||
+      (key === 'about_overview' && (s.sectionKey === 'director_message' || s.sectionKey === 'about_overview')) ||
+      (key === 'testimonials_section' && (s.sectionKey === 'testimonials' || s.sectionKey === 'testimonials_section')) ||
+      (key === 'news_events_section' && (s.sectionKey === 'news_events' || s.sectionKey === 'news_events_section')) ||
+      (key === 'campus_gallery' && (s.sectionKey === 'gallery_preview' || s.sectionKey === 'campus_gallery'))
+    );
     return match ? match.isVisible !== false : true;
+  };
+
+  const getSection = (key, fallbackTitle = '', fallbackSubtitle = '', fallbackBadge = '') => {
+    if (!sections || sections.length === 0) return { title: fallbackTitle, subtitle: fallbackSubtitle, badge: fallbackBadge };
+    const s = sections.find(sec => 
+      sec.sectionKey === key || 
+      (key === 'hero_carousel' && (sec.sectionKey === 'hero_banners' || sec.sectionKey === 'hero_carousel')) ||
+      (key === 'programs_section' && (sec.sectionKey === 'programs_showcase' || sec.sectionKey === 'programs_section')) ||
+      (key === 'departments_section' && (sec.sectionKey === 'departments_overview' || sec.sectionKey === 'departments_section')) ||
+      (key === 'placements_section' && (sec.sectionKey === 'placement_highlights' || sec.sectionKey === 'placements_section')) ||
+      (key === 'facilities_section' && (sec.sectionKey === 'campus_highlights' || sec.sectionKey === 'facilities_section')) ||
+      (key === 'about_overview' && (sec.sectionKey === 'director_message' || sec.sectionKey === 'about_overview')) ||
+      (key === 'testimonials_section' && (sec.sectionKey === 'testimonials' || sec.sectionKey === 'testimonials_section')) ||
+      (key === 'news_events_section' && (sec.sectionKey === 'news_events' || sec.sectionKey === 'news_events_section')) ||
+      (key === 'campus_gallery' && (sec.sectionKey === 'gallery_preview' || sec.sectionKey === 'campus_gallery'))
+    );
+    if (!s) return { title: fallbackTitle, subtitle: fallbackSubtitle, badge: fallbackBadge };
+    return {
+      title: s.title || fallbackTitle,
+      subtitle: s.subtitle || fallbackSubtitle,
+      badge: s.badge || fallbackBadge,
+      ctaText: s.ctaText,
+      ctaLink: s.ctaLink,
+      imageUrl: s.imageUrl,
+      content: s.content
+    };
   };
 
   const latestPlacement = placements[0] || {};
@@ -403,9 +440,9 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
         <section className="section" style={{ background: '#FFFFFF' }}>
           <div className="container">
             <div className="section-header">
-              <div className="pill-badge"><BookOpen size={14} /> {profile.programsLabel}</div>
-              <h2 className="section-title">Explore Our Programs</h2>
-              <p className="section-desc">Discover a wide range of academic programs designed for your career success</p>
+              <div className="pill-badge"><BookOpen size={14} /> {getSection('programs_section', '', '', profile.programsLabel).badge || profile.programsLabel}</div>
+              <h2 className="section-title">{getSection('programs_section', 'Explore Our Programs').title}</h2>
+              <p className="section-desc">{getSection('programs_section', '', 'Discover a wide range of academic programs designed for your career success').subtitle}</p>
             </div>
 
             {/* Degree Tabs */}
@@ -463,9 +500,9 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
         <section className="section" style={{ background: 'var(--color-surface-subtle)' }}>
           <div className="container">
             <div className="section-header">
-              <div className="pill-badge pill-badge-blue"><Building2 size={14} /> Departments</div>
-              <h2 className="section-title">Our Departments</h2>
-              <p className="section-desc">Specialized departments led by industry experts and research scholars</p>
+              <div className="pill-badge pill-badge-blue"><Building2 size={14} /> {getSection('departments_section', '', '', 'Departments').badge || 'Departments'}</div>
+              <h2 className="section-title">{getSection('departments_section', 'Our Departments').title}</h2>
+              <p className="section-desc">{getSection('departments_section', '', 'Specialized departments led by industry experts and research scholars').subtitle}</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }} className="stagger-children">
               {departments.slice(0, 8).map((dept, i) => (
@@ -519,9 +556,9 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
         <section className="section" style={{ background: 'var(--color-surface-subtle)' }}>
           <div className="container">
             <div className="section-header">
-              <div className="pill-badge"><Briefcase size={14} /> {profile.placementsLabel}</div>
-              <h2 className="section-title">Placement Highlights</h2>
-              <p className="section-desc">Our students are recruited by top companies across industries</p>
+              <div className="pill-badge"><Briefcase size={14} /> {getSection('placements_section', '', '', profile.placementsLabel).badge || profile.placementsLabel}</div>
+              <h2 className="section-title">{getSection('placements_section', 'Placement Highlights').title}</h2>
+              <p className="section-desc">{getSection('placements_section', '', 'Our students are recruited by top companies across industries').subtitle}</p>
             </div>
 
             {/* Placement Stats */}
@@ -572,8 +609,9 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
         <section className="section" style={{ background: '#FFFFFF' }}>
           <div className="container">
             <div className="section-header">
-              <div className="pill-badge pill-badge-blue"><FileText size={14} /> {profile.noticeLabel}</div>
-              <h2 className="section-title">News & Events</h2>
+              <div className="pill-badge pill-badge-blue"><FileText size={14} /> {getSection('news_events_section', '', '', profile.noticeLabel).badge || profile.noticeLabel}</div>
+              <h2 className="section-title">{getSection('news_events_section', 'News & Events').title}</h2>
+              {getSection('news_events_section').subtitle && <p className="section-desc">{getSection('news_events_section').subtitle}</p>}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
               {/* Latest News */}
@@ -632,9 +670,9 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
         <section className="section" style={{ background: 'var(--color-surface-subtle)' }}>
           <div className="container">
             <div className="section-header">
-              <div className="pill-badge"><Star size={14} /> Campus Gallery</div>
-              <h2 className="section-title">Life on Campus</h2>
-              <p className="section-desc">Explore our vibrant campus through these glimpses</p>
+              <div className="pill-badge"><Star size={14} /> {getSection('campus_gallery', '', '', 'Campus Gallery').badge || 'Campus Gallery'}</div>
+              <h2 className="section-title">{getSection('campus_gallery', 'Life on Campus').title}</h2>
+              <p className="section-desc">{getSection('campus_gallery', '', 'Explore our vibrant campus through these glimpses').subtitle}</p>
             </div>
             <div className="gallery-mosaic">
               {gallery.slice(0, 8).map((item, i) => (
@@ -655,8 +693,9 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
         <section className="section" style={{ background: '#FFFFFF' }}>
           <div className="container">
             <div className="section-header">
-              <div className="pill-badge pill-badge-blue"><Users size={14} /> Testimonials</div>
-              <h2 className="section-title">What Our Students Say</h2>
+              <div className="pill-badge pill-badge-blue"><Users size={14} /> {getSection('testimonials_section', '', '', 'Testimonials').badge || 'Testimonials'}</div>
+              <h2 className="section-title">{getSection('testimonials_section', 'What Our Students Say').title}</h2>
+              {getSection('testimonials_section').subtitle && <p className="section-desc">{getSection('testimonials_section').subtitle}</p>}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
               {testimonials.slice(0, 3).map((t, i) => (

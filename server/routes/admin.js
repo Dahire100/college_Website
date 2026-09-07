@@ -1098,7 +1098,7 @@ router.get('/pages', async (req, res) => {
 
 router.post('/pages', async (req, res) => {
   try {
-    const { slug, title, navLabel, heroTitle, heroSubtitle, heroBadge, heroImageUrl, content, pdfUrl, pdfName, showInHeader, showInFooter, isActive } = req.body;
+    const { slug, title, navLabel, parentSlug, heroTitle, heroSubtitle, heroBadge, heroImageUrl, content, pdfUrl, pdfName, showInHeader, showInFooter, isActive } = req.body;
     if (!title) {
       return res.status(400).json({ success: false, message: 'Page title is required' });
     }
@@ -1109,9 +1109,10 @@ router.post('/pages', async (req, res) => {
       slug: cleanSlug,
       title,
       navLabel: navLabel || title,
+      parentSlug: parentSlug || '',
       heroTitle: heroTitle || title,
       heroSubtitle: heroSubtitle || '',
-      heroBadge: heroBadge || 'NEW PAGE',
+      heroBadge: heroBadge || (parentSlug ? 'SUBPAGE' : 'NEW PAGE'),
       heroImageUrl: heroImageUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80',
       content: content || '',
       pdfUrl: pdfUrl || '',
@@ -1125,10 +1126,21 @@ router.post('/pages', async (req, res) => {
 
     // Also add to Navigation so it appears in navbar
     const existingNav = await db.Navigation.findOne({ path: `#${cleanSlug}` });
+    let parentNavId = '0';
+    if (parentSlug) {
+      const parentNav = await db.Navigation.findOne({ path: `#${parentSlug}` });
+      if (parentNav) {
+        parentNavId = String(parentNav._id || parentNav.id);
+      } else {
+        parentNavId = parentSlug;
+      }
+    }
+
     if (!existingNav) {
       await db.Navigation.create({
         title: navLabel || title,
         path: `#${cleanSlug}`,
+        parentId: parentNavId,
         sortOrder: count + 1,
         isActive: isActive !== false
       });
@@ -1145,8 +1157,34 @@ router.post('/pages', async (req, res) => {
 router.put('/pages/:id', async (req, res) => {
   try {
     const updated = await db.Page.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (updated && updated.navLabel) {
-      await db.Navigation.updateOne({ path: `#${updated.slug}` }, { title: updated.navLabel, isActive: updated.isActive });
+    if (updated) {
+      let parentNavId = '0';
+      if (updated.parentSlug) {
+        const parentNav = await db.Navigation.findOne({ path: `#${updated.parentSlug}` });
+        if (parentNav) parentNavId = String(parentNav._id || parentNav.id);
+        else parentNavId = updated.parentSlug;
+      }
+
+      const navFilter = { path: { $in: [`#${updated.slug}`, `/${updated.slug}`] } };
+      const navItem = await db.Navigation.findOne(navFilter);
+      if (navItem) {
+        await db.Navigation.updateOne(
+          navFilter,
+          { 
+            title: updated.navLabel || updated.title, 
+            isActive: updated.isActive,
+            parentId: parentNavId
+          }
+        );
+      } else {
+        await db.Navigation.create({
+          title: updated.navLabel || updated.title,
+          path: `#${updated.slug}`,
+          parentId: parentNavId,
+          sortOrder: 99,
+          isActive: updated.isActive !== false
+        });
+      }
     }
     await logAction(req, 'UPDATE_PAGE', 'pages', req.params.id, req.body.title);
     return res.json({ success: true, message: 'Page updated successfully', data: updated });
@@ -1179,8 +1217,17 @@ router.delete('/pages/:id', async (req, res) => {
     await db.Page.findByIdAndDelete(req.params.id);
     await db.Navigation.deleteMany({ path: { $in: [`#${page.slug}`, `/${page.slug}`] } });
     await db.Subsection.deleteMany({ pageSlug: page.slug });
+
+    // Also delete any child subpages under this parent
+    const childPages = await db.Page.find({ parentSlug: page.slug });
+    for (const cp of childPages) {
+      await db.Page.findByIdAndDelete(cp._id || cp.id);
+      await db.Navigation.deleteMany({ path: { $in: [`#${cp.slug}`, `/${cp.slug}`] } });
+      await db.Subsection.deleteMany({ pageSlug: cp.slug });
+    }
+
     await logAction(req, 'DELETE_PAGE', 'pages', req.params.id, `Deleted page: ${page.title} (${page.slug})`);
-    return res.json({ success: true, message: `Page "${page.title}" deleted successfully` });
+    return res.json({ success: true, message: `Page "${page.title}" and associated subpages deleted successfully` });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to delete page' });
   }
