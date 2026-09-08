@@ -24,15 +24,15 @@ export default function Campus({ settings = {} }) {
 
   return (
     <div>
-      <div style={{ background: 'var(--color-primary)', color: '#FFFFFF', padding: '4.5rem 0' }}>
+      <div style={{ background: 'linear-gradient(135deg, #0B1E36 0%, #153A6B 100%)', color: '#FFFFFF', padding: 'clamp(3rem, 6vw, 4.5rem) 0', borderBottom: '4px solid #D97706' }}>
         <div className="container">
           <span className="pill-badge" style={{ background: 'rgba(217, 119, 6, 0.25)', color: '#FCD34D', borderColor: 'rgba(217, 119, 6, 0.4)' }}>
             {profile.campusLabel}
           </span>
-          <h1 style={{ color: '#FFFFFF', fontSize: '2.75rem', marginTop: '0.75rem' }}>
+          <h1 className="page-hero-title" style={{ marginTop: '0.75rem' }}>
             Campus and Facilities
           </h1>
-          <p style={{ color: '#CBD5E1', fontSize: '1.2rem', maxWidth: '720px', marginTop: '0.5rem' }}>
+          <p className="page-hero-subtitle" style={{ maxWidth: '720px', marginTop: '0.5rem' }}>
             Use this page for classrooms, labs, libraries, hostels, transport, and student services.
           </p>
         </div>
@@ -45,9 +45,9 @@ export default function Campus({ settings = {} }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {facilities.map(f => (
               <div key={f._id || f.id} className="academic-card">
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', alignItems: 'center' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.75rem', alignItems: 'center' }}>
                   <div>
-                    <img src={f.imageUrl} alt={f.name} style={{ width: '100%', height: '260px', objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />
+                    <img src={f.imageUrl} alt={f.name} style={{ width: '100%', height: 'auto', maxHeight: '260px', objectFit: 'cover', borderRadius: 'var(--radius-md)' }} />
                   </div>
                   <div>
                     <span className="pill-badge-blue">{f.category}</span>

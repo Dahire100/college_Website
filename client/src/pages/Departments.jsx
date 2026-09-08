@@ -34,16 +34,16 @@ export default function Departments({ settings = {}, onNavigate }) {
 
   return (
     <div style={{ background: '#F8FAFC', minHeight: '100vh', paddingBottom: '5rem' }}>
-      <section style={{ background: 'linear-gradient(135deg, #0A2540 0%, #0F3860 100%)', color: '#FFFFFF', padding: '5rem 0 4.5rem 0', borderBottom: '4px solid var(--color-accent)', position: 'relative' }}>
+      <section style={{ background: 'linear-gradient(135deg, #0B1E36 0%, #153A6B 100%)', color: '#FFFFFF', padding: 'clamp(3rem, 6vw, 5rem) 0 clamp(2.5rem, 5vw, 4.5rem) 0', borderBottom: '4px solid #D97706', position: 'relative' }}>
         <div className="container">
           <div style={{ maxWidth: '840px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', background: 'rgba(217, 119, 6, 0.22)', color: '#FCD34D', border: '1px solid rgba(217, 119, 6, 0.45)', padding: '0.25rem 0.85rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>
               <Building2 size={15} /> {profile.academicUnitsLabel}
             </div>
-            <h1 style={{ fontSize: '2.85rem', fontWeight: 800, lineHeight: 1.15, margin: '0 0 1rem 0', color: '#FFFFFF' }}>
+            <h1 className="page-hero-title" style={{ margin: '0 0 1rem 0' }}>
               Academic Units and Department Directory
             </h1>
-            <p style={{ fontSize: '1.15rem', color: '#CBD5E1', lineHeight: 1.6, margin: '0 0 1.75rem 0' }}>
+            <p className="page-hero-subtitle" style={{ margin: '0 0 1.75rem 0' }}>
               This page can represent departments, schools, divisions, or academic centers based on the selected institution profile.
             </p>
           </div>
@@ -55,7 +55,7 @@ export default function Departments({ settings = {}, onNavigate }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#1E293B', fontWeight: 700, fontSize: '0.95rem' }}>
             <Building2 size={18} style={{ color: '#2563EB' }} /> Explore Units ({filteredDepts.length})
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#F1F5F9', borderRadius: '8px', padding: '0.45rem 0.85rem', width: '320px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#F1F5F9', borderRadius: '8px', padding: '0.45rem 0.85rem', width: '100%', maxWidth: '320px' }}>
             <Search size={16} style={{ color: '#94A3B8' }} />
             <input type="text" placeholder="Search unit, lead, or code..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '0.875rem', width: '100%', color: '#1E293B' }} />
           </div>
@@ -66,7 +66,7 @@ export default function Departments({ settings = {}, onNavigate }) {
         {loading ? (
           <div style={{ textAlign: 'center', padding: '4rem 0' }}>Loading units...</div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '1.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '1.75rem' }}>
             {filteredDepts.map(dept => (
               <div key={dept._id || dept.id || dept.code} style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>

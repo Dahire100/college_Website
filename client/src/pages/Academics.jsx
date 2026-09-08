@@ -13,16 +13,16 @@ export default function Academics({ settings = {}, onNavigate }) {
 
   return (
     <div style={{ background: '#F8FAFC', minHeight: '100vh', paddingBottom: '5rem' }}>
-      <section style={{ background: 'linear-gradient(135deg, #0A2540 0%, #0F3860 100%)', color: '#FFFFFF', padding: '5rem 0 4.5rem 0', borderBottom: '4px solid var(--color-accent)', position: 'relative' }}>
+      <section style={{ background: 'linear-gradient(135deg, #0B1E36 0%, #153A6B 100%)', color: '#FFFFFF', padding: 'clamp(3rem, 6vw, 5rem) 0 clamp(2.5rem, 5vw, 4.5rem) 0', borderBottom: '4px solid #D97706', position: 'relative' }}>
         <div className="container">
           <div style={{ maxWidth: '840px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', background: 'rgba(217, 119, 6, 0.22)', color: '#FCD34D', border: '1px solid rgba(217, 119, 6, 0.45)', padding: '0.25rem 0.85rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>
               <BookOpen size={15} /> Academic Framework
             </div>
-            <h1 style={{ fontSize: '2.85rem', fontWeight: 800, lineHeight: 1.15, margin: '0 0 1rem 0', color: '#FFFFFF' }}>
+            <h1 className="page-hero-title" style={{ margin: '0 0 1rem 0' }}>
               Flexible academic structure for multiple institution types
             </h1>
-            <p style={{ fontSize: '1.15rem', color: '#CBD5E1', lineHeight: 1.6, margin: '0 0 1.75rem 0' }}>
+            <p className="page-hero-subtitle" style={{ margin: '0 0 1.75rem 0' }}>
               The same page can represent engineering, pharmacy, school, or general college content with the selected profile.
             </p>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
@@ -45,7 +45,7 @@ export default function Academics({ settings = {}, onNavigate }) {
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
           <div style={{ background: '#FFFFFF', padding: '1.75rem', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
             <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
               <Compass size={24} />
@@ -81,9 +81,9 @@ export default function Academics({ settings = {}, onNavigate }) {
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.5rem' }}>
           {schools.map(school => (
-            <div key={school.code} style={{ background: '#FFFFFF', borderRadius: '14px', border: '1px solid #E2E8F0', padding: '1.75rem' }}>
+            <div key={school.code} style={{ background: '#FFFFFF', borderRadius: '14px', border: '1px solid #E2E8F0', padding: 'clamp(1.25rem, 2.5vw, 1.75rem)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                 <span style={{ background: '#EFF6FF', color: '#2563EB', padding: '0.2rem 0.6rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 800 }}>{school.code}</span>
                 <span style={{ fontSize: '0.8rem', color: '#64748B' }}>Lead: <strong>{school.dean}</strong></span>
@@ -105,13 +105,13 @@ export default function Academics({ settings = {}, onNavigate }) {
       </div>
 
       <div className="container" style={{ marginTop: '4rem' }}>
-        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '2.5rem' }}>
+        <div style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: 'clamp(1.25rem, 3vw, 2.5rem)' }}>
           <span className="pill-badge-blue" style={{ marginBottom: '0.75rem' }}>Evaluation</span>
-          <h2 style={{ fontSize: '1.65rem', fontWeight: 800, color: '#0F172A', margin: '0.25rem 0 0.75rem' }}>Assessment and Progress Framework</h2>
+          <h2 style={{ fontSize: 'clamp(1.25rem, 2.5vw, 1.65rem)', fontWeight: 800, color: '#0F172A', margin: '0.25rem 0 0.75rem' }}>Assessment and Progress Framework</h2>
           <p style={{ fontSize: '0.92rem', color: '#475569', lineHeight: 1.6, marginBottom: '1.5rem' }}>
             Use this area for academic rules, grading, attendance, credit systems, or parent/student policies.
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '1rem' }}>
             <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}><strong style={{ fontSize: '1.1rem', color: '#2563EB', display: 'block' }}>SGPA / CGPA</strong><span style={{ fontSize: '0.8rem', color: '#64748B' }}>Evaluation model</span></div>
             <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}><strong style={{ fontSize: '1.1rem', color: '#059669', display: 'block' }}>Credits</strong><span style={{ fontSize: '0.8rem', color: '#64748B' }}>Program-wise requirement</span></div>
             <div style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '8px', border: '1px solid #E2E8F0' }}><strong style={{ fontSize: '1.1rem', color: '#D97706', display: 'block' }}>Support</strong><span style={{ fontSize: '0.8rem', color: '#64748B' }}>Counseling and mentoring</span></div>

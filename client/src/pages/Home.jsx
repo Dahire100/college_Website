@@ -270,15 +270,15 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
                 </button>
               </div>
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1.35rem' }}>
-                <div style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '10px', padding: '0.65rem 0.85rem', minWidth: '160px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '10px', padding: '0.65rem 0.85rem', flex: '1 1 140px', minWidth: '0' }}>
                   <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#FCD34D', fontWeight: 700 }}>Institution Type</div>
                   <div style={{ color: '#FFFFFF', fontWeight: 700, marginTop: '0.15rem' }}>{profile.stats.breadth}</div>
                 </div>
-                <div style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '10px', padding: '0.65rem 0.85rem', minWidth: '160px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '10px', padding: '0.65rem 0.85rem', flex: '1 1 140px', minWidth: '0' }}>
                   <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#FCD34D', fontWeight: 700 }}>Academic Units</div>
                   <div style={{ color: '#FFFFFF', fontWeight: 700, marginTop: '0.15rem' }}>{departments.length || 0} units</div>
                 </div>
-                <div style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '10px', padding: '0.65rem 0.85rem', minWidth: '160px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: '10px', padding: '0.65rem 0.85rem', flex: '1 1 140px', minWidth: '0' }}>
                   <div style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#FCD34D', fontWeight: 700 }}>Programs</div>
                   <div style={{ color: '#FFFFFF', fontWeight: 700, marginTop: '0.15rem' }}>{courses.length || 0} live listings</div>
                 </div>
@@ -405,7 +405,7 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
       {isSectionVisible('about_overview') && principalLeader && (
         <section className="section" style={{ background: 'var(--color-surface-subtle)' }}>
           <div className="container">
-            <div style={{ display: 'grid', gridTemplateColumns: principalLeader.imageUrl ? '300px 1fr' : '1fr', gap: '3rem', alignItems: 'center' }}>
+            <div className={principalLeader.imageUrl ? "responsive-principal-grid" : ""} style={!principalLeader.imageUrl ? { textAlign: 'center', maxWidth: '800px', margin: '0 auto' } : {}}>
               {principalLeader.imageUrl && (
                 <div style={{ textAlign: 'center' }}>
                   <img src={principalLeader.imageUrl} alt={principalLeader.name} style={{ width: '100%', maxWidth: '280px', borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.1)' }} />
@@ -467,7 +467,7 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
             </div>
 
             {/* Program Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '1.25rem' }}>
               {filteredCourses.map((course, i) => (
                 <div key={i} className="program-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
@@ -646,7 +646,7 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
               <h2 className="section-title">{getSection('news_events_section', 'News & Events').title}</h2>
               {getSection('news_events_section').subtitle && <p className="section-desc">{getSection('news_events_section').subtitle}</p>}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+            <div className="responsive-grid-split">
               {/* Latest News */}
               <div>
                 <h3 style={{ fontSize: '1.15rem', color: 'var(--color-primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -730,7 +730,7 @@ export default function Home({ onNavigate, onOpenInquiry, settings = {}, section
               <h2 className="section-title">{getSection('testimonials_section', 'What Our Students Say').title}</h2>
               {getSection('testimonials_section').subtitle && <p className="section-desc">{getSection('testimonials_section').subtitle}</p>}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '1.5rem' }}>
               {testimonials.slice(0, 3).map((t, i) => (
                 <div key={i} className="testimonial-card">
                   <p style={{ fontSize: '0.95rem', color: 'var(--color-text-secondary)', lineHeight: 1.7, marginBottom: '1.5rem', position: 'relative', zIndex: 1 }}>

@@ -41,16 +41,16 @@ export default function Programs({ settings = {}, onNavigate, onOpenInquiry }) {
 
   return (
     <div style={{ background: '#F8FAFC', minHeight: '100vh', paddingBottom: '5rem' }}>
-      <section style={{ background: 'linear-gradient(135deg, #0A2540 0%, #0F3860 100%)', color: '#FFFFFF', padding: '5rem 0 4.5rem 0', position: 'relative', borderBottom: '4px solid var(--color-accent)' }}>
+      <section style={{ background: 'linear-gradient(135deg, #0B1E36 0%, #153A6B 100%)', color: '#FFFFFF', padding: 'clamp(3rem, 6vw, 5rem) 0 clamp(2.5rem, 5vw, 4.5rem) 0', borderBottom: '4px solid #D97706' }}>
         <div className="container">
-          <div style={{ maxWidth: '840px' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', background: 'rgba(217, 119, 6, 0.22)', color: '#FCD34D', border: '1px solid rgba(217, 119, 6, 0.45)', padding: '0.25rem 0.85rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>
+          <div style={{ maxWidth: '850px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', background: 'rgba(217, 119, 6, 0.25)', color: '#FCD34D', border: '1px solid rgba(217, 119, 6, 0.45)', padding: '0.25rem 0.85rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1rem' }}>
               <GraduationCap size={15} /> {profile.programsLabel}
             </div>
-            <h1 style={{ fontSize: '2.85rem', fontWeight: 800, lineHeight: 1.15, margin: '0 0 1rem 0', color: '#FFFFFF' }}>
+            <h1 className="page-hero-title" style={{ margin: '0 0 1rem 0' }}>
               Programs built for the selected institution profile
             </h1>
-            <p style={{ fontSize: '1.15rem', color: '#CBD5E1', lineHeight: 1.6, margin: '0 0 2rem 0' }}>
+            <p className="page-hero-subtitle" style={{ margin: '0 0 2rem 0' }}>
               This catalog can represent engineering, pharmacy, school, or multi-college program groups without changing the page layout.
             </p>
             <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
@@ -77,7 +77,7 @@ export default function Programs({ settings = {}, onNavigate, onOpenInquiry }) {
               </button>
             ))}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#F1F5F9', borderRadius: '8px', padding: '0.45rem 0.85rem', width: '280px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#F1F5F9', borderRadius: '8px', padding: '0.45rem 0.85rem', width: '100%', maxWidth: '280px' }}>
             <Search size={16} style={{ color: '#94A3B8' }} />
             <input type="text" placeholder="Search by program or keyword..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '0.875rem', width: '100%', color: '#1E293B' }} />
           </div>
@@ -85,7 +85,7 @@ export default function Programs({ settings = {}, onNavigate, onOpenInquiry }) {
       </div>
 
       <div className="container" style={{ marginTop: '2.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.25rem' }}>
           <div>
             <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
               Available Programs ({filteredCourses.length})
@@ -114,7 +114,7 @@ export default function Programs({ settings = {}, onNavigate, onOpenInquiry }) {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))', gap: '1.5rem' }}>
             {filteredCourses.map(course => (
               <div key={course._id || course.id} style={{ background: '#FFFFFF', borderRadius: '14px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)', padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', transition: 'transform 180ms ease, box-shadow 180ms ease' }}>
                 <div>
@@ -178,7 +178,7 @@ export default function Programs({ settings = {}, onNavigate, onOpenInquiry }) {
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', background: '#F8FAFC', padding: '1rem', borderRadius: '10px', marginBottom: '1.25rem', border: '1px solid #E2E8F0' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.75rem', background: '#F8FAFC', padding: '1rem', borderRadius: '10px', marginBottom: '1.25rem', border: '1px solid #E2E8F0' }}>
               <div><div style={{ fontSize: '0.75rem', color: '#64748B' }}>Duration</div><strong style={{ fontSize: '0.9rem', color: '#0F172A' }}>{selectedProgram.duration || 'As per curriculum'}</strong></div>
               <div><div style={{ fontSize: '0.75rem', color: '#64748B' }}>Annual Intake</div><strong style={{ fontSize: '0.9rem', color: '#0F172A' }}>{selectedProgram.intake || 'Approved seats'}</strong></div>
               <div><div style={{ fontSize: '0.75rem', color: '#64748B' }}>Approval</div><strong style={{ fontSize: '0.9rem', color: '#059669' }}>Institutional</strong></div>

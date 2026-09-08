@@ -31,15 +31,15 @@ export default function Gallery({ settings = {} }) {
   return (
     <div className="gallery-page">
       {/* Page Header */}
-      <section className="page-hero" style={{ background: 'linear-gradient(135deg, #0B2545, #133E68)', color: '#FFFFFF', padding: '4.5rem 0 3.5rem 0' }}>
+      <section className="page-hero" style={{ background: 'linear-gradient(135deg, #0B1E36, #153A6B)', color: '#FFFFFF', padding: 'clamp(3rem, 6vw, 4.5rem) 0 clamp(2.5rem, 5vw, 3.5rem) 0', borderBottom: '4px solid #D97706' }}>
         <div className="container">
           <span className="pill-badge" style={{ background: 'rgba(217, 119, 6, 0.25)', color: '#FCD34D', borderColor: 'rgba(217, 119, 6, 0.4)', marginBottom: '1rem' }}>
             <Sparkles size={13} /> Visual Campus Showcase & Image Sections
           </span>
-          <h1 style={{ fontSize: '2.75rem', color: '#FFFFFF', marginBottom: '1rem', lineHeight: 1.2 }}>
+          <h1 className="page-hero-title" style={{ marginBottom: '1rem' }}>
             Campus Life, Labs & Milestones
           </h1>
-          <p style={{ fontSize: '1.125rem', color: '#CBD5E1', maxWidth: '750px', lineHeight: 1.6 }}>
+          <p className="page-hero-subtitle" style={{ maxWidth: '750px' }}>
             Explore our high-performance computational facilities, interactive smart classrooms, national championships, and vibrant cultural community.
           </p>
 
@@ -86,7 +86,7 @@ export default function Gallery({ settings = {} }) {
               </p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
               {displayedItems.map((item, idx) => (
                 <div
                   key={item._id || idx}

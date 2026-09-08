@@ -237,9 +237,10 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
           </div>
 
           {/* Right: Contact & Admin */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
             <a
               href={`tel:${settings.contact_phone_primary || '+91 20 2420 2180'}`}
+              className="header-topbar-desktop-only"
               style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', transition: 'color 150ms', fontSize: '0.74rem' }}
               onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'}
               onMouseLeave={e => e.currentTarget.style.color = '#CBD5E1'}
@@ -250,6 +251,7 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
 
             <a
               href={`mailto:${settings.contact_email_primary || 'info@example.edu'}`}
+              className="header-topbar-desktop-only"
               style={{ color: '#CBD5E1', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', transition: 'color 150ms', fontSize: '0.74rem' }}
               onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'}
               onMouseLeave={e => e.currentTarget.style.color = '#CBD5E1'}
@@ -263,6 +265,7 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
                 href={settings.erp_login_url}
                 target="_blank"
                 rel="noopener noreferrer"
+                className="header-topbar-desktop-only"
                 style={{
                   color: '#CBD5E1',
                   textDecoration: 'none',
@@ -319,26 +322,26 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
       </div>
 
       {/* Tier 2: Main Brand Bar */}
-      <div style={{ background: '#FFFFFF', padding: '0.85rem 0', borderBottom: '1px solid #E2E8F0' }}>
-        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem' }}>
+      <div style={{ background: '#FFFFFF', padding: '0.75rem 0', borderBottom: '1px solid #E2E8F0' }}>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
           <a
             href="#home"
             onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}
-            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '1.1rem', minWidth: 0 }}
+            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.9rem', minWidth: 0 }}
           >
             <div style={{ flexShrink: 0 }}>
               {settings?.college_logo ? (
                 <img
                   src={settings.college_logo}
                   alt={collegeName}
-                  style={{ width: '58px', height: '58px', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,33,71,0.12))' }}
+                  style={{ width: 'clamp(42px, 5vw, 56px)', height: 'clamp(42px, 5vw, 56px)', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,33,71,0.12))' }}
                 />
               ) : (
                 <div style={{
-                  width: '58px', height: '58px',
+                  width: 'clamp(42px, 5vw, 56px)', height: 'clamp(42px, 5vw, 56px)',
                   background: 'linear-gradient(135deg, var(--color-primary), var(--color-secondary))',
                   borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#FFFFFF', fontWeight: 800, fontSize: '1.5rem', fontFamily: 'var(--font-heading)',
+                  color: '#FFFFFF', fontWeight: 800, fontSize: 'clamp(1.1rem, 2vw, 1.45rem)', fontFamily: 'var(--font-heading)',
                   boxShadow: '0 4px 12px rgba(0,33,71,0.25)'
                 }}>
                   {(collegeName || 'I').charAt(0)}
@@ -348,20 +351,20 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
 
             <div style={{ minWidth: 0 }}>
               {isGroupMode && (
-                <div style={{ fontSize: '0.68rem', color: '#D97706', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '0.1rem' }}>
+                <div style={{ fontSize: '0.66rem', color: '#D97706', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '0.1rem' }}>
                   GROUP OF INSTITUTIONS
                 </div>
               )}
-              <h1 style={{ fontSize: '1.45rem', color: '#002147', fontFamily: 'var(--font-heading)', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, lineHeight: 1.1 }}>
+              <h1 className="header-brand-title">
                 {collegeName}
               </h1>
-              <div style={{ fontSize: '0.78rem', color: '#475569', marginTop: '0.2rem', lineHeight: 1.35, maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: '0.76rem', color: '#475569', marginTop: '0.15rem', lineHeight: 1.3, maxWidth: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {settings.college_tagline || profile.tagline}
               </div>
             </div>
           </a>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
             {/* Admissions Helpline */}
             <div style={{ borderLeft: '1px solid #E2E8F0', paddingLeft: '1.25rem', textAlign: 'right' }} className="header-helpline-box">
               <span style={{ fontSize: '0.68rem', color: '#64748B', display: 'block', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.04em' }}>
@@ -383,18 +386,19 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
             {onOpenInquiry && (
               <button
                 onClick={() => onOpenInquiry()}
+                className="header-apply-cta-btn"
                 style={{
                   background: 'linear-gradient(135deg, #D97706, #B45309)',
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: '8px',
-                  padding: '0.6rem 1.1rem',
-                  fontSize: '0.85rem',
+                  padding: '0.55rem 0.95rem',
+                  fontSize: '0.84rem',
                   fontWeight: 700,
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '0.4rem',
+                  gap: '0.35rem',
                   boxShadow: '0 4px 12px rgba(217, 119, 6, 0.3)',
                   transition: 'all 200ms ease'
                 }}
@@ -408,11 +412,11 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
                 }}
                 id="header-apply-btn"
               >
-                Apply Now <ArrowRight size={15} />
+                Apply Now <ArrowRight size={14} />
               </button>
             )}
 
-            {/* Mobile Menu Toggle */}
+            {/* Mobile Menu Toggle in Tier 2 */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle Navigation Menu"
@@ -424,11 +428,13 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
                 padding: '0.5rem',
                 cursor: 'pointer',
                 color: '#002147',
-                transition: 'all 150ms'
+                transition: 'all 150ms',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
               className="mobile-header-btn"
             >
-              {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+              {mobileOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
         </div>
@@ -444,6 +450,36 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
         transition: 'all 300ms ease'
       }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', padding: '0 0.5rem' }}>
+          {/* Mobile Sticky Bar (Active when scrolled on mobile) */}
+          <div className="mobile-sticky-nav-bar" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0.45rem 0.25rem' }}>
+            <button
+              onClick={() => handleNavClick('home')}
+              style={{ background: 'none', border: 'none', color: '#FFFFFF', fontWeight: 700, fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontFamily: "'Outfit', var(--font-heading)" }}
+            >
+              <span>🏛️</span>
+              <span style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {settings?.college_short_name || profile.shortName || collegeName}
+              </span>
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+              {onOpenInquiry && (
+                <button
+                  onClick={() => onOpenInquiry()}
+                  style={{ background: 'linear-gradient(135deg, #D97706, #B45309)', color: '#FFF', border: 'none', borderRadius: '6px', padding: '0.35rem 0.65rem', fontSize: '0.76rem', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Apply
+                </button>
+              )}
+              <button
+                onClick={() => setMobileOpen(!mobileOpen)}
+                aria-label="Toggle Navigation Menu"
+                style={{ background: 'rgba(255,255,255,0.12)', color: '#FFF', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', padding: '0.35rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
+          </div>
+
           <div className="nav-links-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
 
             {/* Institutes Dropdown (Group Mode) */}

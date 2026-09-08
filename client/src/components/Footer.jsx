@@ -23,10 +23,10 @@ export default function Footer({ settings = {}, onNavigate, onOpenInquiry }) {
   };
 
   return (
-    <footer style={{ background: 'linear-gradient(180deg, var(--color-primary-dark) 0%, #020617 100%)', color: '#CBD5E1', paddingTop: '4rem', borderTop: '4px solid var(--color-accent)', marginTop: 'auto' }}>
+    <footer style={{ background: 'linear-gradient(180deg, #071526 0%, #020617 100%)', color: '#CBD5E1', paddingTop: 'clamp(2.5rem, 5vw, 4rem)', borderTop: '4px solid #D97706', marginTop: 'auto' }}>
       <div className="container">
         {/* Main Footer Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '2.5rem', paddingBottom: '3rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 230px), 1fr))', gap: '2.5rem', paddingBottom: '3rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
 
           {/* Column 1: Institution Info */}
           <div>

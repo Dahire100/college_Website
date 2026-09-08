@@ -33,22 +33,22 @@ export default function Contact({ settings = {}, onToast }) {
 
   return (
     <div>
-      <div style={{ background: 'var(--color-primary)', color: '#FFFFFF', padding: '4.5rem 0' }}>
+      <div style={{ background: 'linear-gradient(135deg, #0B1E36 0%, #153A6B 100%)', color: '#FFFFFF', padding: 'clamp(3rem, 6vw, 4.5rem) 0', borderBottom: '4px solid #D97706' }}>
         <div className="container">
           <span className="pill-badge" style={{ background: 'rgba(217, 119, 6, 0.25)', color: '#FCD34D', borderColor: 'rgba(217, 119, 6, 0.4)' }}>
             REACH OUT
           </span>
-          <h1 style={{ color: '#FFFFFF', fontSize: '2.75rem', marginTop: '0.75rem' }}>
+          <h1 className="page-hero-title" style={{ marginTop: '0.75rem' }}>
             Contact and Campus Directory
           </h1>
-          <p style={{ color: '#CBD5E1', fontSize: '1.2rem', maxWidth: '720px', marginTop: '0.5rem' }}>
+          <p className="page-hero-subtitle" style={{ maxWidth: '720px', marginTop: '0.5rem' }}>
             Connect with the admissions desk, campus office, or send a general inquiry.
           </p>
         </div>
       </div>
 
       <div className="section container">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '2.5rem' }}>
           <div>
             <div className="academic-card" style={{ marginBottom: '2rem' }}>
               <h3 style={{ fontSize: '1.35rem', color: 'var(--color-primary)', marginBottom: '1.25rem' }}>Campus Information</h3>

@@ -47,22 +47,22 @@ export default function NewsNotices({ settings = {} }) {
 
   return (
     <div>
-      <div style={{ background: 'var(--color-primary)', color: '#FFFFFF', padding: '4.5rem 0' }}>
+      <div style={{ background: 'linear-gradient(135deg, #0B1E36 0%, #153A6B 100%)', color: '#FFFFFF', padding: 'clamp(3rem, 6vw, 4.5rem) 0', borderBottom: '4px solid #D97706' }}>
         <div className="container">
           <span className="pill-badge" style={{ background: 'rgba(217, 119, 6, 0.25)', color: '#FCD34D', borderColor: 'rgba(217, 119, 6, 0.4)' }}>
             OFFICIAL UPDATES
           </span>
-          <h1 style={{ color: '#FFFFFF', fontSize: '2.75rem', marginTop: '0.75rem' }}>
+          <h1 className="page-hero-title" style={{ marginTop: '0.75rem' }}>
             Notices, Circulars, and Events
           </h1>
-          <p style={{ color: '#CBD5E1', fontSize: '1.2rem', maxWidth: '720px', marginTop: '0.5rem' }}>
+          <p className="page-hero-subtitle" style={{ maxWidth: '720px', marginTop: '0.5rem' }}>
             Administrative notices, admissions alerts, and upcoming events for the current institution profile.
           </p>
         </div>
       </div>
 
       <div className="section container">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '2.5rem' }}>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <h2 style={{ fontSize: '1.6rem', color: 'var(--color-primary)' }}>Official Notices</h2>
@@ -228,7 +228,7 @@ export default function NewsNotices({ settings = {} }) {
               width: '100%',
               maxHeight: '90vh',
               overflowY: 'auto',
-              padding: '2rem',
+              padding: 'clamp(1.25rem, 3vw, 2rem)',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
               position: 'relative'
             }}

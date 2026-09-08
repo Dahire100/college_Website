@@ -38,19 +38,20 @@ export default function Admissions({ settings = {}, onOpenInquiry }) {
       <div style={{
         background: pageData?.heroImageUrl
           ? `linear-gradient(rgba(11, 37, 69, 0.85), rgba(19, 62, 104, 0.9)), url(${pageData.heroImageUrl}) center/cover no-repeat`
-          : 'var(--color-primary)',
+          : 'linear-gradient(135deg, #0B1E36 0%, #153A6B 100%)',
         color: '#FFFFFF',
-        padding: '5rem 0 4rem 0',
+        padding: 'clamp(3rem, 6vw, 5rem) 0 clamp(2.5rem, 5vw, 4rem) 0',
+        borderBottom: '4px solid #D97706',
         position: 'relative'
       }}>
         <div className="container">
           <span className="pill-badge" style={{ background: 'rgba(217, 119, 6, 0.25)', color: '#FCD34D', borderColor: 'rgba(217, 119, 6, 0.4)' }}>
             {profile.admissionsLabel || pageData?.heroBadge}
           </span>
-          <h1 style={{ color: '#FFFFFF', fontSize: '2.75rem', marginTop: '0.75rem' }}>
+          <h1 className="page-hero-title" style={{ marginTop: '0.75rem' }}>
             {profile.admissionsLabel || pageData?.heroTitle || 'Admissions and Roadmap'}
           </h1>
-          <p style={{ color: '#CBD5E1', fontSize: '1.2rem', maxWidth: '720px', marginTop: '0.5rem' }}>
+          <p className="page-hero-subtitle" style={{ maxWidth: '720px', marginTop: '0.5rem' }}>
             {profile.admissionsNote || pageData?.heroSubtitle}
           </p>
         </div>
@@ -67,18 +68,18 @@ export default function Admissions({ settings = {}, onOpenInquiry }) {
           <div style={{ padding: '3rem', textAlign: 'center' }}><span className="pulse-dot" /> Loading admissions...</div>
         ) : (
           <div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '4rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '4rem' }}>
               {steps.map(s => (
-                <div key={s._id || s.id} className="academic-card" style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
-                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--color-secondary)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.25rem', flexShrink: 0 }}>
+                <div key={s._id || s.id} className="academic-card" style={{ display: 'flex', gap: 'clamp(0.85rem, 2vw, 1.5rem)', alignItems: 'flex-start' }}>
+                  <div style={{ width: 'clamp(40px, 5vw, 48px)', height: 'clamp(40px, 5vw, 48px)', borderRadius: '50%', background: 'var(--color-secondary)', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 'clamp(1.05rem, 2vw, 1.25rem)', flexShrink: 0 }}>
                     {s.stepNumber || '1'}
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                      <h3 style={{ fontSize: '1.3rem', color: 'var(--color-primary)' }}>{s.title}</h3>
+                      <h3 style={{ fontSize: 'clamp(1.1rem, 2vw, 1.3rem)', color: 'var(--color-primary)', margin: 0 }}>{s.title}</h3>
                       {s.deadline && <span className="pill-badge" style={{ fontSize: '0.75rem' }}>Target Date: {s.deadline}</span>}
                     </div>
-                    <p style={{ color: 'var(--color-text-secondary)', marginBottom: '0.75rem', lineHeight: 1.6 }}>{s.description}</p>
+                    <p style={{ color: 'var(--color-text-secondary)', marginBottom: '0.75rem', lineHeight: 1.6, fontSize: '0.92rem' }}>{s.description}</p>
                     <div style={{ background: 'var(--color-bg)', padding: '0.75rem 1rem', borderRadius: 'var(--radius-md)', fontSize: '0.8125rem' }}>
                       <strong>Required Documents:</strong> {s.requiredDocuments}
                     </div>
@@ -93,7 +94,7 @@ export default function Admissions({ settings = {}, onOpenInquiry }) {
               <p className="section-desc">Fee details can be managed by the administrator and shown by program or stream.</p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '1.5rem' }}>
               {fees.map(f => (
                 <div key={f._id || f.id} className="academic-card">
                   <span className="pill-badge-blue" style={{ marginBottom: '0.5rem' }}>Annual Fee</span>
@@ -117,9 +118,9 @@ export default function Admissions({ settings = {}, onOpenInquiry }) {
                   <span className="pill-badge">Special Opportunities</span>
                   <h2 className="section-title">Scholarships and Institutional Programs</h2>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   {subsections.map((sub, idx) => (
-                    <div key={sub._id || idx} className="academic-card" style={{ padding: '2rem' }}>
+                    <div key={sub._id || idx} className="academic-card" style={{ padding: 'clamp(1.25rem, 3vw, 2rem)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
                         {sub.badge && <span className="pill-badge-blue">{sub.badge}</span>}
                         <span className="pill-badge" style={{ fontSize: '0.75rem' }}>CMS Section</span>
