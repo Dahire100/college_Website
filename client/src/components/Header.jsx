@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, Mail, Lock, Shield, Menu, X, ArrowRight, ChevronDown, Globe, ExternalLink } from 'lucide-react';
+import { Phone, Mail, Menu, X, ArrowRight, ChevronDown, Globe, ExternalLink } from 'lucide-react';
 import { getInstitutionProfile } from '../content/institutionProfile';
 import { api } from '../services/api';
 
@@ -331,67 +331,6 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
               </a>
             )}
 
-            <button
-              onClick={() => handleNavClick('admin')}
-              style={{
-                background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.25))',
-                border: '1px solid rgba(245,158,11,0.4)',
-                color: '#FCD34D',
-                cursor: 'pointer',
-                fontSize: '0.73rem',
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                padding: '0.22rem 0.65rem',
-                borderRadius: '6px',
-                transition: 'all 200ms',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(245,158,11,0.35)';
-                e.currentTarget.style.borderColor = '#FCD34D';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.25))';
-                e.currentTarget.style.borderColor = 'rgba(245,158,11,0.4)';
-                e.currentTarget.style.transform = 'none';
-              }}
-            >
-              <Lock size={11} /> Admin CMS
-            </button>
-
-            <button
-              onClick={() => handleNavClick('superadmin')}
-              style={{
-                background: 'linear-gradient(135deg, rgba(37,99,235,0.2), rgba(29,78,216,0.35))',
-                border: '1px solid rgba(96,165,250,0.5)',
-                color: '#93C5FD',
-                cursor: 'pointer',
-                fontSize: '0.73rem',
-                fontWeight: 600,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                padding: '0.22rem 0.65rem',
-                borderRadius: '6px',
-                transition: 'all 200ms',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = 'rgba(37,99,235,0.45)';
-                e.currentTarget.style.borderColor = '#93C5FD';
-                e.currentTarget.style.transform = 'translateY(-1px)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(37,99,235,0.2), rgba(29,78,216,0.35))';
-                e.currentTarget.style.borderColor = 'rgba(96,165,250,0.5)';
-                e.currentTarget.style.transform = 'none';
-              }}
-            >
-              <Shield size={11} /> SuperAdmin
-            </button>
           </div>
         </div>
       </div>
@@ -970,12 +909,6 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
                   </div>
                 );
               })}
-            </div>
-
-            <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: '0.85rem' }}>
-              <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center', fontFamily: "'Inter', sans-serif" }} onClick={() => handleNavClick('admin')}>
-                <Lock size={14} /> CMS Admin
-              </button>
             </div>
           </div>
         )}
