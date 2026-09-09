@@ -60,7 +60,9 @@ export const api = {
       if (!response.ok) {
         if (response.status === 401 && endpoint.startsWith('/api/v1/admin')) {
           this.clearAuth();
-          window.location.hash = '#admin';
+          if (window.location.pathname !== '/admin') {
+            window.location.pathname = '/admin';
+          }
         }
         throw new Error(data.message || 'API request failed');
       }
@@ -123,5 +125,102 @@ export const api = {
       throw new Error(data.message || 'Upload failed');
     }
     return data;
+  }
+};
+
+const SUPER_TOKEN_KEY = 'apex_superadmin_token';
+const SUPER_USER_KEY = 'apex_superadmin_user';
+
+export const superAdminApi = {
+  getToken() {
+    return localStorage.getItem(SUPER_TOKEN_KEY);
+  },
+
+  setAuth(token, superAdmin) {
+    localStorage.setItem(SUPER_TOKEN_KEY, token);
+    localStorage.setItem(SUPER_USER_KEY, JSON.stringify(superAdmin));
+  },
+
+  clearAuth() {
+    localStorage.removeItem(SUPER_TOKEN_KEY);
+    localStorage.removeItem(SUPER_USER_KEY);
+  },
+
+  getUser() {
+    const data = localStorage.getItem(SUPER_USER_KEY);
+    try {
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  isAuthenticated() {
+    return !!this.getToken();
+  },
+
+  async request(endpoint, options = {}) {
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    };
+
+    const token = this.getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401 && !endpoint.includes('/login')) {
+          this.clearAuth();
+          window.dispatchEvent(new CustomEvent('superadmin_auth_expired'));
+        }
+        throw new Error(data.message || 'SuperAdmin API request failed');
+      }
+
+      return data;
+    } catch (err) {
+      console.error('SuperAdmin API Error:', endpoint, err);
+      throw err;
+    }
+  },
+
+  get(endpoint) {
+    return this.request(endpoint, { method: 'GET' });
+  },
+
+  post(endpoint, body) {
+    return this.request(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+  },
+
+  put(endpoint, body) {
+    return this.request(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(body)
+    });
+  },
+
+  patch(endpoint, body = {}) {
+    return this.request(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(body)
+    });
+  },
+
+  delete(endpoint) {
+    return this.request(endpoint, { method: 'DELETE' });
   }
 };

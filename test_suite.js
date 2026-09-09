@@ -87,9 +87,24 @@ async function runTests() {
     path: '/api/v1/auth/login',
     method: 'POST',
     headers: { 'Content-Type': 'application/json' }
-  }, { username: 'admin', password: 'Admin@123' });
+  }, {
+    username: process.env.ADMIN_USERNAME || 'admin',
+    password: process.env.ADMIN_PASSWORD || 'Admin@123'
+  });
   assert('Admin login successful', login.status === 200 && !!login.data?.token);
   const token = login.data?.token;
+
+  // Clean up the automated test inquiry so it does not pollute the admin inbox
+  const createdInqId = inqRes.data?.inquiryId || inqRes.data?.data?._id || inqRes.data?.data?.id;
+  if (createdInqId) {
+    await apiCall({
+      hostname: 'localhost',
+      port: 3000,
+      path: `/api/v1/admin/inquiries/${createdInqId}`,
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+  }
 
   // 6. Sub-Institutions (Group Mode verification)
   console.log('\n6. Multi-College Sub-Institutions API:');

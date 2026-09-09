@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Phone, Mail, Lock, ArrowRight, ExternalLink } from 'lucide-react';
+import { MapPin, Phone, Mail, Lock, Shield, ArrowRight, ExternalLink } from 'lucide-react';
 import { getInstitutionProfile } from '../content/institutionProfile';
 import { api } from '../services/api';
 
@@ -135,7 +135,7 @@ export default function Footer({ settings = {}, onNavigate, onOpenInquiry }) {
               <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                 <h5 style={{ color: '#FFFFFF', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Our Institutes</h5>
                 {subInstitutions.slice(0, 5).map((inst, i) => (
-                  <a key={i} href={inst.websiteUrl || '#'} target={inst.websiteUrl ? '_blank' : '_self'} rel="noopener noreferrer"
+                  <a key={i} href={inst.websiteUrl || '/'} target={inst.websiteUrl ? '_blank' : '_self'} rel="noopener noreferrer"
                     style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#94A3B8', fontSize: '0.8rem', marginBottom: '0.4rem', textDecoration: 'none', transition: 'color 150ms' }}
                     onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>
                     <span style={{ fontSize: '0.85rem' }}>{inst.iconEmoji || '🏛️'}</span>
@@ -163,18 +163,60 @@ export default function Footer({ settings = {}, onNavigate, onOpenInquiry }) {
         )}
 
         {/* Copyright Bar */}
-        <div style={{ padding: '1.25rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', fontSize: '0.78rem', color: '#475569' }}>
+        <div style={{ padding: '1.25rem 0', paddingRight: 'clamp(10px, 16vw, 220px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', fontSize: '0.78rem', color: '#64748B' }}>
           <div>
             &copy; {new Date().getFullYear()} {settings.college_name || profile.collegeName}. All rights reserved.
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <button onClick={() => onNavigate('contact')} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.78rem', fontFamily: "'Inter', sans-serif", transition: 'color 150ms' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#94A3B8'} onMouseLeave={e => e.currentTarget.style.color = '#475569'}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+            <button onClick={() => onNavigate('contact')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', fontSize: '0.78rem', fontFamily: "'Inter', sans-serif", transition: 'color 150ms', padding: '0.2rem 0.4rem' }}
+              onMouseEnter={e => e.currentTarget.style.color = '#FFFFFF'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>
               Contact
             </button>
-            <button onClick={() => onNavigate('admin')} style={{ background: 'none', border: 'none', color: '#475569', cursor: 'pointer', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontFamily: "'Inter', sans-serif", transition: 'color 150ms' }}
-              onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#475569'}>
-              <Lock size={10} /> Admin
+
+            <button
+              onClick={() => onNavigate('admin')}
+              style={{
+                background: 'rgba(245, 158, 11, 0.12)',
+                border: '1px solid rgba(245, 158, 11, 0.35)',
+                color: '#FCD34D',
+                padding: '0.25rem 0.65rem',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontFamily: "'Inter', sans-serif",
+                transition: 'all 150ms ease'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.28)'; e.currentTarget.style.borderColor = '#FCD34D'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(245, 158, 11, 0.12)'; e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.35)'; }}
+            >
+              <Lock size={11} /> Admin CMS
+            </button>
+
+            <button
+              onClick={() => onNavigate('superadmin')}
+              style={{
+                background: 'rgba(37, 99, 235, 0.18)',
+                border: '1px solid rgba(96, 165, 250, 0.45)',
+                color: '#93C5FD',
+                padding: '0.25rem 0.65rem',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontFamily: "'Inter', sans-serif",
+                transition: 'all 150ms ease'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.38)'; e.currentTarget.style.borderColor = '#60A5FA'; e.currentTarget.style.color = '#FFFFFF'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.18)'; e.currentTarget.style.borderColor = 'rgba(96, 165, 250, 0.45)'; e.currentTarget.style.color = '#93C5FD'; }}
+            >
+              <Shield size={11} /> SuperAdmin
             </button>
           </div>
         </div>

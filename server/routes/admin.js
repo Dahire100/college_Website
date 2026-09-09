@@ -5,14 +5,25 @@ const fs = require('node:fs');
 const multer = require('multer');
 const { db } = require('../db');
 const { requireAdmin } = require('../middleware/auth');
+const { verifyTenantAccess } = require('../middleware/tenant');
 
-// Protect all admin endpoints with requireAdmin middleware
+// Protect all admin endpoints with requireAdmin and verifyTenantAccess middleware
 router.use(requireAdmin);
+router.use(verifyTenantAccess);
 
-// Multer Storage Configuration
+// Force tenantId on all request bodies to guarantee strict multi-tenant isolation
+router.use((req, res, next) => {
+  if (req.body && typeof req.body === 'object' && req.tenantId) {
+    req.body.tenantId = req.tenantId;
+  }
+  next();
+});
+
+// Multer Storage Configuration (Partitioned by Tenant ID)
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, '..', '..', 'public', 'uploads');
+    const tenantId = req.tenantId || 'default';
+    const uploadPath = path.join(__dirname, '..', '..', 'public', 'uploads', tenantId);
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -42,7 +53,8 @@ const upload = multer({
 async function logAction(req, action, entityType, entityId, details) {
   try {
     await db.AuditLog.create({
-      username: req.admin.username,
+      tenantId: req.tenantId,
+      username: req.admin ? req.admin.username : 'admin',
       action,
       entityType,
       entityId: String(entityId || ''),
@@ -59,25 +71,26 @@ async function logAction(req, action, entityType, entityId, details) {
 // ----------------------------------------------------
 router.get('/analytics', async (req, res) => {
   try {
-    const totalDepartments = await db.Department.countDocuments();
-    const totalCourses = await db.Course.countDocuments();
-    const totalFaculty = await db.Faculty.countDocuments();
-    const totalNotices = await db.Notice.countDocuments();
-    const publishedNotices = await db.Notice.countDocuments({ status: 'published' });
-    const draftNotices = await db.Notice.countDocuments({ status: 'draft' });
-    const totalEvents = await db.Event.countDocuments();
-    const totalNews = await db.News.countDocuments();
-    const totalInquiries = await db.Inquiry.countDocuments();
-    const newInquiries = await db.Inquiry.countDocuments({ status: 'new' });
-    const totalRecruiters = await db.Recruiter.countDocuments();
+    const tenantId = req.tenantId;
+    const totalDepartments = await db.Department.countDocuments({ tenantId });
+    const totalCourses = await db.Course.countDocuments({ tenantId });
+    const totalFaculty = await db.Faculty.countDocuments({ tenantId });
+    const totalNotices = await db.Notice.countDocuments({ tenantId });
+    const publishedNotices = await db.Notice.countDocuments({ tenantId, status: 'published' });
+    const draftNotices = await db.Notice.countDocuments({ tenantId, status: 'draft' });
+    const totalEvents = await db.Event.countDocuments({ tenantId });
+    const totalNews = await db.News.countDocuments({ tenantId });
+    const totalInquiries = await db.Inquiry.countDocuments({ tenantId });
+    const newInquiries = await db.Inquiry.countDocuments({ tenantId, status: 'new' });
+    const totalRecruiters = await db.Recruiter.countDocuments({ tenantId });
 
-    // Recent Inquiries
-    let recentInquiries = await db.Inquiry.find({});
+    // Recent Inquiries (Scoped to Tenant)
+    let recentInquiries = await db.Inquiry.find({ tenantId });
     recentInquiries.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
     recentInquiries = recentInquiries.slice(0, 5);
 
-    // Recent Audit Logs
-    let recentLogs = await db.AuditLog.find({});
+    // Recent Audit Logs (Scoped to Tenant)
+    let recentLogs = await db.AuditLog.find({ tenantId });
     recentLogs.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
     recentLogs = recentLogs.slice(0, 6);
 
@@ -111,7 +124,8 @@ router.get('/analytics', async (req, res) => {
 // ----------------------------------------------------
 router.get('/settings', async (req, res) => {
   try {
-    const settings = await db.SiteSetting.find({});
+    const tenantId = req.tenantId;
+    const settings = await db.SiteSetting.find({ tenantId });
     return res.json({ success: true, data: settings });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to fetch settings' });
@@ -120,27 +134,28 @@ router.get('/settings', async (req, res) => {
 
 router.post('/settings', async (req, res) => {
   try {
+    const tenantId = req.tenantId;
     const { settings } = req.body; // array or key-value object
     if (Array.isArray(settings)) {
       for (const item of settings) {
         if (!item || !item.key) continue;
         const valStr = String(item.value ?? '');
-        const existing = await db.SiteSetting.findOne({ key: item.key });
+        const existing = await db.SiteSetting.findOne({ tenantId, key: item.key });
         if (existing) {
           await db.SiteSetting.findByIdAndUpdate(existing._id || existing.id, { value: valStr, updatedAt: new Date() });
         } else {
-          await db.SiteSetting.create({ key: item.key, value: valStr, group: 'general' });
+          await db.SiteSetting.create({ tenantId, key: item.key, value: valStr, group: 'general' });
         }
       }
     } else if (typeof settings === 'object' && settings !== null) {
       for (const [key, value] of Object.entries(settings)) {
         if (!key) continue;
         const valStr = String(value ?? '');
-        const existing = await db.SiteSetting.findOne({ key });
+        const existing = await db.SiteSetting.findOne({ tenantId, key });
         if (existing) {
           await db.SiteSetting.findByIdAndUpdate(existing._id || existing.id, { value: valStr, updatedAt: new Date() });
         } else {
-          await db.SiteSetting.create({ key, value: valStr, group: 'general' });
+          await db.SiteSetting.create({ tenantId, key, value: valStr, group: 'general' });
         }
       }
     }
@@ -156,7 +171,8 @@ router.post('/settings', async (req, res) => {
 // ----------------------------------------------------
 router.get('/homepage-sections', async (req, res) => {
   try {
-    const sections = await db.HomepageSection.find({});
+    const tenantId = req.tenantId;
+    const sections = await db.HomepageSection.find({ tenantId });
     sections.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return res.json({ success: true, data: sections });
   } catch (err) {
@@ -176,13 +192,15 @@ router.put('/homepage-sections/:id', async (req, res) => {
 
 router.post('/homepage-sections', async (req, res) => {
   try {
+    const tenantId = req.tenantId;
     const { sectionKey, title, subtitle, badge, isVisible, ctaText, ctaLink, imageUrl, layoutType, content } = req.body;
     if (!title) {
       return res.status(400).json({ success: false, message: 'Section title is required' });
     }
     const finalKey = sectionKey || `custom_${Date.now()}`;
-    const count = await db.HomepageSection.countDocuments();
+    const count = await db.HomepageSection.countDocuments({ tenantId });
     const newSection = await db.HomepageSection.create({
+      tenantId,
       sectionKey: finalKey,
       title,
       subtitle: subtitle || '',
@@ -831,9 +849,10 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       return res.status(400).json({ success: false, message: 'No file uploaded' });
     }
 
-    const publicUrl = '/uploads/' + req.file.filename;
+    const publicUrl = `/uploads/${req.tenantId}/${req.file.filename}`;
 
     const mediaDoc = await db.Media.create({
+      tenantId: req.tenantId,
       filename: req.file.filename,
       originalName: req.file.originalname,
       mimeType: req.file.mimetype,
@@ -1162,7 +1181,7 @@ router.post('/pages', async (req, res) => {
   }
 });
 
-router.put('/pages/:id', async (req, res) => {
+const updatePageHandler = async (req, res) => {
   try {
     const updated = await db.Page.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (updated) {
@@ -1199,7 +1218,10 @@ router.put('/pages/:id', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to update page' });
   }
-});
+};
+
+router.put('/pages/:id', updatePageHandler);
+router.patch('/pages/:id', updatePageHandler);
 
 router.patch('/pages/:id/toggle', async (req, res) => {
   try {

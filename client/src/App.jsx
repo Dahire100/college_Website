@@ -19,6 +19,7 @@ import Gallery from './pages/Gallery';
 import CustomPage from './pages/CustomPage';
 
 import AdminDashboard from './admin/AdminDashboard';
+import SuperAdminDashboard from './admin/SuperAdminDashboard';
 import { api } from './services/api';
 import { applyTheme } from './styles/themes';
 import './styles/portfolio-academic.css';
@@ -58,24 +59,88 @@ export default function App() {
     }
   };
 
+  const navigate = (route) => {
+    const cleanRoute = (route || 'home').replace(/^#\/?/, '').replace(/^\/+|\/+$/g, '');
+    const targetUrl = cleanRoute === 'home' ? '/' : `/${cleanRoute}`;
+    if (window.location.pathname !== targetUrl) {
+      window.history.pushState(null, '', targetUrl);
+    }
+    setCurrentRoute(cleanRoute);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   useEffect(() => {
     fetchConfig();
 
-    const syncRouteFromHash = () => {
-      const hash = window.location.hash.replace('#', '') || 'home';
-      setCurrentRoute(hash);
+    const getCleanRoute = () => {
+      // Automatic legacy hash migration: if user visits /#admin or /#about, migrate cleanly to /admin or /about
+      if (window.location.hash) {
+        const legacyHash = window.location.hash.replace(/^#\/?/, '').trim();
+        if (legacyHash) {
+          const cleanPath = legacyHash === 'home' ? '/' : `/${legacyHash}`;
+          window.history.replaceState(null, '', cleanPath);
+          return legacyHash;
+        }
+      }
+      let path = window.location.pathname.replace(/^\/+|\/+$/g, '');
+      return path || 'home';
+    };
+
+    const syncRoute = () => {
+      const route = getCleanRoute();
+      setCurrentRoute(route);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    syncRouteFromHash();
-    window.addEventListener('hashchange', syncRouteFromHash);
-    return () => window.removeEventListener('hashchange', syncRouteFromHash);
-  }, []);
+    syncRoute();
+    window.addEventListener('popstate', syncRoute);
 
-  const navigate = (route) => {
-    window.location.hash = `#${route}`;
-    setCurrentRoute(route);
-  };
+    // Global internal link interceptor: intercepts any clicked links (including legacy # links or relative links)
+    // to keep URLs 100% clean with HTML5 pushState without # anywhere
+    const handleGlobalClick = (e) => {
+      const anchor = e.target.closest('a');
+      if (!anchor) return;
+
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+
+      if (
+        href.startsWith('http://') ||
+        href.startsWith('https://') ||
+        href.startsWith('mailto:') ||
+        href.startsWith('tel:') ||
+        href.startsWith('javascript:') ||
+        anchor.getAttribute('target') === '_blank' ||
+        anchor.hasAttribute('download')
+      ) {
+        return;
+      }
+
+      if (href.startsWith('#')) {
+        e.preventDefault();
+        const clean = href.replace(/^#\/?/, '').trim();
+        navigate(clean || 'home');
+        return;
+      }
+
+      if (href.startsWith('/')) {
+        if (href.startsWith('/uploads/') || href.startsWith('/assets/') || href.startsWith('/api/')) {
+          return;
+        }
+        e.preventDefault();
+        const clean = href.replace(/^\/+|\/+$/g, '');
+        navigate(clean || 'home');
+        return;
+      }
+    };
+
+    document.addEventListener('click', handleGlobalClick);
+
+    return () => {
+      window.removeEventListener('popstate', syncRoute);
+      document.removeEventListener('click', handleGlobalClick);
+    };
+  }, []);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -88,12 +153,15 @@ export default function App() {
   };
 
   const settings = config?.settings || {};
+  const isSuperAdminRoute = currentRoute === 'superadmin' || currentRoute.startsWith('superadmin/');
+  const isAdminRoute = currentRoute === 'admin' || currentRoute.startsWith('admin/');
+  const isDedicatedPortal = isAdminRoute || isSuperAdminRoute;
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {toast && <div className={`toast-msg ${toast.type}`}><span>{toast.message}</span></div>}
 
-      {currentRoute !== 'admin' && (
+      {!isDedicatedPortal && (
         <Header settings={settings} navigation={config?.navigation} pages={config?.pages} currentRoute={currentRoute} onNavigate={navigate} onOpenInquiry={openInquiry} />
       )}
 
@@ -112,18 +180,22 @@ export default function App() {
         {currentRoute === 'news' && <NewsNotices settings={settings} onNavigate={navigate} />}
         {currentRoute === 'contact' && <Contact settings={settings} onToast={showToast} />}
 
-        {!['home', 'about', 'academics', 'departments', 'programs', 'admissions', 'campus', 'placements', 'research', 'life', 'gallery', 'news', 'contact', 'admin'].includes(currentRoute) && (
+        {!isDedicatedPortal && !['home', 'about', 'academics', 'departments', 'programs', 'admissions', 'campus', 'placements', 'research', 'life', 'gallery', 'news', 'contact'].includes(currentRoute) && (
           <CustomPage slug={currentRoute.includes('/') ? currentRoute.split('/').pop() : currentRoute} onOpenInquiry={openInquiry} onNavigate={navigate} />
         )}
 
-        {currentRoute === 'admin' && (
+        {isAdminRoute && (
           <AdminDashboard onToast={showToast} onPublicUpdate={fetchConfig} onNavigate={navigate} />
+        )}
+
+        {isSuperAdminRoute && (
+          <SuperAdminDashboard onToast={showToast} onNavigate={navigate} />
         )}
       </main>
 
-      {currentRoute !== 'admin' && <Footer settings={settings} onNavigate={navigate} onOpenInquiry={openInquiry} />}
+      {!isDedicatedPortal && <Footer settings={settings} onNavigate={navigate} onOpenInquiry={openInquiry} />}
 
-      {currentRoute !== 'admin' && (
+      {!isDedicatedPortal && (
         <button
           onClick={() => openInquiry()}
           style={{

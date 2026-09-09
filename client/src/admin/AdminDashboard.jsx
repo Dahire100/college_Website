@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   LayoutDashboard, User, Info, FolderGit2, Sparkles, GraduationCap,
   Briefcase, Award, Calendar, Layers, Shield, Settings, LogOut,
@@ -7,12 +7,14 @@ import {
   ChevronDown, ChevronUp, FileText, Search, Home, BookOpen, Users,
   Building2, ClipboardList, School, Microscope, Image, Newspaper, Phone, Key, Lock, Palette, Mail, Send, MessageSquare, Clock, Inbox, Bell
 } from 'lucide-react';
-import { api } from '../services/api';
+import { api, superAdminApi } from '../services/api';
 import ImageUploadField from './ImageUploadField';
 import PdfUploadField from './PdfUploadField';
 import { THEME_PRESETS, applyTheme } from '../styles/themes';
+import SuperAdminDashboard from './SuperAdminDashboard';
 
 export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) {
+  const [isSuperAdminAuth, setIsSuperAdminAuth] = useState(superAdminApi.isAuthenticated());
   const [isAuthenticated, setIsAuthenticated] = useState(api.isAuthenticated());
   const [currentTab, setCurrentTab] = useState('overview');
   const [adminUser, setAdminUser] = useState(api.getAdmin());
@@ -49,6 +51,11 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
   const [loading, setLoading] = useState(false);
   const [showDashboardSections, setShowDashboardSections] = useState(false);
 
+  // Global Quick Search state
+  const [globalSearch, setGlobalSearch] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef(null);
+
   // Login form state
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
@@ -64,11 +71,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
   // Settings form local state
   const [localSettings, setLocalSettings] = useState({});
 
-  // Admin Account & Security state
-  const [newUsernameInput, setNewUsernameInput] = useState('');
-  const [currentPasswordForUser, setCurrentPasswordForUser] = useState('');
-  const [showCurrentPassUser, setShowCurrentPassUser] = useState(false);
-  const [userUpdating, setUserUpdating] = useState(false);
+  // Admin Account & Security state (Username is permanently locked to domain)
 
   const [currentPasswordForPass, setCurrentPasswordForPass] = useState('');
   const [newPasswordInput, setNewPasswordInput] = useState('');
@@ -94,6 +97,22 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
       if (adminUser.email) setAdminEmail(adminUser.email);
     }
   }, [adminUser]);
+
+  // Global Keyboard Shortcuts (Ctrl+K or Cmd+K to focus search, Esc to close)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        setSearchOpen(true);
+      }
+      if (e.key === 'Escape') {
+        setSearchOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   
   const handleSendInquiryReply = async (inquiryId, statusOverride = 'replied') => {
@@ -145,39 +164,6 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
     }
   };
 
-  const handleUpdateUsername = async (e) => {
-    e.preventDefault();
-    if (!newUsernameInput.trim()) {
-      onToast('Please enter a new username', 'error');
-      return;
-    }
-    if (newUsernameInput.trim().length < 3) {
-      onToast('Username must be at least 3 characters', 'error');
-      return;
-    }
-    if (!currentPasswordForUser) {
-      onToast('Please enter your current password to authorize this change', 'error');
-      return;
-    }
-    setUserUpdating(true);
-    try {
-      const res = await api.put('/api/v1/auth/profile', {
-        username: newUsernameInput.trim(),
-        currentPassword: currentPasswordForUser
-      });
-      if (res.success) {
-        api.setAuth(res.token, res.admin);
-        setAdminUser(res.admin);
-        setNewUsernameInput('');
-        setCurrentPasswordForUser('');
-        onToast(`Admin username successfully changed to "${res.admin.username}"!`, 'success');
-      }
-    } catch (err) {
-      onToast(err.message || 'Failed to update username', 'error');
-    } finally {
-      setUserUpdating(false);
-    }
-  };
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
@@ -246,13 +232,26 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    const cleanUser = (loginUsername || '').trim().toLowerCase();
+
+    if (cleanUser === 'superadmin') {
+      onToast('Redirecting to SuperAdmin Control Plane...', 'info');
+      if (onNavigate) {
+        onNavigate('superadmin');
+      } else {
+        window.location.pathname = '/superadmin';
+      }
+      return;
+    }
+
     try {
       const res = await api.post('/api/v1/auth/login', { username: loginUsername, password: loginPassword });
       if (res.success) {
         api.setAuth(res.token, res.admin);
         setIsAuthenticated(true);
         setAdminUser(res.admin);
-        onToast('Welcome to Portfolio Admin Dashboard & CMS!', 'success');
+        onToast('Welcome to College Admin Dashboard & CMS!', 'success');
+        return;
       }
     } catch (err) {
       onToast(err.message || 'Login failed', 'error');
@@ -261,7 +260,9 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
 
   const handleLogout = () => {
     api.clearAuth();
+    superAdminApi.clearAuth();
     setIsAuthenticated(false);
+    setIsSuperAdminAuth(false);
     onToast('Logged out of Admin CMS');
   };
 
@@ -412,23 +413,23 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
     }
   };
 
-  // KK Wagh Subpage Quick Templates
-  const KK_WAGH_TEMPLATES = [
+  // Standard Institutional Subpage Quick Templates
+  const STANDARD_SUBPAGE_TEMPLATES = [
     {
       title: 'Our Legacy',
       parentSlug: 'about',
       badge: 'HERITAGE',
       heroTitle: 'Our Glorious Legacy & Heritage',
-      heroSubtitle: 'Imparting technical excellence, value-based education, and visionary leadership since 1984.',
-      content: 'K. K. Wagh Education Society was established with the noble objective of providing higher technical education to students across Maharashtra. Over four decades, the institute has produced thousands of distinguished engineers, entrepreneurs, and researchers who contribute significantly to society and global industries.'
+      heroSubtitle: 'Imparting technical excellence, value-based education, and visionary leadership.',
+      content: 'The institution was established with the noble objective of providing higher technical and professional education to students. Over decades of excellence, the institute has produced thousands of distinguished engineers, entrepreneurs, and researchers who contribute significantly to society and global industries.'
     },
     {
       title: 'Milestones',
       parentSlug: 'about',
       badge: 'MILESTONES',
-      heroTitle: 'Four Decades of Institutional Milestones',
-      heroSubtitle: 'A chronologically celebrated journey of academic autonomy, NAAC A+ accreditations, and research milestones.',
-      content: 'From the inception of the engineering polytechnic and degree engineering college in Nashik to achieving UGC autonomous status and establishing international collaborative centers, explore the defining moments of our growth.'
+      heroTitle: 'Decades of Institutional Milestones',
+      heroSubtitle: 'A chronologically celebrated journey of academic autonomy, NAAC accreditations, and research milestones.',
+      content: 'From the inception of the institution to achieving autonomous status and establishing international collaborative centers, explore the defining moments of our growth and achievements.'
     },
     {
       title: 'Our Leadership',
@@ -436,15 +437,15 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
       badge: 'GOVERNANCE',
       heroTitle: 'Board of Trustees & Leadership',
       heroSubtitle: 'Distinguished governance, board of trustees, and administrative leadership guiding institutional vision.',
-      content: 'Under the dynamic leadership of our Chairman, Board of Trustees, and Academic Advisory Board, the institute continually fosters industry collaboration, state-of-the-art infrastructure, and holistic student development.'
+      content: 'Under the dynamic leadership of our Governing Body, Board of Trustees, and Academic Advisory Board, the institute continually fosters industry collaboration, state-of-the-art infrastructure, and holistic student development.'
     },
     {
       title: 'Accreditation & Recognition',
       parentSlug: 'about',
-      badge: 'NAAC A GRADE',
+      badge: 'NAAC ACCREDITED',
       heroTitle: 'National Accreditations & Approvals',
-      heroSubtitle: 'Approved by AICTE New Delhi, recognized by DTE Maharashtra, NAAC Accredited with Grade A, and NBA accredited programs.',
-      content: 'Quality education is our paramount ethos. K. K. Wagh is recognized by the All India Council for Technical Education (AICTE), affiliated to Savitribai Phule Pune University (SPPU), accredited with NAAC Grade A, and holds multiple NBA accreditations across its core engineering departments.'
+      heroSubtitle: 'Approved by AICTE/UGC, recognized by statutory authorities, NAAC Accredited, and NBA accredited programs.',
+      content: 'Quality education is our paramount ethos. The institution is recognized by statutory regulatory bodies (AICTE/UGC), affiliated to university, accredited with NAAC, and holds recognized accreditations across its core academic departments.'
     },
     {
       title: 'Academic Calendar',
@@ -694,7 +695,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
       } else if (type === 'nav') {
         setFormData({
           title: '',
-          path: '#',
+          path: '/',
           sortOrder: navItems.length + 1,
           isActive: true
         });
@@ -833,6 +834,22 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
   };
 
   // ============================================
+  // SUPERADMIN CONTROL PLANE (If logged in as SuperAdmin)
+  // ============================================
+  if (isSuperAdminAuth) {
+    return (
+      <SuperAdminDashboard
+        onToast={onToast}
+        onNavigate={onNavigate}
+        onLogout={() => {
+          setIsSuperAdminAuth(false);
+          setIsAuthenticated(false);
+        }}
+      />
+    );
+  }
+
+  // ============================================
   // LOGIN SCREEN
   // ============================================
   if (!isAuthenticated) {
@@ -871,9 +888,9 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
             <div className="login-icon">
               <GraduationCap size={28} />
             </div>
-            <h2 style={{ fontSize: '1.7rem', margin: '0 0 0.35rem', fontWeight: 800 }}>Admin Login</h2>
+            <h2 style={{ fontSize: '1.7rem', margin: '0 0 0.35rem', fontWeight: 800 }}>College Admin Portal</h2>
             <p style={{ fontSize: '0.92rem', color: '#64748B', margin: '0 0 1.5rem', lineHeight: 1.6 }}>
-              Sign in to manage your college website with a profile-based CMS.
+              Sign in with your institutional credentials to manage your college website.
             </p>
 
             <form onSubmit={handleLogin}>
@@ -882,7 +899,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                 <input
                   type="text"
                   className="simple-input"
-                  placeholder="Enter username"
+                  placeholder="Enter college domain or username"
                   value={loginUsername}
                   onChange={e => setLoginUsername(e.target.value)}
                   autoComplete="username"
@@ -931,18 +948,42 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
               </button>
             </form>
 
-            <div style={{ marginTop: '1.15rem', paddingTop: '1.15rem', borderTop: '1px solid #E5EAF1', textAlign: 'center' }}>
+            <div style={{ marginTop: '1.15rem', paddingTop: '1.15rem', borderTop: '1px solid #E5EAF1', display: 'flex', flexDirection: 'column', gap: '0.65rem', textAlign: 'center' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onNavigate) {
+                    onNavigate('superadmin');
+                  } else {
+                    window.location.pathname = '/superadmin';
+                  }
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#00529B',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.35rem'
+                }}
+              >
+                <Shield size={14} /> Switch to Platform SuperAdmin Portal →
+              </button>
               <button
                 type="button"
                 onClick={() => {
                   if (onNavigate) {
                     onNavigate('home');
                   } else {
-                    window.location.hash = '#home';
+                    window.location.pathname = '/';
                   }
                 }}
                 className="admin-btn admin-btn-secondary"
-                style={{ width: '100%', justifyContent: 'center', padding: '0.7rem 1rem', fontSize: '0.85rem' }}
+                style={{ width: '100%', justifyContent: 'center', padding: '0.65rem 1rem', fontSize: '0.85rem' }}
               >
                 <ArrowLeft size={16} /> Back to Website
               </button>
@@ -975,17 +1016,188 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
     }
   };
 
-  const filteredPages = pagesList.filter(p => {
-    if (pageFilterMode === 'root' && p.parentSlug) return false;
-    if (pageFilterMode === 'subpages' && !p.parentSlug) return false;
-    if (!pageSearch) return true;
-    const q = pageSearch.toLowerCase();
-    return (
-      (p.title || '').toLowerCase().includes(q) ||
-      (p.slug || '').toLowerCase().includes(q) ||
-      (p.parentSlug || '').toLowerCase().includes(q)
-    );
-  });
+
+
+  // Global Search Index & Query Engine
+  const getGlobalSearchResults = () => {
+    const q = (globalSearch || '').trim().toLowerCase();
+    if (!q) return [];
+    const results = [];
+
+    // 1. Navigation Sections / Tabs
+    const adminTabsList = [
+      { tab: 'overview', title: 'Dashboard Overview', desc: 'Summary metrics, quick actions & system status', category: 'Navigation', icon: LayoutDashboard },
+      { tab: 'inquiries', title: 'Student Inquiries & Admission Leads', desc: 'View student leads, inquiries, contact messages & email replies', category: 'Navigation', icon: Mail },
+      { tab: 'pages', title: 'Pages & Subpages CMS', desc: 'Custom pages, subpages hierarchy, rich content & SEO', category: 'Navigation', icon: FileText },
+      { tab: 'courses', title: 'Academic Programs & Degrees', desc: 'B.Tech, M.Tech, MBA, MCA degree programs & curriculum', category: 'Navigation', icon: GraduationCap },
+      { tab: 'departments', title: 'Academic Departments & Schools', desc: 'Faculty, HOD messages, labs, intake & vision/mission', category: 'Navigation', icon: Building2 },
+      { tab: 'banners', title: 'Hero Carousel & Banners', desc: 'Homepage hero slides, call to action links & badges', category: 'Navigation', icon: Image },
+      { tab: 'facilities', title: 'Campus Facilities & Labs', desc: 'IDEA lab, research centres, gymkhana, hostels & library', category: 'Navigation', icon: School },
+      { tab: 'placements', title: 'Placements & Recruiters', desc: 'Placement statistics, highest packages & marquee recruiters', category: 'Navigation', icon: Briefcase },
+      { tab: 'admissions', title: 'Admissions Roadmap', desc: 'Eligibility, fee structures, application deadlines & guidelines', category: 'Navigation', icon: ClipboardList },
+      { tab: 'notices', title: 'Notices, Circulars & Announcements', desc: 'Official examination notices, circulars & announcements', category: 'Navigation', icon: Newspaper },
+      { tab: 'events', title: 'Events & Academic Calendar', desc: 'Conferences, fests, hackathons & academic schedule', category: 'Navigation', icon: Calendar },
+      { tab: 'gallery', title: 'Photo Gallery & Media', desc: 'Campus imagery, event highlights & media archives', category: 'Navigation', icon: Image },
+      { tab: 'settings', title: 'Site Settings & Branding', desc: 'College name, logos, contact numbers, email & accreditation', category: 'Navigation', icon: Settings },
+      { tab: 'theme', title: 'Theme Presets & Palette', desc: 'Colors, typography, glassmorphism & visual theme', category: 'Navigation', icon: Palette },
+      { tab: 'nav', title: 'Header Navigation Menu', desc: 'Top navigation links, ordering & dropdown structures', category: 'Navigation', icon: Layers },
+      { tab: 'security', title: 'Admin Account & Security', desc: 'Administrator credentials, password rotation & profile', category: 'Navigation', icon: Key }
+    ];
+
+    adminTabsList.forEach(t => {
+      if (t.title.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q) || t.tab.toLowerCase().includes(q)) {
+        results.push({
+          type: 'tab',
+          tab: t.tab,
+          title: t.title,
+          subtitle: t.desc,
+          category: t.category,
+          icon: t.icon
+        });
+      }
+    });
+
+    // 2. Student Inquiries
+    (inquiries || []).forEach(inq => {
+      const match = (inq.name || '').toLowerCase().includes(q) ||
+                    (inq.email || '').toLowerCase().includes(q) ||
+                    (inq.phone || '').toLowerCase().includes(q) ||
+                    (inq.course || '').toLowerCase().includes(q) ||
+                    (inq.message || '').toLowerCase().includes(q);
+      if (match) {
+        results.push({
+          type: 'inquiry',
+          tab: 'inquiries',
+          title: inq.name || 'Anonymous Inquiry',
+          subtitle: `${inq.course ? `Course: ${inq.course} • ` : ''}${inq.email || inq.phone || ''} • "${(inq.message || '').slice(0, 50)}..."`,
+          category: 'Lead',
+          icon: Mail,
+          item: inq
+        });
+      }
+    });
+
+    // 3. Courses / Programs
+    (courses || []).forEach(c => {
+      const match = (c.title || '').toLowerCase().includes(q) ||
+                    (c.degree || '').toLowerCase().includes(q) ||
+                    (c.departmentCode || '').toLowerCase().includes(q) ||
+                    (c.description || '').toLowerCase().includes(q);
+      if (match) {
+        results.push({
+          type: 'course',
+          tab: 'courses',
+          title: c.title,
+          subtitle: `${c.degree || 'Degree'} • Dept: ${c.departmentCode || 'General'} • Fee: ${c.annualFee || 'N/A'}`,
+          category: 'Course',
+          icon: GraduationCap,
+          item: c
+        });
+      }
+    });
+
+    // 4. Departments
+    (departments || []).forEach(d => {
+      const match = (d.name || '').toLowerCase().includes(q) ||
+                    (d.code || '').toLowerCase().includes(q) ||
+                    (d.hodName || '').toLowerCase().includes(q) ||
+                    (d.degreeLevels || '').toLowerCase().includes(q);
+      if (match) {
+        results.push({
+          type: 'department',
+          tab: 'departments',
+          title: d.name,
+          subtitle: `Code: ${d.code || 'N/A'}${d.hodName ? ` • HOD: ${d.hodName}` : ''}`,
+          category: 'Department',
+          icon: Building2,
+          item: d
+        });
+      }
+    });
+
+    // 5. Pages & Subpages
+    (pagesList || []).forEach(p => {
+      const match = (p.title || '').toLowerCase().includes(q) ||
+                    (p.slug || '').toLowerCase().includes(q) ||
+                    (p.parentSlug || '').toLowerCase().includes(q);
+      if (match) {
+        results.push({
+          type: 'page',
+          tab: 'pages',
+          title: p.title,
+          subtitle: `/${p.slug}${p.parentSlug ? ` (Subpage of ${p.parentSlug})` : ''}`,
+          category: 'Page',
+          icon: FileText,
+          item: p
+        });
+      }
+    });
+
+    // 6. Notices & Circulars
+    (notices || []).forEach(n => {
+      const match = (n.title || '').toLowerCase().includes(q) ||
+                    (n.category || '').toLowerCase().includes(q) ||
+                    (n.description || '').toLowerCase().includes(q);
+      if (match) {
+        results.push({
+          type: 'notice',
+          tab: 'notices',
+          title: n.title,
+          subtitle: `${n.category || 'Notice'} • ${n.date || 'Recent'}`,
+          category: 'Notice',
+          icon: Newspaper,
+          item: n
+        });
+      }
+    });
+
+    // 7. Facilities & Labs
+    (facilities || []).forEach(f => {
+      const match = (f.title || '').toLowerCase().includes(q) ||
+                    (f.category || '').toLowerCase().includes(q) ||
+                    (f.description || '').toLowerCase().includes(q);
+      if (match) {
+        results.push({
+          type: 'facility',
+          tab: 'facilities',
+          title: f.title,
+          subtitle: `${f.category || 'Facility'} • ${(f.description || '').slice(0, 50)}`,
+          category: 'Facility',
+          icon: School,
+          item: f
+        });
+      }
+    });
+
+    // 8. Recruiters & Placements
+    (recruiters || []).forEach(r => {
+      const match = (r.name || '').toLowerCase().includes(q) ||
+                    (r.tier || '').toLowerCase().includes(q) ||
+                    (r.highestPackage || '').toLowerCase().includes(q);
+      if (match) {
+        results.push({
+          type: 'recruiter',
+          tab: 'placements',
+          title: r.name,
+          subtitle: `Tier: ${r.tier || 'Standard'} • Package: ${r.highestPackage || 'Competitive'}`,
+          category: 'Recruiter',
+          icon: Briefcase,
+          item: r
+        });
+      }
+    });
+
+    return results.slice(0, 10);
+  };
+
+  const handleSelectSearchResult = (res) => {
+    setCurrentTab(res.tab);
+    setSearchOpen(false);
+    setGlobalSearch('');
+    if (onToast) {
+      onToast(`Switched to ${res.category}: ${res.title}`, 'info');
+    }
+  };
 
   // ============================================
   // MAIN DASHBOARD
@@ -1003,6 +1215,176 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
             <p style={{ fontSize: '0.72rem', color: '#64748B', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Manage website content, branding, and live publishing</p>
           </div>
         </div>
+
+        {/* Global Instant Search Bar & Command Palette */}
+        <div style={{ position: 'relative', flex: '1 1 280px', maxWidth: '440px', margin: '0 0.75rem' }}>
+          <div style={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            background: '#F1F5F9',
+            border: searchOpen ? '1.5px solid #2563EB' : '1px solid #CBD5E1',
+            borderRadius: '10px',
+            padding: '0.35rem 0.75rem',
+            boxShadow: searchOpen ? '0 0 0 3px rgba(37, 99, 235, 0.15)' : 'none',
+            transition: 'all 150ms ease'
+          }}>
+            <Search size={15} style={{ color: searchOpen ? '#2563EB' : '#64748B', flexShrink: 0, marginRight: '0.5rem' }} />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Quick search anything... (Ctrl+K)"
+              value={globalSearch}
+              onChange={e => {
+                setGlobalSearch(e.target.value);
+                setSearchOpen(true);
+              }}
+              onFocus={() => setSearchOpen(true)}
+              style={{
+                width: '100%',
+                border: 'none',
+                background: 'transparent',
+                outline: 'none',
+                fontSize: '0.82rem',
+                color: '#1E293B',
+                fontFamily: "'Inter', sans-serif"
+              }}
+            />
+            {globalSearch ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setGlobalSearch('');
+                  setSearchOpen(false);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94A3B8',
+                  cursor: 'pointer',
+                  padding: '2px',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+                title="Clear search"
+              >
+                <X size={14} />
+              </button>
+            ) : (
+              <kbd style={{
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                borderRadius: '4px',
+                padding: '0.1rem 0.35rem',
+                fontSize: '0.65rem',
+                color: '#64748B',
+                fontWeight: 700,
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                pointerEvents: 'none',
+                whiteSpace: 'nowrap'
+              }}>
+                Ctrl K
+              </kbd>
+            )}
+          </div>
+
+          {/* Live Search Results Popup */}
+          {searchOpen && globalSearch.trim() && (
+            <div style={{
+              position: 'absolute',
+              top: 'calc(100% + 8px)',
+              left: 0,
+              right: 0,
+              background: '#FFFFFF',
+              borderRadius: '12px',
+              border: '1px solid #CBD5E1',
+              boxShadow: '0 20px 50px rgba(0, 33, 71, 0.25)',
+              zIndex: 3000,
+              maxHeight: '400px',
+              overflowY: 'auto',
+              padding: '0.4rem',
+              animation: 'fadeIn 0.15s ease'
+            }}>
+              {(() => {
+                const results = getGlobalSearchResults();
+                if (results.length === 0) {
+                  return (
+                    <div style={{ padding: '1.5rem', textAlign: 'center', color: '#64748B', fontSize: '0.85rem' }}>
+                      <Search size={22} style={{ margin: '0 auto 0.5rem', opacity: 0.4, display: 'block' }} />
+                      No matching records found for "<strong>{globalSearch}</strong>"
+                    </div>
+                  );
+                }
+
+                return results.map((res, i) => {
+                  const IconComp = res.icon || FileText;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => handleSelectSearchResult(res)}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '0.65rem 0.85rem',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: 'transparent',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        transition: 'background 120ms ease',
+                        marginBottom: '2px'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#F1F5F9'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+                        <span style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '8px',
+                          background: '#EFF6FF',
+                          color: '#2563EB',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          <IconComp size={16} />
+                        </span>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {res.title}
+                          </div>
+                          <div style={{ fontSize: '0.73rem', color: '#64748B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {res.subtitle}
+                          </div>
+                        </div>
+                      </div>
+
+                      <span style={{
+                        background: '#F1F5F9',
+                        color: '#475569',
+                        padding: '0.15rem 0.5rem',
+                        borderRadius: '6px',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.03em',
+                        flexShrink: 0,
+                        marginLeft: '0.5rem'
+                      }}>
+                        {res.category}
+                      </span>
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+          )}
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {/* Topbar Notification Center */}
           <div style={{ position: 'relative' }}>
@@ -1225,7 +1607,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                   if (onNavigate) {
                     onNavigate('home');
                   } else {
-                    window.location.hash = '#home';
+                    window.location.pathname = '/';
                   }
                 }}
                 style={{ width: '100%', justifyContent: 'center' }}
@@ -1698,12 +2080,12 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                 </div>
               </div>
 
-              {/* KK Wagh Quick Inspiration Banner */}
+              {/* Subpage Quick Structure Banner */}
               <div style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.06), rgba(217,119,6,0.06))', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '0.75rem 1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.6rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                   <span style={{ fontSize: '1.1rem' }}>🏛️</span>
                   <div>
-                    <strong style={{ fontSize: '0.84rem', color: '#002147' }}>K. K. Wagh Subpage Structure:</strong>
+                    <strong style={{ fontSize: '0.84rem', color: '#002147' }}>Hierarchical Subpage Structure:</strong>
                     <span style={{ fontSize: '0.78rem', color: '#64748B', marginLeft: '0.4rem' }}>
                       Add subpages under <strong>About Us</strong> (Legacy, Milestones, Leadership, NAAC), <strong>Academics</strong> (Calendar), or <strong>Admissions</strong> (Fees).
                     </span>
@@ -1715,7 +2097,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                   style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem' }}
                   onClick={() => handleStartCreateNewPage('about')}
                 >
-                  Create K.K. Wagh Subpage →
+                  Create Subpage →
                 </button>
               </div>
 
@@ -2045,7 +2427,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
 
                   {!selectedStudioPage.isNew && (
                     <a
-                      href={`#${selectedStudioPage.slug}`}
+                      href={`/${selectedStudioPage.slug}`}
                       target="_blank"
                       rel="noreferrer"
                       className="admin-btn admin-btn-secondary"
@@ -3472,7 +3854,7 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                       When you click <strong>Save Page</strong>, changes are stored directly in MongoDB Atlas and immediately displayed on the public website.
                     </p>
                     <a
-                      href={`#${selectedStudioPage.slug}`}
+                      href={`/${selectedStudioPage.slug}`}
                       target="_blank"
                       rel="noreferrer"
                       className="admin-btn admin-btn-secondary"
@@ -3560,8 +3942,44 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                   <h2 style={{ fontSize: '1.3rem', fontWeight: 700, margin: 0 }}>Notices & Circulars ({notices.length})</h2>
                   <p style={{ fontSize: '0.85rem', color: '#6B7280', margin: '0.2rem 0 0' }}>Institutional circulars, examination updates, and bulletins.</p>
                 </div>
-                <button className="admin-btn admin-btn-primary" onClick={() => openModal('notice')}><Plus size={14} /> Add Notice</button>
+                <button className="admin-btn admin-btn-primary" onClick={() => openModal('notice')}><Plus size={14} /> Add Notice / Circular</button>
               </div>
+
+              {/* Quick Top Marquee Announcement Bar Editor */}
+              <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '1rem 1.25rem', marginBottom: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.6rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '1.1rem' }}>📢</span>
+                    <div>
+                      <strong style={{ fontSize: '0.9rem', color: '#0F172A' }}>Top Header Scrolling Announcement Bar (Tier 0 Ticker)</strong>
+                      <p style={{ fontSize: '0.75rem', color: '#64748B', margin: '0.1rem 0 0' }}>Appears at the very top of every website page across all visitors.</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn-primary"
+                    style={{ fontSize: '0.78rem', padding: '0.35rem 0.75rem' }}
+                    onClick={async () => {
+                      await handleSaveSettings();
+                      onToast('Top announcement ticker updated & published live!', 'success');
+                    }}
+                  >
+                    <Save size={12} /> Save Ticker
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  className="simple-input"
+                  style={{ background: '#FFFFFF' }}
+                  placeholder="e.g. 📢 Admissions Open 2026-27 | Apply Online for B.Tech, M.Tech, MBA programs | Scholarship applications closing soon!"
+                  value={localSettings.announcement_text || ''}
+                  onChange={e => setLocalSettings({ ...localSettings, announcement_text: e.target.value })}
+                />
+                <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: '0.35rem' }}>
+                  Leave empty to hide the marquee banner completely.
+                </div>
+              </div>
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                 {notices.map(n => (
                   <div key={n._id || n.id} className="page-list-item">
@@ -3679,6 +4097,20 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
                       aspectRatio="square"
                       helperText="Upload official college emblem or crest from your computer (PNG or SVG recommended)"
                     />
+
+                    <div>
+                      <label className="simple-label">📢 Top Announcement Marquee Bar (Scrolling Ticker)</label>
+                      <input
+                        type="text"
+                        className="simple-input"
+                        placeholder="e.g. 📢 Admissions Open 2026-27 | Apply Online for B.Tech, M.Tech, MBA programs | Scholarship applications closing soon!"
+                        value={localSettings.announcement_text || ''}
+                        onChange={e => setLocalSettings({ ...localSettings, announcement_text: e.target.value })}
+                      />
+                      <div className="simple-hint">
+                        High-priority scrolling ticker displayed at the very top of every website page (Tier 0). Leave empty to hide.
+                      </div>
+                    </div>
 
                     <div>
                       <label className="simple-label">Top Bar Accreditation Badge Summary</label>
@@ -4890,87 +5322,55 @@ export default function AdminDashboard({ onToast, onPublicUpdate, onNavigate }) 
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
                 
-                {/* 1. Change Username Card */}
+                {/* 1. Institutional Identity & Domain Binding Card */}
                 <div style={{ background: '#FFFFFF', padding: '1.5rem', borderRadius: '12px', border: '1px solid #E5E7EB', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem', borderBottom: '1px solid #F3F4F6', paddingBottom: '0.85rem' }}>
                     <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#EFF6FF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563EB', flexShrink: 0 }}>
                       <User size={18} />
                     </div>
                     <div>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#111827' }}>Change Admin Username</h3>
-                      <p style={{ fontSize: '0.75rem', color: '#6B7280', margin: 0 }}>Update the login ID you use to access this portal</p>
+                      <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#111827' }}>Institutional Admin Identity</h3>
+                      <p style={{ fontSize: '0.75rem', color: '#6B7280', margin: 0 }}>Username permanently bound to your college domain</p>
                     </div>
                   </div>
 
-                  <form onSubmit={handleUpdateUsername}>
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label className="simple-label">Current Username</label>
-                      <input
-                        type="text"
-                        className="simple-input"
-                        value={adminUser?.username || 'admin'}
-                        disabled
-                        style={{ background: '#F9FAFB', cursor: 'not-allowed', color: '#4B5563', fontWeight: 600 }}
-                      />
-                    </div>
-
-                    <div style={{ marginBottom: '1rem' }}>
-                      <label className="simple-label">New Username *</label>
-                      <input
-                        type="text"
-                        className="simple-input"
-                        placeholder="Enter new username (e.g. college_admin)"
-                        value={newUsernameInput}
-                        onChange={e => setNewUsernameInput(e.target.value)}
-                        required
-                      />
-                      <div className="simple-hint">Must be at least 3 characters (letters, numbers, underscores).</div>
-                    </div>
-
-                    <div style={{ marginBottom: '1.25rem' }}>
-                      <label className="simple-label">Current Password (to authorize change) *</label>
-                      <div style={{ position: 'relative' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div>
+                      <label className="simple-label">Assigned Admin Username</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <input
-                          type={showCurrentPassUser ? 'text' : 'password'}
+                          type="text"
                           className="simple-input"
-                          placeholder="Enter current password"
-                          value={currentPasswordForUser}
-                          onChange={e => setCurrentPasswordForUser(e.target.value)}
-                          style={{ paddingRight: '2.5rem' }}
-                          required
+                          value={adminUser?.username || 'admin'}
+                          disabled
+                          readOnly
+                          style={{ background: '#F8FAFC', cursor: 'not-allowed', color: '#0F172A', fontWeight: 700, letterSpacing: '0.02em', border: '1px solid #CBD5E1' }}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowCurrentPassUser(prev => !prev)}
-                          style={{
-                            position: 'absolute',
-                            right: '10px',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            background: 'none',
-                            border: 'none',
-                            color: '#6B7280',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '4px'
-                          }}
-                          title={showCurrentPassUser ? 'Hide password' : 'Show password'}
-                        >
-                          {showCurrentPassUser ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: '#ECFDF5', color: '#059669', fontSize: '0.75rem', fontWeight: 700, padding: '0.45rem 0.75rem', borderRadius: '8px', border: '1px solid #A7F3D0', whiteSpace: 'nowrap' }}>
+                          🔒 Locked
+                        </span>
                       </div>
                     </div>
 
-                    <button
-                      type="submit"
-                      disabled={userUpdating}
-                      className="admin-btn admin-btn-primary"
-                      style={{ width: '100%', justifyContent: 'center', padding: '0.65rem', fontWeight: 600 }}
-                    >
-                      <User size={15} /> {userUpdating ? 'Updating Username...' : 'Update Username'}
-                    </button>
-                  </form>
+                    <div>
+                      <label className="simple-label">Authorized College Domain</label>
+                      <input
+                        type="text"
+                        className="simple-input"
+                        value={typeof window !== 'undefined' ? window.location.hostname : 'localhost'}
+                        disabled
+                        readOnly
+                        style={{ background: '#F8FAFC', cursor: 'not-allowed', color: '#475569', fontWeight: 600, border: '1px solid #E2E8F0' }}
+                      />
+                    </div>
+
+                    <div style={{ background: '#EFF6FF', border: '1px solid #BFDBFE', borderRadius: '8px', padding: '0.85rem 1rem', display: 'flex', gap: '0.6rem', alignItems: 'flex-start' }}>
+                      <span style={{ fontSize: '1rem', lineHeight: 1 }}>🛡️</span>
+                      <div style={{ fontSize: '0.78rem', color: '#1E40AF', lineHeight: 1.5 }}>
+                        <strong>Domain Isolation Policy:</strong> Administrative usernames cannot be altered. For institutional security and tenant isolation, your login identifier must strictly match your authorized college domain.
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* 2. Change Password Card */}

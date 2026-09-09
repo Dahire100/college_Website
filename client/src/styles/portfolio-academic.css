@@ -2140,16 +2140,19 @@ img, video, iframe, canvas, svg {
   min-height: 100vh;
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(360px, 470px);
-  background: linear-gradient(135deg, #081B33 0%, #102E56 55%, #EEF3F8 55%, #EEF3F8 100%);
+  background: #EEF3F8;
 }
 
 .admin-login-hero {
+  background: linear-gradient(145deg, #07172C 0%, #0F2748 50%, #081C36 100%);
   color: #FFFFFF;
   padding: 3.5rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 2rem;
+  position: relative;
+  overflow: hidden;
 }
 
 .admin-login-hero .eyebrow {
@@ -2190,9 +2193,10 @@ img, video, iframe, canvas, svg {
 
 .admin-login-badge {
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(8px);
   border-radius: 12px;
-  padding: 0.7rem 0.9rem;
+  padding: 0.75rem 1rem;
   min-width: 170px;
 }
 
@@ -2201,10 +2205,11 @@ img, video, iframe, canvas, svg {
   color: #FFFFFF;
   font-size: 0.95rem;
   margin-top: 0.2rem;
+  letter-spacing: 0.01em;
 }
 
 .admin-login-badge span {
-  color: rgba(226, 232, 240, 0.72);
+  color: rgba(226, 232, 240, 0.8);
   font-size: 0.74rem;
 }
 
@@ -2246,7 +2251,7 @@ img, video, iframe, canvas, svg {
 @media (max-width: 1024px) {
   .admin-login-shell {
     grid-template-columns: 1fr;
-    background: linear-gradient(180deg, #081B33 0%, #102E56 45%, #EEF3F8 45%, #EEF3F8 100%);
+    background: #EEF3F8;
   }
 
   .admin-login-hero {

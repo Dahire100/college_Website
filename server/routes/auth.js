@@ -11,14 +11,67 @@ router.post('/login', authLimiter, async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    if (!username || !password) {
+    if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
       return res.status(400).json({
         success: false,
-        message: 'Username and password are required.'
+        message: 'Valid username and password strings are required.'
       });
     }
 
-    const admin = await db.Admin.findOne({ username: username.trim() });
+    if (!req.tenantId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Tenant context required for authentication.'
+      });
+    }
+
+    const cleanUsername = username.trim();
+
+    // 1. Strict separation: SuperAdmin cannot log in through tenant auth endpoint
+    if (cleanUsername.toLowerCase() === 'superadmin') {
+      return res.status(403).json({
+        success: false,
+        message: 'SuperAdmin authentication is isolated. Please use the dedicated portal at /superadmin/login.'
+      });
+    }
+
+    // 2. Otherwise check tenant-scoped admin
+    // Condition: Domain and username must match for admin to login
+    const domain = (req.tenant?.domain || '').toLowerCase().trim();
+    const subdomain = (req.tenant?.subdomain || '').toLowerCase().trim();
+    const inputUser = cleanUsername.toLowerCase().trim();
+
+    // Condition: Domain and username must match for admin to login
+    // Note: 'admin' username is strictly reserved for the local demo tenant (localhost)
+    const isDomainMatch =
+      inputUser === domain ||
+      (subdomain && inputUser === subdomain) ||
+      (inputUser.replace(/^admin_/, '') === subdomain) ||
+      (domain === 'localhost' && (inputUser === 'admin' || inputUser === 'apex' || inputUser === 'localhost')) ||
+      (domain !== 'localhost' && domain.includes(inputUser) && inputUser.length >= 3) ||
+      (domain !== 'localhost' && subdomain && inputUser.includes(subdomain));
+
+    if (!isDomainMatch) {
+      return res.status(403).json({
+        success: false,
+        message: `Domain access restriction: Admin username must match the college domain (${domain}) to log in.`
+      });
+    }
+
+    let admin = await db.Admin.findOne({ username: cleanUsername, tenantId: req.tenantId });
+    if (!admin && req.tenant) {
+      // Also match if the database record is stored under the domain, subdomain, or alias
+      // Note: 'admin' alias is only valid for localhost demo tenant
+      const candidates = [
+        cleanUsername,
+        domain,
+        subdomain,
+        `admin_${subdomain}`,
+        domain === 'localhost' ? 'admin' : null
+      ].filter(Boolean);
+      admin = await db.Admin.findOne({ username: { $in: candidates }, tenantId: req.tenantId });
+    }
+
     if (!admin) {
       return res.status(401).json({
         success: false,
@@ -35,17 +88,23 @@ router.post('/login', authLimiter, async (req, res) => {
     }
 
     // Update last login
-    await db.Admin.updateOne({ _id: admin._id }, { lastLogin: new Date() });
+    await db.Admin.updateOne({ _id: admin._id || admin.id, tenantId: req.tenantId }, { lastLogin: new Date() });
 
-    // Generate JWT token valid for 24h
+    // Generate JWT token valid for 8h with embedded tenantId
     const token = jwt.sign(
-      { id: admin._id || admin.id, username: admin.username, email: admin.email },
+      {
+        id: admin._id || admin.id,
+        username: admin.username,
+        email: admin.email,
+        tenantId: req.tenantId
+      },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '8h' }
     );
 
     // Audit log
     await db.AuditLog.create({
+      tenantId: req.tenantId,
       username: admin.username,
       action: 'ADMIN_LOGIN_SUCCESS',
       entityType: 'auth',
@@ -62,7 +121,8 @@ router.post('/login', authLimiter, async (req, res) => {
         id: admin._id || admin.id,
         username: admin.username,
         email: admin.email,
-        fullName: admin.fullName
+        fullName: admin.fullName,
+        tenantId: req.tenantId
       }
     });
   } catch (err) {
@@ -70,6 +130,98 @@ router.post('/login', authLimiter, async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Server error during authentication.'
+    });
+  }
+});
+
+// POST /api/v1/auth/refresh (and /auth/refresh) - Refresh existing valid token
+router.post('/refresh', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    let token = null;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    } else if (req.body && (req.body.token || req.body.refreshToken)) {
+      token = req.body.token || req.body.refreshToken;
+    }
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication token required for refresh.'
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired token. Full re-login required.'
+      });
+    }
+
+    if (!decoded || !decoded.tenantId || (!decoded.id && !decoded.username)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token payload.'
+      });
+    }
+
+    // Tenant isolation verification: token's tenantId must match the request's resolved tenantId
+    if (req.tenantId && String(decoded.tenantId) !== String(req.tenantId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: Token does not match active tenant context.'
+      });
+    }
+
+    // Verify tenant admin still exists and is active in database
+    let admin = null;
+    if (decoded.id) {
+      admin = await db.Admin.findOne({ _id: decoded.id, tenantId: req.tenantId });
+    }
+    if (!admin && decoded.username) {
+      admin = await db.Admin.findOne({ username: decoded.username, tenantId: req.tenantId });
+    }
+    if (!admin) {
+      return res.status(401).json({
+        success: false,
+        message: 'Administrator account not found or deactivated.'
+      });
+    }
+
+    // Issue new refreshed token with 8h expiry
+    const newToken = jwt.sign(
+      {
+        id: admin._id || admin.id,
+        username: admin.username,
+        email: admin.email,
+        role: admin.role || 'admin',
+        tenantId: req.tenantId
+      },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    return res.json({
+      success: true,
+      message: 'Token refreshed successfully',
+      token: newToken,
+      admin: {
+        id: admin._id || admin.id,
+        username: admin.username,
+        email: admin.email,
+        fullName: admin.fullName,
+        tenantId: req.tenantId
+      }
+    });
+  } catch (err) {
+    console.error('Token refresh error:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error during token refresh.'
     });
   }
 });
@@ -88,13 +240,13 @@ router.put('/profile', requireAdmin, async (req, res) => {
   try {
     const { username, currentPassword, newPassword, fullName, email } = req.body;
 
-    // Fetch current admin document
+    // Fetch current admin document scoped to tenant
     let admin = null;
     if (req.admin.id) {
-      admin = await db.Admin.findById(req.admin.id);
+      admin = await db.Admin.findOne({ _id: req.admin.id, tenantId: req.tenantId });
     }
     if (!admin && req.admin.username) {
-      admin = await db.Admin.findOne({ username: req.admin.username });
+      admin = await db.Admin.findOne({ username: req.admin.username, tenantId: req.tenantId });
     }
 
     if (!admin) {
@@ -105,15 +257,23 @@ router.put('/profile', requireAdmin, async (req, res) => {
     }
 
     const updates = {};
-    const isChangingUsername = username && username.trim() !== admin.username;
+    const isChangingUsername = username && username.trim().toLowerCase() !== admin.username.toLowerCase();
     const isChangingPassword = Boolean(newPassword);
 
-    // Require current password for sensitive credential updates
-    if (isChangingUsername || isChangingPassword) {
+    // Enforce condition: Administrator username CANNOT be changed (locked to college domain)
+    if (isChangingUsername) {
+      return res.status(400).json({
+        success: false,
+        message: 'Administrator username cannot be changed. It is permanently bound to your college domain.'
+      });
+    }
+
+    // Require current password for sensitive credential updates (e.g. changing password)
+    if (isChangingPassword) {
       if (!currentPassword) {
         return res.status(400).json({
           success: false,
-          message: 'Current password is required to change username or password.'
+          message: 'Current password is required to change password.'
         });
       }
 
@@ -124,34 +284,6 @@ router.put('/profile', requireAdmin, async (req, res) => {
           message: 'Current password is incorrect.'
         });
       }
-    }
-
-    // Validate and prepare new username
-    if (isChangingUsername) {
-      const cleanUsername = username.trim();
-      if (cleanUsername.length < 3) {
-        return res.status(400).json({
-          success: false,
-          message: 'Username must be at least 3 characters long.'
-        });
-      }
-      if (!/^[a-zA-Z0-9_.-]+$/.test(cleanUsername)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Username may only contain letters, numbers, hyphens, dots, and underscores.'
-        });
-      }
-
-      // Check if username is already taken by another account
-      const existingUser = await db.Admin.findOne({ username: cleanUsername });
-      if (existingUser && String(existingUser._id || existingUser.id) !== String(admin._id || admin.id)) {
-        return res.status(400).json({
-          success: false,
-          message: 'This username is already taken. Please choose another one.'
-        });
-      }
-
-      updates.username = cleanUsername;
     }
 
     // Validate and prepare new password
@@ -170,7 +302,7 @@ router.put('/profile', requireAdmin, async (req, res) => {
     if (email !== undefined) updates.email = email.trim();
 
     if (Object.keys(updates).length > 0) {
-      await db.Admin.updateOne({ _id: admin._id || admin.id }, updates);
+      await db.Admin.updateOne({ _id: admin._id || admin.id, tenantId: req.tenantId }, updates);
     }
 
     // Determine final values
@@ -181,9 +313,9 @@ router.put('/profile', requireAdmin, async (req, res) => {
 
     // Generate fresh JWT token with updated username
     const token = jwt.sign(
-      { id: finalId, username: finalUsername, email: finalEmail },
+      { id: finalId, username: finalUsername, email: finalEmail, tenantId: req.tenantId },
       JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: '8h' }
     );
 
     // Audit log
@@ -195,6 +327,7 @@ router.put('/profile', requireAdmin, async (req, res) => {
     ].filter(Boolean);
 
     await db.AuditLog.create({
+      tenantId: req.tenantId,
       username: finalUsername,
       action: 'ADMIN_CREDENTIALS_UPDATED',
       entityType: 'auth',
@@ -211,7 +344,8 @@ router.put('/profile', requireAdmin, async (req, res) => {
         id: finalId,
         username: finalUsername,
         email: finalEmail,
-        fullName: finalFullName
+        fullName: finalFullName,
+        tenantId: req.tenantId
       }
     });
   } catch (err) {
@@ -242,7 +376,7 @@ router.post('/change-password', requireAdmin, async (req, res) => {
       });
     }
 
-    const admin = await db.Admin.findOne({ username: req.admin.username });
+    const admin = await db.Admin.findOne({ username: req.admin.username, tenantId: req.tenantId });
     if (!admin) {
       return res.status(404).json({
         success: false,
@@ -259,9 +393,10 @@ router.post('/change-password', requireAdmin, async (req, res) => {
     }
 
     const newHash = bcrypt.hashSync(newPassword, 10);
-    await db.Admin.updateOne({ _id: admin._id }, { passwordHash: newHash });
+    await db.Admin.updateOne({ _id: admin._id || admin.id, tenantId: req.tenantId }, { passwordHash: newHash });
 
     await db.AuditLog.create({
+      tenantId: req.tenantId,
       username: admin.username,
       action: 'ADMIN_PASSWORD_CHANGED',
       entityType: 'auth',

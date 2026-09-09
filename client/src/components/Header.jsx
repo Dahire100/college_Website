@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, Mail, Lock, Menu, X, ArrowRight, ChevronDown, Globe, ExternalLink } from 'lucide-react';
+import { Phone, Mail, Lock, Shield, Menu, X, ArrowRight, ChevronDown, Globe, ExternalLink } from 'lucide-react';
 import { getInstitutionProfile } from '../content/institutionProfile';
 import { api } from '../services/api';
 
@@ -51,26 +51,30 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
   // Group active subpages by parentSlug
   const subpagesByParent = {};
 
+  const sanitizeSlug = (s) => (s || '').replace(/^#\/?/, '').replace(/^\/+|\/+$/g, '').trim();
+
   const addSubpage = (parentKey, subObj) => {
     if (!parentKey || !subObj?.slug) return;
-    const pk = parentKey.toLowerCase().trim();
+    const pk = sanitizeSlug(parentKey).toLowerCase();
+    const cleanSlug = sanitizeSlug(subObj.slug);
+    if (!pk || !cleanSlug) return;
     if (!subpagesByParent[pk]) subpagesByParent[pk] = [];
     const normTitle = (subObj.title || subObj.navLabel || '').trim().toLowerCase();
     const idx = subpagesByParent[pk].findIndex(s =>
-      s.slug === subObj.slug ||
+      sanitizeSlug(s.slug) === cleanSlug ||
       (normTitle && (s.title || s.navLabel || '').trim().toLowerCase() === normTitle)
     );
     if (idx >= 0) {
-      subpagesByParent[pk][idx] = { ...subpagesByParent[pk][idx], ...subObj };
+      subpagesByParent[pk][idx] = { ...subpagesByParent[pk][idx], ...subObj, slug: cleanSlug };
     } else {
-      subpagesByParent[pk].push(subObj);
+      subpagesByParent[pk].push({ ...subObj, slug: cleanSlug });
     }
   };
 
   // 1. Initialize known subpages baseline
   Object.entries(KNOWN_SUBPAGE_REGISTRY).forEach(([slug, info]) => {
     addSubpage(info.parent, {
-      slug,
+      slug: sanitizeSlug(slug),
       title: info.title,
       parentSlug: info.parent,
       isActive: true,
@@ -82,8 +86,8 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
   if (Array.isArray(navigation)) {
     navigation.forEach(n => {
       if (n.isActive === false) return;
-      const cleanId = (n.path || '').replace('#', '').trim();
-      const parentId = (n.parentId || '').trim().toLowerCase();
+      const cleanId = sanitizeSlug(n.path);
+      const parentId = sanitizeSlug(n.parentId).toLowerCase();
       if (parentId && parentId !== '0' && cleanId) {
         addSubpage(parentId, {
           slug: cleanId,
@@ -101,7 +105,7 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
     pages.forEach(p => {
       if (!p.isActive || p.showInHeader === false) return;
       if (p.parentSlug) {
-        addSubpage(p.parentSlug, p);
+        addSubpage(p.parentSlug, { ...p, slug: sanitizeSlug(p.slug) });
       }
     });
   }
@@ -128,10 +132,16 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
   }));
 
   if (Array.isArray(navigation) && navigation.length > 0) {
+    const sanitizePath = (p) => (p || '').replace(/^#\/?/, '').replace(/^\/+|\/+$/g, '').trim();
+    const normalizeNavKey = (p) => {
+      const s = sanitizePath(p).toLowerCase();
+      return (!s || s === 'homepage') ? 'home' : s;
+    };
+
     const activePaths = new Set(
       navigation
-        .filter(n => n.isActive !== false && !isSubpageItem((n.path || '').replace('#', '').trim(), n))
-        .map(n => (n.path || '').replace('#', '').trim())
+        .filter(n => n.isActive !== false && !isSubpageItem(sanitizePath(n.path), n))
+        .map(n => normalizeNavKey(n.path))
     );
 
     if (activePaths.size > 0) {
@@ -139,23 +149,57 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
         .filter(item => activePaths.has(item.id) || ['home', 'about', 'academics', 'programs', 'admissions', 'campus', 'placements', 'research', 'life', 'news', 'contact'].includes(item.id))
         .map(d => ({ ...d, subpages: subpagesByParent[d.id] || [] }));
 
-      // Custom top-level pages only (strictly exclude any subpages)
-      const customNavs = navigation
-        .filter(n => {
-          if (n.isActive === false) return false;
-          const cleanId = (n.path || '').replace('#', '').trim();
-          if (defaultNavItems.some(d => d.id === cleanId)) return false;
-          if (isSubpageItem(cleanId, n)) return false;
-          return true;
-        })
-        .map(n => {
-          const cleanId = (n.path || '').replace('#', '').trim();
-          return { id: cleanId, label: n.title, subpages: subpagesByParent[cleanId] || [] };
+      // Custom top-level pages only (strictly exclude any subpages, home duplicates, or items matching core navs)
+      const seenCustomKeys = new Set();
+      const customNavs = [];
+
+      navigation.forEach(n => {
+        if (n.isActive === false) return;
+        const cleanId = sanitizePath(n.path);
+        const normKey = normalizeNavKey(n.path);
+        const normTitle = (n.title || '').trim().toLowerCase();
+
+        // Strictly exclude home / homepage (already represented as the root item in coreNavs)
+        if (normKey === 'home' || normTitle === 'home' || normTitle === 'homepage') return;
+
+        // Strictly exclude any item matching defaultNavItems by id or label
+        if (defaultNavItems.some(d => d.id === normKey || d.id === cleanId || d.label.toLowerCase() === normTitle)) return;
+
+        // Strictly exclude if it is a subpage belonging to a parent
+        if (isSubpageItem(cleanId, n)) return;
+
+        // Deduplicate custom nav entries
+        if (seenCustomKeys.has(cleanId || normKey) || seenCustomKeys.has(normTitle)) return;
+
+        seenCustomKeys.add(cleanId || normKey);
+        seenCustomKeys.add(normTitle);
+
+        customNavs.push({
+          id: cleanId || normKey,
+          label: n.title,
+          subpages: subpagesByParent[cleanId] || subpagesByParent[normKey] || []
         });
+      });
 
       navItems = [...coreNavs, ...customNavs];
     }
   }
+
+  // Final deduplication safeguard: ensure every navItem in desktop & mobile header has a unique id and unique label
+  const seenNavIds = new Set();
+  const seenNavLabels = new Set();
+  navItems = navItems.filter(item => {
+    const rawId = (item.id || '').trim().toLowerCase();
+    const effectiveId = (!rawId || rawId === 'homepage') ? 'home' : rawId;
+    const normLabel = (item.label || '').trim().toLowerCase();
+
+    if (seenNavIds.has(effectiveId) || seenNavLabels.has(normLabel)) {
+      return false;
+    }
+    seenNavIds.add(effectiveId);
+    seenNavLabels.add(normLabel);
+    return true;
+  });
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -317,6 +361,37 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
             >
               <Lock size={11} /> Admin CMS
             </button>
+
+            <button
+              onClick={() => handleNavClick('superadmin')}
+              style={{
+                background: 'linear-gradient(135deg, rgba(37,99,235,0.2), rgba(29,78,216,0.35))',
+                border: '1px solid rgba(96,165,250,0.5)',
+                color: '#93C5FD',
+                cursor: 'pointer',
+                fontSize: '0.73rem',
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                padding: '0.22rem 0.65rem',
+                borderRadius: '6px',
+                transition: 'all 200ms',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = 'rgba(37,99,235,0.45)';
+                e.currentTarget.style.borderColor = '#93C5FD';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(37,99,235,0.2), rgba(29,78,216,0.35))';
+                e.currentTarget.style.borderColor = 'rgba(96,165,250,0.5)';
+                e.currentTarget.style.transform = 'none';
+              }}
+            >
+              <Shield size={11} /> SuperAdmin
+            </button>
           </div>
         </div>
       </div>
@@ -325,7 +400,7 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
       <div style={{ background: '#FFFFFF', padding: '0.75rem 0', borderBottom: '1px solid #E2E8F0' }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
           <a
-            href="#home"
+            href="/"
             onClick={(e) => { e.preventDefault(); handleNavClick('home'); }}
             style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.9rem', minWidth: 0 }}
           >
@@ -447,9 +522,10 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
         backdropFilter: scrolled ? 'blur(12px)' : 'none',
         borderBottom: '3px solid var(--color-accent)',
         boxShadow: scrolled ? '0 4px 20px rgba(0,0,0,0.15)' : 'none',
-        transition: 'all 300ms ease'
+        transition: 'all 300ms ease',
+        overflow: 'visible'
       }}>
-        <div className="container" style={{ display: 'flex', alignItems: 'center', padding: '0 0.5rem' }}>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', padding: '0 0.5rem', overflow: 'visible', position: 'relative' }}>
           {/* Mobile Sticky Bar (Active when scrolled on mobile) */}
           <div className="mobile-sticky-nav-bar" style={{ display: 'none', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '0.45rem 0.25rem' }}>
             <button
@@ -480,7 +556,7 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
             </div>
           </div>
 
-          <div className="nav-links-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'nowrap', overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="nav-links-wrap" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', flexWrap: 'nowrap', overflow: 'visible', position: 'relative' }}>
 
             {/* Institutes Dropdown (Group Mode) */}
             {isGroupMode && subInstitutions.length > 0 && (
@@ -521,7 +597,7 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
                     {subInstitutions.map(inst => (
                       <a
                         key={inst._id}
-                        href={inst.websiteUrl || '#'}
+                        href={inst.websiteUrl || '/'}
                         target={inst.websiteUrl ? '_blank' : '_self'}
                         rel="noopener noreferrer"
                         style={{
@@ -589,12 +665,15 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
               return (
                 <div
                   key={item.id}
-                  style={{ position: 'relative' }}
+                  style={{ position: 'relative', overflow: 'visible' }}
                   onMouseEnter={() => setActiveDropdown(item.id)}
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
                   <button
-                    onClick={() => handleNavClick(item.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveDropdown(activeDropdown === item.id ? null : item.id);
+                    }}
                     style={{
                       background: isActive ? 'rgba(217, 119, 6, 0.2)' : 'transparent',
                       color: isActive ? '#FCD34D' : '#F8FAFC',
@@ -631,16 +710,19 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
                     <div
                       style={{
                         position: 'absolute',
-                        top: '100%',
+                        top: 'calc(100% - 1px)',
                         left: 0,
-                        minWidth: '270px',
+                        minWidth: '280px',
                         background: '#FFFFFF',
-                        border: '1px solid #E2E8F0',
+                        border: '1px solid #CBD5E1',
                         borderRadius: '10px',
-                        boxShadow: '0 16px 40px rgba(0, 33, 71, 0.22)',
+                        boxShadow: '0 20px 50px rgba(0, 33, 71, 0.35)',
                         padding: '0.45rem',
-                        zIndex: 1100,
-                        animation: 'fadeInDown 0.18s ease'
+                        zIndex: 99999,
+                        display: 'block',
+                        visibility: 'visible',
+                        opacity: 1,
+                        animation: 'fadeInDown 0.15s ease'
                       }}
                     >
                       <div style={{
@@ -763,7 +845,7 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
                   {subInstitutions.map(inst => (
                     <a
                       key={inst._id}
-                      href={inst.websiteUrl || '#'}
+                      href={inst.websiteUrl || '/'}
                       target={inst.websiteUrl ? '_blank' : '_self'}
                       rel="noopener noreferrer"
                       style={{

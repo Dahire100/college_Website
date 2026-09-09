@@ -55,6 +55,19 @@ export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
     return () => { isMounted = false; };
   }, [slug]);
 
+  const handleCtaClick = (e, link) => {
+    if (!link) return;
+    if (!link.startsWith('http://') && !link.startsWith('https://') && !link.startsWith('mailto:') && !link.startsWith('tel:')) {
+      e.preventDefault();
+      const clean = link.replace(/^#\/?/, '').replace(/^\/+/, '');
+      if (onNavigate) {
+        onNavigate(clean || 'home');
+      } else {
+        window.history.pushState(null, '', clean ? `/${clean}` : '/');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)' }}>
@@ -484,7 +497,8 @@ export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
 
                       {sub.ctaText && (
                         <a 
-                          href={sub.ctaLink || '#contact'} 
+                          href={sub.ctaLink || '/contact'} 
+                          onClick={(e) => handleCtaClick(e, sub.ctaLink || '/contact')}
                           className="btn btn-primary"
                           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                         >
@@ -550,7 +564,8 @@ export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
 
                       {sub.ctaText && (
                         <a 
-                          href={sub.ctaLink || '#contact'} 
+                          href={sub.ctaLink || '/contact'} 
+                          onClick={(e) => handleCtaClick(e, sub.ctaLink || '/contact')}
                           className="btn"
                           style={{ background: '#FFFFFF', color: '#0F172A', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', borderRadius: '8px' }}
                         >
@@ -616,7 +631,8 @@ export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
 
                       {sub.ctaText && (
                         <a 
-                          href={sub.ctaLink || '#contact'} 
+                          href={sub.ctaLink || '/contact'} 
+                          onClick={(e) => handleCtaClick(e, sub.ctaLink || '/contact')}
                           className="btn btn-outline"
                           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                         >
@@ -690,7 +706,11 @@ export default function CustomPage({ slug, onOpenInquiry, onNavigate }) {
                   </p>
                   {sub.ctaText && (
                     <div style={{ marginTop: '1.5rem' }}>
-                      <a href={sub.ctaLink || '#contact'} className="btn btn-sm btn-primary">
+                      <a
+                        href={sub.ctaLink || '/contact'}
+                        onClick={(e) => handleCtaClick(e, sub.ctaLink || '/contact')}
+                        className="btn btn-sm btn-primary"
+                      >
                         {sub.ctaText}
                       </a>
                     </div>

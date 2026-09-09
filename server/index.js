@@ -9,9 +9,13 @@ const { seed } = require('./seed');
 const helmet = require('helmet');
 const compression = require('compression');
 const { apiLimiter } = require('./middleware/rateLimit');
+const { resolveTenant } = require('./middleware/tenant');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Trust exactly one reverse proxy hop (Render / Vercel edge) - prevents IP and Host spoofing
+app.set('trust proxy', 1);
 
 // Security Middleware (Helmet HTTP Headers with permissive CSP for React SPA & CDNs)
 app.use(helmet({
@@ -36,46 +40,17 @@ app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
-// Apply API Rate Limiting to /api routes
-app.use('/api', apiLimiter);
-
 // Ensure public uploads directory exists
 const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Serve uploaded media with client caching headers (7 days)
-app.use('/uploads', express.static(uploadsDir, {
-  maxAge: '7d',
-  immutable: true
-}));
+// 1. GLOBAL SUPERADMIN API (Isolated from Tenant Resolution)
+const superadminRoutes = require('./routes/superadmin');
+app.use('/superadmin', superadminRoutes);
 
-// Serve Frontend Static Assets with HTTP Caching (1 day for general assets, 1 year for immutable hashed assets)
-const publicDir = path.join(__dirname, '..', 'public');
-app.use(express.static(publicDir, {
-  maxAge: '1d',
-  setHeaders: (res, filePath) => {
-    if (filePath.includes('assets') || filePath.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$/)) {
-      // 1 year cache for hashed production bundles & static media
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    } else {
-      // index.html or root documents should revalidate
-      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-    }
-  }
-}));
-
-// Mount REST API Routes
-const authRoutes = require('./routes/auth');
-const publicRoutes = require('./routes/public');
-const adminRoutes = require('./routes/admin');
-
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/public', publicRoutes);
-app.use('/api/v1/admin', adminRoutes);
-
-// Health Check Endpoint
+// 2. UNPROTECTED HEALTH CHECK (System monitoring without domain requirements)
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
@@ -83,6 +58,58 @@ app.get('/api/health', (req, res) => {
     database: 'MongoDB Atlas / Local Fallback Ready'
   });
 });
+
+// Apply API Rate Limiting to /api routes
+app.use('/api', apiLimiter);
+
+// 3. TENANT RESOLUTION MIDDLEWARE
+// Applied to all /api routes (except health) and /uploads
+app.use('/api', resolveTenant);
+app.use('/auth', resolveTenant);
+app.use('/uploads', resolveTenant);
+
+// 4. TENANT CONFIG ENDPOINTS
+const tenantConfigRoutes = require('./routes/tenantConfig');
+app.use('/api/tenant-config', tenantConfigRoutes);
+app.use('/api/v1/public/tenant-config', tenantConfigRoutes);
+
+// 5. REST API ROUTES (TENANT-SCOPED)
+const authRoutes = require('./routes/auth');
+const publicRoutes = require('./routes/public');
+const adminRoutes = require('./routes/admin');
+
+app.use('/api/v1/auth', authRoutes);
+app.use('/auth', authRoutes);
+app.use('/api/v1/public', publicRoutes);
+app.use('/api/v1/admin', adminRoutes);
+
+// 6. MEDIA UPLOAD SERVING (Tenant Partitioned & Access Controlled)
+app.use('/uploads/:tenantId', (req, res, next) => {
+  if (req.tenantId && req.params.tenantId !== req.tenantId) {
+    return res.status(403).json({ success: false, message: 'Forbidden: Cross-tenant file access blocked' });
+  }
+  const tenantDir = path.join(uploadsDir, req.params.tenantId);
+  express.static(tenantDir, { maxAge: '7d', immutable: true })(req, res, next);
+});
+
+// Fallback for root / legacy uploaded media with client caching headers
+app.use('/uploads', express.static(uploadsDir, {
+  maxAge: '7d',
+  immutable: true
+}));
+
+// Serve Frontend Static Assets with HTTP Caching
+const publicDir = path.join(__dirname, '..', 'public');
+app.use(express.static(publicDir, {
+  maxAge: '1d',
+  setHeaders: (res, filePath) => {
+    if (filePath.includes('assets') || filePath.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$/)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    }
+  }
+}));
 
 // Catch-all route to serve index.html for SPA client-side routing
 app.get('*', (req, res) => {
@@ -102,26 +129,29 @@ app.use((err, req, res, next) => {
 async function startServer() {
   await connectDB();
   
-  // Ensure default seed data exists
-  const noticeCount = await db.Notice.countDocuments();
-  const pageCount = await db.Page.countDocuments();
-  if (noticeCount === 0 || pageCount === 0) {
-    console.log('[Server] Ensuring initial institutional data and pages are seeded...');
+  // Ensure default seed data and tenant exist
+  const tenantCount = await db.Tenant.countDocuments();
+  if (tenantCount === 0) {
+    console.log('[Server] Ensuring initial institutional data and default tenant are seeded...');
     await seed();
   }
 
   app.listen(PORT, () => {
     console.log(`=======================================================`);
-    console.log(`🚀 Modern College Portal & CMS Server Running`);
+    console.log(`🚀 Modern College Portal & Multi-Tenant SaaS Server Running`);
     console.log(`🌐 Public Website:      http://localhost:${PORT}/`);
-    console.log(`🔐 Single Admin CMS:    http://localhost:${PORT}/#admin`);
-    console.log(`🔑 Default Credentials: ${process.env.ADMIN_USERNAME || 'admin'} / ${process.env.ADMIN_PASSWORD || 'Admin@123'}`);
+    console.log(`🔐 Unified Admin CMS:   http://localhost:${PORT}/admin`);
+    console.log(`🔑 Tenant Admin:        ${process.env.ADMIN_USERNAME || 'admin'} / ${process.env.ADMIN_PASSWORD || 'Admin@123'}`);
+    console.log(`👑 SuperAdmin:          ${process.env.SUPERADMIN_USERNAME || 'superadmin'} / ${process.env.SUPERADMIN_PASSWORD || 'SuperAdmin@123'}`);
     console.log(`=======================================================`);
   });
 }
 
-startServer().catch(err => {
-  console.error('Failed to start server:', err);
-});
+if (require.main === module) {
+  startServer().catch(err => {
+    console.error('Failed to start server:', err);
+  });
+}
 
 module.exports = app;
+module.exports.startServer = startServer;

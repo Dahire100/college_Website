@@ -1,25 +1,94 @@
 require('dotenv').config();
 const bcrypt = require('bcryptjs');
-const { db, connectDB } = require('./db');
+const { db, connectDB, getTenantDb, tenantStorage } = require('./db');
 
-async function seed() {
+async function seed(targetTenantId = null) {
   console.log('[Seed] Starting database population with institutional data...');
   await connectDB();
 
-  // 1. Single Admin User
-  const adminCount = await db.Admin.countDocuments();
-  if (adminCount === 0) {
-    const defaultPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
-    const passwordHash = bcrypt.hashSync(defaultPassword, 10);
-    await db.Admin.create({
-      username: process.env.ADMIN_USERNAME || 'admin',
-      email: process.env.ADMIN_EMAIL || 'admin@apex-inst.edu',
+  // 0a. SuperAdmin Account (Global)
+  const superAdminCount = await db.SuperAdmin.countDocuments();
+  if (superAdminCount === 0) {
+    const superPassword = process.env.SUPERADMIN_PASSWORD || 'SuperAdmin@123';
+    const passwordHash = bcrypt.hashSync(superPassword, 10);
+    await db.SuperAdmin.create({
+      username: process.env.SUPERADMIN_USERNAME || 'superadmin',
+      email: process.env.SUPERADMIN_EMAIL || 'superadmin@apex-inst.edu',
       passwordHash,
-      fullName: process.env.ADMIN_NAME || 'Chief Institutional Administrator',
+      role: 'superadmin',
       lastLogin: new Date()
     });
-    console.log(`[Seed] Created Single Admin account: ${process.env.ADMIN_USERNAME || 'admin'} / ${defaultPassword}`);
+    console.log(`[Seed] Created SuperAdmin account: ${process.env.SUPERADMIN_USERNAME || 'superadmin'} / ${superPassword}`);
   }
+
+  // 0b. Default Tenant (Global)
+  let tenant = null;
+  if (targetTenantId) {
+    tenant = await db.Tenant.findById(targetTenantId);
+  } else {
+    tenant = await db.Tenant.findOne({ domain: 'localhost' });
+    if (!tenant) {
+      tenant = await db.Tenant.create({
+        name: 'Apex Institute of Engineering & Technology',
+        domain: 'localhost',
+        subdomain: 'apex',
+        status: 'active',
+        plan: 'enterprise',
+        branding: {
+          collegeName: 'Apex Institute of Engineering & Technology',
+          logoUrl: '',
+          primaryColor: '#0f172a',
+          storageLimitBytes: 524288000
+        }
+      });
+      console.log('[Seed] Created default tenant: localhost (Apex Institute)');
+    }
+  }
+
+  const tenantId = String(tenant._id || tenant.id);
+  const tenantDb = getTenantDb(tenantId);
+
+  // Drop legacy non-compound indexes if connected to MongoDB Atlas
+  const { mongoose, Models } = require('./db');
+  if (mongoose.connection && mongoose.connection.readyState === 1) {
+    try {
+      await Models.Admin.collection.dropIndex('username_1').catch(() => {});
+      await Models.Page.collection.dropIndex('slug_1').catch(() => {});
+      await Models.Department.collection.dropIndex('code_1').catch(() => {});
+      await Models.Placement.collection.dropIndex('academicYear_1').catch(() => {});
+      await Models.SubInstitution.collection.dropIndex('slug_1').catch(() => {});
+      await Models.SiteSetting.collection.dropIndex('key_1').catch(() => {});
+      await Models.HomepageSection.collection.dropIndex('sectionKey_1').catch(() => {});
+    } catch (e) {}
+
+    // Backfill legacy documents without tenantId
+    const collectionsToBackfill = ['admins', 'sitesettings', 'navigations', 'pages', 'notices', 'events', 'departments', 'courses', 'faculties', 'admissions', 'placements', 'recruiters', 'facilities', 'testimonials', 'leaderships', 'researches', 'galleries', 'subinstitutions', 'homepagesections', 'banners', 'media', 'auditlogs'];
+    for (const colName of collectionsToBackfill) {
+      try {
+        await mongoose.connection.collection(colName).updateMany(
+          { tenantId: { $exists: false } },
+          { $set: { tenantId } }
+        );
+      } catch (e) {}
+    }
+  }
+
+  return await tenantStorage.run({ tenantId, tenant, tenantDb }, async () => {
+    // 1. Single Admin User for Tenant
+    const adminCount = await db.Admin.countDocuments();
+    if (adminCount === 0) {
+      const defaultPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
+      const passwordHash = bcrypt.hashSync(defaultPassword, 10);
+      await db.Admin.create({
+        tenantId,
+        username: process.env.ADMIN_USERNAME || 'admin',
+        email: process.env.ADMIN_EMAIL || 'admin@apex-inst.edu',
+        passwordHash,
+        fullName: process.env.ADMIN_NAME || 'Chief Institutional Administrator',
+        lastLogin: new Date()
+      });
+      console.log(`[Seed] Created Single Admin account: ${process.env.ADMIN_USERNAME || 'admin'} / ${defaultPassword}`);
+    }
 
   // 2. Site Settings
   const settings = [
@@ -56,24 +125,42 @@ async function seed() {
 
   // 3. Navigation
   const navItems = [
-    { title: 'Home', path: '#home', parentId: '0', sortOrder: 1 },
-    { title: 'About Us', path: '#about', parentId: '0', sortOrder: 2 },
-    { title: 'Leadership', path: '#leadership', parentId: '0', sortOrder: 3 },
-    { title: 'Academics', path: '#academics', parentId: '0', sortOrder: 4 },
-    { title: 'Departments', path: '#departments', parentId: '0', sortOrder: 5 },
-    { title: 'Admissions', path: '#admissions', parentId: '0', sortOrder: 6 },
-    { title: 'Placements', path: '#placements', parentId: '0', sortOrder: 7 },
-    { title: 'Campus & Facilities', path: '#campus', parentId: '0', sortOrder: 8 },
-    { title: 'Student Life', path: '#life', parentId: '0', sortOrder: 9 },
-    { title: 'Research', path: '#research', parentId: '0', sortOrder: 10 },
-    { title: 'News & Notices', path: '#news', parentId: '0', sortOrder: 11 },
-    { title: 'Contact Us', path: '#contact', parentId: '0', sortOrder: 12 }
+    { title: 'Home', path: '/', parentId: '0', sortOrder: 1 },
+    { title: 'About Us', path: '/about', parentId: '0', sortOrder: 2 },
+    { title: 'Leadership', path: '/leadership', parentId: '0', sortOrder: 3 },
+    { title: 'Academics', path: '/academics', parentId: '0', sortOrder: 4 },
+    { title: 'Departments', path: '/departments', parentId: '0', sortOrder: 5 },
+    { title: 'Admissions', path: '/admissions', parentId: '0', sortOrder: 6 },
+    { title: 'Placements', path: '/placements', parentId: '0', sortOrder: 7 },
+    { title: 'Campus & Facilities', path: '/campus', parentId: '0', sortOrder: 8 },
+    { title: 'Student Life', path: '/life', parentId: '0', sortOrder: 9 },
+    { title: 'Research', path: '/research', parentId: '0', sortOrder: 10 },
+    { title: 'News & Notices', path: '/news', parentId: '0', sortOrder: 11 },
+    { title: 'Contact Us', path: '/contact', parentId: '0', sortOrder: 12 }
   ];
 
   for (const n of navItems) {
     const existing = await db.Navigation.findOne({ path: n.path });
     if (!existing) {
       await db.Navigation.create(n);
+    }
+  }
+
+  // Automatic Migration: Sanitize any existing legacy '#' navigation paths in DB and deduplicate by path
+  const existingNavs = await db.Navigation.find({});
+  const seenNavKeys = new Set();
+  for (const n of existingNavs) {
+    let cleanPath = n.path;
+    if (cleanPath && cleanPath.startsWith('#')) {
+      const clean = cleanPath.replace(/^#\/?/, '').trim();
+      cleanPath = clean === 'home' || !clean ? '/' : `/${clean}`;
+      await db.Navigation.updateOne({ _id: n._id }, { $set: { path: cleanPath } });
+    }
+    const navKey = `${n.tenantId || ''}:::${(cleanPath || '').toLowerCase().trim()}`;
+    if (seenNavKeys.has(navKey)) {
+      await db.Navigation.deleteOne({ _id: n._id });
+    } else {
+      seenNavKeys.add(navKey);
     }
   }
 
@@ -111,9 +198,9 @@ async function seed() {
       subtitle: 'Autonomous Institute accredited with NAAC A++ Grade (CGPA 3.65). Fostering critical thinking, engineering research, and ethical leadership.',
       badge: 'NAAC A++ ACCREDITED | AUTONOMOUS',
       ctaText: 'Explore Academic Programs',
-      ctaLink: '#academics',
+      ctaLink: '/academics',
       secondaryCtaText: 'Apply for Admission',
-      secondaryCtaLink: '#admissions',
+      secondaryCtaLink: '/admissions',
       imageUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1920&q=80',
       sortOrder: 1,
       isActive: true
@@ -123,9 +210,9 @@ async function seed() {
       subtitle: 'Highest package ₹44.2 LPA, Average package ₹8.65 LPA. Over 350+ global recruitment partners including Google, Microsoft, NVIDIA, Siemens, and L&T.',
       badge: 'PLACEMENTS 2025-26 RECORD',
       ctaText: 'View Placement Report',
-      ctaLink: '#placements',
+      ctaLink: '/placements',
       secondaryCtaText: 'Our Recruiters',
-      secondaryCtaLink: '#recruiters',
+      secondaryCtaLink: '/placements',
       imageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1920&q=80',
       sortOrder: 2,
       isActive: true
@@ -135,9 +222,9 @@ async function seed() {
       subtitle: 'Interdisciplinary research labs in Artificial Intelligence, Electric Vehicles, Internet of Things, and Smart Manufacturing with ₹12+ Crore in funded R&D grants.',
       badge: 'RESEARCH & INNOVATION EXCELLENCE',
       ctaText: 'Discover Research Centers',
-      ctaLink: '#research',
+      ctaLink: '/research',
       secondaryCtaText: 'Virtual Campus Tour',
-      secondaryCtaLink: '#campus',
+      secondaryCtaLink: '/campus',
       imageUrl: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1920&q=80',
       sortOrder: 3,
       isActive: true
@@ -146,6 +233,26 @@ async function seed() {
 
   if ((await db.Banner.countDocuments()) === 0) {
     for (const b of banners) await db.Banner.create(b);
+  }
+
+  // Automatic Migration: Sanitize any existing legacy '#' in banner CTA links in DB
+  const existingBanners = await db.Banner.find({});
+  for (const b of existingBanners) {
+    let needsUpdate = false;
+    const updates = {};
+    if (b.ctaLink && b.ctaLink.startsWith('#')) {
+      const clean = b.ctaLink.replace(/^#\/?/, '').trim();
+      updates.ctaLink = clean === 'home' || !clean ? '/' : `/${clean}`;
+      needsUpdate = true;
+    }
+    if (b.secondaryCtaLink && b.secondaryCtaLink.startsWith('#')) {
+      const clean = b.secondaryCtaLink.replace(/^#\/?/, '').trim();
+      updates.secondaryCtaLink = clean === 'home' || !clean ? '/' : `/${clean}`;
+      needsUpdate = true;
+    }
+    if (needsUpdate) {
+      await db.Banner.updateOne({ _id: b._id }, { $set: updates });
+    }
   }
 
   // 6. Departments
@@ -1123,7 +1230,9 @@ async function seed() {
     }
   ];
 
-  if ((await db.Inquiry.countDocuments()) === 0) {
+  // Only seed sample inquiries when college tenant is first initialized
+  const tenantAlreadySeeded = (await db.SiteSetting.countDocuments()) > 0;
+  if (!tenantAlreadySeeded && (await db.Inquiry.countDocuments()) === 0) {
     for (const inq of inquiries) await db.Inquiry.create(inq);
   }
 
@@ -1441,7 +1550,9 @@ async function seed() {
     ipAddress: '127.0.0.1'
   });
 
-  console.log('[Seed] Database populated successfully! All collections ready.');
+    console.log('[Seed] Database populated successfully! All collections ready.');
+    return { success: true, tenantId };
+  });
 }
 
 if (require.main === module) {

@@ -7,22 +7,53 @@ export default function About({ settings = {}, onNavigate }) {
   const profile = getInstitutionProfile(settings);
   const [pageData, setPageData] = useState(null);
   const [subsections, setSubsections] = useState([]);
+  const [subpages, setSubpages] = useState([]);
+
+  const defaultSubpages = [
+    { slug: 'overview', title: 'Institute Overview', badge: 'INSTITUTE OVERVIEW', icon: '🏛️', desc: 'Autonomous status under statutory authorities, high-tech research labs, and academic profile.' },
+    { slug: 'our-legacy', title: 'Our Glorious Legacy', badge: 'INSTITUTIONAL HERITAGE', icon: '📜', desc: 'Founding vision of empowering youth through value-driven education and technical excellence.' },
+    { slug: 'leadership', title: 'Leadership & Governance', badge: 'GOVERNANCE', icon: '👔', desc: 'Visionary governing board, executive leadership, directorate, and academic council.' },
+    { slug: 'milestones', title: 'Institutional Milestones', badge: '1984 - PRESENT', icon: '🏆', desc: 'Chronological timeline of landmark achievements, accreditations, and autonomous growth.' },
+    { slug: 'accreditation-and-recognition', title: 'Accreditation & Approvals', badge: "NAAC 'A' • NBA • AICTE", icon: '⭐', desc: 'Prestigious accreditations including NAAC A++ Grade, NBA, and AICTE approval.' }
+  ];
 
   useEffect(() => {
     async function loadAboutData() {
       try {
-        const [pageRes, subRes] = await Promise.all([
+        const [pageRes, subRes, allPagesRes] = await Promise.all([
           api.get('/api/v1/public/pages/about').catch(() => null),
-          api.get('/api/v1/public/subsections?pageSlug=about').catch(() => null)
+          api.get('/api/v1/public/subsections?pageSlug=about').catch(() => null),
+          api.get('/api/v1/public/pages').catch(() => null)
         ]);
         if (pageRes?.data) setPageData(pageRes.data);
         if (subRes?.data) setSubsections(subRes.data);
+        if (allPagesRes?.data) {
+          const aboutSubs = allPagesRes.data.filter(p => p.parentSlug === 'about' && p.isActive !== false);
+          if (aboutSubs.length > 0) {
+            const merged = defaultSubpages.map(def => {
+              const matched = aboutSubs.find(c => c.slug === def.slug);
+              return matched ? { ...def, ...matched } : def;
+            });
+            aboutSubs.forEach(c => {
+              if (!merged.some(m => m.slug === c.slug)) {
+                merged.push({ ...c, icon: '📄', desc: c.heroSubtitle || c.content?.slice(0, 110) });
+              }
+            });
+            setSubpages(merged);
+          } else {
+            setSubpages(defaultSubpages);
+          }
+        } else {
+          setSubpages(defaultSubpages);
+        }
       } catch (err) {
         console.error('Failed to load about data:', err);
       }
     }
     loadAboutData();
   }, []);
+
+  const activeSubpages = subpages.length > 0 ? subpages : defaultSubpages;
 
   const milestones = [
     { year: '1984', title: 'Founding', desc: 'The institution was established with a vision for quality education.' },
@@ -61,6 +92,43 @@ export default function About({ settings = {}, onNavigate }) {
         </div>
       </div>
 
+      {/* Interactive Subpage Navigation Pills Bar */}
+      <div style={{ background: '#FFFFFF', borderBottom: '1px solid var(--color-border)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', position: 'sticky', top: 56, zIndex: 90 }}>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', overflowX: 'auto', padding: '0.75rem 0.5rem', scrollbarWidth: 'none' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap', marginRight: '0.25rem' }}>
+            About Sections:
+          </span>
+          {activeSubpages.map(sub => (
+            <button
+              key={sub.slug}
+              onClick={() => onNavigate(sub.slug)}
+              style={{
+                background: '#F1F5F9',
+                color: '#1E293B',
+                border: '1px solid #E2E8F0',
+                padding: '0.4rem 0.95rem',
+                borderRadius: '9999px',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                transition: 'all 150ms ease',
+                fontFamily: "'Inter', sans-serif"
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#002147'; e.currentTarget.style.color = '#FCD34D'; e.currentTarget.style.borderColor = '#002147'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#F1F5F9'; e.currentTarget.style.color = '#1E293B'; e.currentTarget.style.borderColor = '#E2E8F0'; }}
+            >
+              <span>{sub.icon || '🏛️'}</span>
+              <span>{sub.navLabel || sub.title}</span>
+              <ArrowRight size={12} style={{ opacity: 0.6 }} />
+            </button>
+          ))}
+        </div>
+      </div>
+
       <section className="section">
         <div className="container">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '2.5rem', alignItems: 'center' }}>
@@ -78,6 +146,70 @@ export default function About({ settings = {}, onNavigate }) {
             <div style={{ position: 'relative' }}>
               <img src={pageData?.heroImageUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1000&q=80'} alt="Institution" style={{ width: '100%', height: 'auto', maxHeight: '420px', objectFit: 'cover', borderRadius: '16px' }} />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Explore About Subpages Grid */}
+      <section className="section" style={{ background: '#FFFFFF', borderTop: '1px solid var(--color-border)' }}>
+        <div className="container">
+          <div className="section-header">
+            <span className="pill-badge-blue">Institutional Structure</span>
+            <h2 className="section-title">Explore About Us Subpages & Governance</h2>
+            <p className="section-desc">Access detailed autonomous charters, founding legacy, leadership councils, and accreditation recognitions.</p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1.75rem' }}>
+            {activeSubpages.map((sub, idx) => (
+              <div
+                key={sub.slug || idx}
+                style={{
+                  background: '#F8FAFC',
+                  borderRadius: '16px',
+                  border: '1px solid var(--color-border)',
+                  padding: '1.75rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  transition: 'all 200ms ease',
+                  boxShadow: 'var(--shadow-sm)'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,33,71,0.08)'; e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; e.currentTarget.style.borderColor = 'var(--color-border)'; }}
+              >
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <span style={{ fontSize: '1.75rem' }}>{sub.icon || '🏛️'}</span>
+                    <span style={{
+                      background: 'rgba(37, 99, 235, 0.08)',
+                      color: '#2563EB',
+                      padding: '0.2rem 0.65rem',
+                      borderRadius: '9999px',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em'
+                    }}>
+                      {sub.badge || sub.heroBadge || 'ABOUT SECTION'}
+                    </span>
+                  </div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-primary)', marginBottom: '0.5rem' }}>
+                    {sub.title}
+                  </h3>
+                  <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+                    {sub.desc || sub.heroSubtitle || sub.content?.slice(0, 120)}
+                  </p>
+                </div>
+                <button
+                  onClick={() => onNavigate(sub.slug)}
+                  className="btn btn-sm btn-primary"
+                  style={{ width: '100%', justifyContent: 'center', gap: '0.4rem', fontWeight: 600 }}
+                >
+                  <span>Explore {sub.navLabel || sub.title}</span>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       </section>

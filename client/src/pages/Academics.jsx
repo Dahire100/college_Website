@@ -1,15 +1,40 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, Award, GraduationCap, CheckCircle2, ArrowRight, Compass, Clock, ShieldCheck, Briefcase } from 'lucide-react';
+import { api } from '../services/api';
 import { getInstitutionProfile } from '../content/institutionProfile';
 
 export default function Academics({ settings = {}, onNavigate }) {
   const profile = getInstitutionProfile(settings);
-  const schools = [
-    { name: 'School of Science and Technology', departments: ['Core Programs', 'Applied Labs', 'Research Cells'], dean: 'Managed by CMS', thrust: 'Computing, science, and applied learning', code: 'SST' },
-    { name: 'School of Professional Studies', departments: ['Professional Programs', 'Skill Tracks', 'Industry Projects'], dean: 'Managed by CMS', thrust: 'Career-aligned professional education', code: 'SPS' },
-    { name: 'School of Health and Allied Studies', departments: ['Pharmacy', 'Health Sciences', 'Training Units'], dean: 'Managed by CMS', thrust: 'Health, pharmacy, and clinical practice', code: 'SHA' },
-    { name: 'School of Schooling and Junior College', departments: ['School Sections', 'Junior College', 'Parent Services'], dean: 'Managed by CMS', thrust: 'Foundational education and college streams', code: 'SSJ' }
+  const [pageData, setPageData] = useState(null);
+  const [subsections, setSubsections] = useState([]);
+  const [dbDepartments, setDbDepartments] = useState([]);
+
+  useEffect(() => {
+    async function loadAcademicsData() {
+      try {
+        const [pageRes, subRes, deptRes] = await Promise.all([
+          api.get('/api/v1/public/pages/academics').catch(() => null),
+          api.get('/api/v1/public/subsections?pageSlug=academics').catch(() => null),
+          api.get('/api/v1/public/departments').catch(() => null)
+        ]);
+        if (pageRes?.data) setPageData(pageRes.data);
+        if (subRes?.data) setSubsections(subRes.data);
+        if (deptRes?.data && Array.isArray(deptRes.data)) setDbDepartments(deptRes.data);
+      } catch (err) {
+        console.error('Failed to load academics data:', err);
+      }
+    }
+    loadAcademicsData();
+  }, []);
+
+  const defaultSchools = [
+    { name: 'School of Science and Technology', departments: ['Core Programs', 'Applied Labs', 'Research Cells'], dean: 'Academic Dean', thrust: 'Computing, science, and applied learning', code: 'SST' },
+    { name: 'School of Professional Studies', departments: ['Professional Programs', 'Skill Tracks', 'Industry Projects'], dean: 'Program Chair', thrust: 'Career-aligned professional education', code: 'SPS' },
+    { name: 'School of Health and Allied Studies', departments: ['Pharmacy', 'Health Sciences', 'Training Units'], dean: 'Head of Faculty', thrust: 'Health, pharmacy, and clinical practice', code: 'SHA' },
+    { name: 'School of Schooling and Junior College', departments: ['School Sections', 'Junior College', 'Parent Services'], dean: 'Principal Coordinator', thrust: 'Foundational education and college streams', code: 'SSJ' }
   ];
+
+  const schools = defaultSchools;
 
   return (
     <div style={{ background: '#F8FAFC', minHeight: '100vh', paddingBottom: '5rem' }}>
@@ -118,6 +143,33 @@ export default function Academics({ settings = {}, onNavigate }) {
           </div>
         </div>
       </div>
+
+      {/* Dynamic CMS Subsections if created by Admin in Studio */}
+      {subsections && subsections.length > 0 && (
+        <div className="container" style={{ marginTop: '4rem' }}>
+          <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 2.5rem' }}>
+            <span className="pill-badge-blue">Academic Units & Details</span>
+            <h2 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0F172A', marginTop: '0.4rem' }}>Institutional Academic Framework</h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {subsections.map((sub, idx) => (
+              <div key={sub._id || idx} style={{ background: '#FFFFFF', borderRadius: '16px', border: '1px solid #E2E8F0', padding: 'clamp(1.5rem, 3vw, 2.5rem)', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
+                {sub.badge && (
+                  <span style={{ background: '#EFF6FF', color: '#2563EB', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', display: 'inline-block', marginBottom: '0.75rem' }}>
+                    {sub.badge}
+                  </span>
+                )}
+                <h3 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#0F172A', marginBottom: '0.75rem' }}>{sub.title}</h3>
+                {sub.content && (
+                  <p style={{ fontSize: '0.95rem', color: '#475569', lineHeight: 1.7, whiteSpace: 'pre-line', margin: 0 }}>
+                    {sub.content}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

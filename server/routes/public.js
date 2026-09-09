@@ -7,19 +7,20 @@ const { inquiryLimiter } = require('../middleware/rateLimit');
 // Returns site settings, navigation menus, and homepage sections order/visibility
 router.get('/config', async (req, res) => {
   try {
-    const rawSettings = await db.SiteSetting.find({});
+    const tenantId = req.tenantId;
+    const rawSettings = await db.SiteSetting.find({ tenantId });
     const settings = {};
     for (const s of rawSettings) {
       settings[s.key] = s.value;
     }
 
-    const navigation = await db.Navigation.find({ isActive: true });
+    const navigation = await db.Navigation.find({ tenantId, isActive: true });
     navigation.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
-    const sections = await db.HomepageSection.find({ isVisible: true });
+    const sections = await db.HomepageSection.find({ tenantId, isVisible: true });
     sections.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
-    const pages = await db.Page.find({ isActive: true });
+    const pages = await db.Page.find({ tenantId, isActive: true });
     pages.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
     return res.json({
@@ -40,7 +41,8 @@ router.get('/config', async (req, res) => {
 // GET /api/v1/public/banners
 router.get('/banners', async (req, res) => {
   try {
-    const banners = await db.Banner.find({ isActive: true });
+    const tenantId = req.tenantId;
+    const banners = await db.Banner.find({ tenantId, isActive: true });
     banners.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return res.json({ success: true, data: banners });
   } catch (err) {
@@ -51,8 +53,9 @@ router.get('/banners', async (req, res) => {
 // GET /api/v1/public/notices
 router.get('/notices', async (req, res) => {
   try {
+    const tenantId = req.tenantId;
     const { category, search, pinned } = req.query;
-    let notices = await db.Notice.find({ status: 'published' });
+    let notices = await db.Notice.find({ tenantId, status: 'published' });
 
     if (category && category !== 'All') {
       notices = notices.filter(n => n.category && n.category.toLowerCase() === category.toLowerCase());
@@ -83,7 +86,8 @@ router.get('/notices', async (req, res) => {
 // GET /api/v1/public/events
 router.get('/events', async (req, res) => {
   try {
-    const events = await db.Event.find({ status: 'published' });
+    const tenantId = req.tenantId;
+    const events = await db.Event.find({ tenantId, status: 'published' });
     events.sort((a, b) => new Date(a.eventDate || 0) - new Date(b.eventDate || 0));
     return res.json({ success: true, data: events });
   } catch (err) {
@@ -94,7 +98,8 @@ router.get('/events', async (req, res) => {
 // GET /api/v1/public/news
 router.get('/news', async (req, res) => {
   try {
-    const news = await db.News.find({ status: 'published' });
+    const tenantId = req.tenantId;
+    const news = await db.News.find({ tenantId, status: 'published' });
     news.sort((a, b) => new Date(b.publishedDate || 0) - new Date(a.publishedDate || 0));
     return res.json({ success: true, data: news });
   } catch (err) {
@@ -105,7 +110,8 @@ router.get('/news', async (req, res) => {
 // GET /api/v1/public/departments
 router.get('/departments', async (req, res) => {
   try {
-    const departments = await db.Department.find({ isActive: true });
+    const tenantId = req.tenantId;
+    const departments = await db.Department.find({ tenantId, isActive: true });
     departments.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return res.json({ success: true, data: departments });
   } catch (err) {
@@ -116,14 +122,15 @@ router.get('/departments', async (req, res) => {
 // GET /api/v1/public/departments/:code
 router.get('/departments/:code', async (req, res) => {
   try {
+    const tenantId = req.tenantId;
     const code = req.params.code.toUpperCase();
-    const department = await db.Department.findOne({ code });
+    const department = await db.Department.findOne({ tenantId, code });
     if (!department) {
       return res.status(404).json({ success: false, message: 'Department not found' });
     }
 
-    const courses = await db.Course.find({ departmentCode: code, isActive: true });
-    const faculty = await db.Faculty.find({ departmentCode: code, isActive: true });
+    const courses = await db.Course.find({ tenantId, departmentCode: code, isActive: true });
+    const faculty = await db.Faculty.find({ tenantId, departmentCode: code, isActive: true });
     faculty.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
     return res.json({
@@ -142,8 +149,9 @@ router.get('/departments/:code', async (req, res) => {
 // GET /api/v1/public/courses
 router.get('/courses', async (req, res) => {
   try {
+    const tenantId = req.tenantId;
     const { degree, department } = req.query;
-    let courses = await db.Course.find({ isActive: true });
+    let courses = await db.Course.find({ tenantId, isActive: true });
 
     if (degree && degree !== 'All') {
       courses = courses.filter(c => c.degree && c.degree.toLowerCase().includes(degree.toLowerCase()));
@@ -162,8 +170,9 @@ router.get('/courses', async (req, res) => {
 // GET /api/v1/public/faculty
 router.get('/faculty', async (req, res) => {
   try {
+    const tenantId = req.tenantId;
     const { department, search } = req.query;
-    let faculty = await db.Faculty.find({ isActive: true });
+    let faculty = await db.Faculty.find({ tenantId, isActive: true });
 
     if (department && department !== 'All') {
       faculty = faculty.filter(f => f.departmentCode && f.departmentCode.toLowerCase() === department.toLowerCase());
@@ -184,7 +193,8 @@ router.get('/faculty', async (req, res) => {
 // GET /api/v1/public/admissions
 router.get('/admissions', async (req, res) => {
   try {
-    const admissions = await db.Admission.find({ status: 'published' });
+    const tenantId = req.tenantId;
+    const admissions = await db.Admission.find({ tenantId, status: 'published' });
     admissions.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return res.json({ success: true, data: admissions });
   } catch (err) {
@@ -195,10 +205,11 @@ router.get('/admissions', async (req, res) => {
 // GET /api/v1/public/placements
 router.get('/placements', async (req, res) => {
   try {
-    const records = await db.Placement.find({ isActive: true });
+    const tenantId = req.tenantId;
+    const records = await db.Placement.find({ tenantId, isActive: true });
     records.sort((a, b) => (b.academicYear || '').localeCompare(a.academicYear || ''));
 
-    const recruiters = await db.Recruiter.find({});
+    const recruiters = await db.Recruiter.find({ tenantId });
     recruiters.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
     return res.json({
@@ -216,7 +227,8 @@ router.get('/placements', async (req, res) => {
 // GET /api/v1/public/recruiters
 router.get('/recruiters', async (req, res) => {
   try {
-    const recruiters = await db.Recruiter.find({});
+    const tenantId = req.tenantId;
+    const recruiters = await db.Recruiter.find({ tenantId });
     recruiters.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return res.json({ success: true, data: recruiters });
   } catch (err) {
@@ -227,7 +239,8 @@ router.get('/recruiters', async (req, res) => {
 // GET /api/v1/public/facilities
 router.get('/facilities', async (req, res) => {
   try {
-    const facilities = await db.Facility.find({ isActive: true });
+    const tenantId = req.tenantId;
+    const facilities = await db.Facility.find({ tenantId, isActive: true });
     facilities.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return res.json({ success: true, data: facilities });
   } catch (err) {
@@ -238,7 +251,8 @@ router.get('/facilities', async (req, res) => {
 // GET /api/v1/public/testimonials
 router.get('/testimonials', async (req, res) => {
   try {
-    const testimonials = await db.Testimonial.find({ isActive: true });
+    const tenantId = req.tenantId;
+    const testimonials = await db.Testimonial.find({ tenantId, isActive: true });
     testimonials.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return res.json({ success: true, data: testimonials });
   } catch (err) {
@@ -249,7 +263,8 @@ router.get('/testimonials', async (req, res) => {
 // GET /api/v1/public/leadership
 router.get('/leadership', async (req, res) => {
   try {
-    const leadership = await db.Leadership.find({ isActive: true });
+    const tenantId = req.tenantId;
+    const leadership = await db.Leadership.find({ tenantId, isActive: true });
     leadership.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return res.json({ success: true, data: leadership });
   } catch (err) {
@@ -260,7 +275,8 @@ router.get('/leadership', async (req, res) => {
 // GET /api/v1/public/research
 router.get('/research', async (req, res) => {
   try {
-    const research = await db.Research.find({});
+    const tenantId = req.tenantId;
+    const research = await db.Research.find({ tenantId });
     return res.json({ success: true, data: research });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to load research information' });
@@ -270,7 +286,8 @@ router.get('/research', async (req, res) => {
 // GET /api/v1/public/gallery
 router.get('/gallery', async (req, res) => {
   try {
-    const gallery = await db.Gallery.find({ isActive: true });
+    const tenantId = req.tenantId;
+    const gallery = await db.Gallery.find({ tenantId, isActive: true });
     gallery.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return res.json({ success: true, data: gallery });
   } catch (err) {
@@ -281,18 +298,22 @@ router.get('/gallery', async (req, res) => {
 // POST /api/v1/public/inquiries (Submit Contact / Admission Inquiry with Rate Limiting)
 router.post('/inquiries', inquiryLimiter, async (req, res) => {
   try {
+    const tenantId = req.tenantId;
     const name = req.body.fullName || req.body.name;
     const { email, phone, courseInterested, departmentCode, message, source, subject } = req.body;
     const fullName = name;
 
-    if (!fullName || !email || !phone || !message) {
+    if (!fullName || !email || !phone || !message ||
+        typeof fullName !== 'string' || typeof email !== 'string' ||
+        typeof phone !== 'string' || typeof message !== 'string') {
       return res.status(400).json({
         success: false,
-        message: 'Name, email, phone number, and inquiry message are required fields.'
+        message: 'Name, email, phone number, and inquiry message must be valid strings.'
       });
     }
 
     const newInquiry = await db.Inquiry.create({
+      tenantId,
       fullName: fullName.trim(),
       email: email.trim().toLowerCase(),
       phone: phone.trim(),
@@ -326,7 +347,8 @@ router.post('/inquiries', inquiryLimiter, async (req, res) => {
 // GET /api/v1/public/pages
 router.get('/pages', async (req, res) => {
   try {
-    const pages = await db.Page.find({ isActive: true });
+    const tenantId = req.tenantId;
+    const pages = await db.Page.find({ tenantId, isActive: true });
     pages.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return res.json({ success: true, data: pages });
   } catch (err) {
@@ -337,23 +359,23 @@ router.get('/pages', async (req, res) => {
 // GET /api/v1/public/pages/:slug
 router.get('/pages/:slug', async (req, res) => {
   try {
+    const tenantId = req.tenantId;
     const slug = req.params.slug.toLowerCase();
-    const page = await db.Page.findOne({ slug, isActive: true });
+    const page = await db.Page.findOne({ tenantId, slug, isActive: true });
     if (!page) {
       return res.status(404).json({ success: false, message: 'Page not found' });
     }
-    const subsections = await db.Subsection.find({ pageSlug: slug, isVisible: true });
+    const subsections = await db.Subsection.find({ tenantId, pageSlug: slug, isVisible: true });
     subsections.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
     let parentPage = null;
     let siblings = [];
     if (page.parentSlug) {
-      parentPage = await db.Page.findOne({ slug: page.parentSlug, isActive: true });
-      siblings = await db.Page.find({ parentSlug: page.parentSlug, isActive: true });
+      parentPage = await db.Page.findOne({ tenantId, slug: page.parentSlug, isActive: true });
+      siblings = await db.Page.find({ tenantId, parentSlug: page.parentSlug, isActive: true });
       siblings.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     } else {
-      // Find subpages of this parent
-      const subpages = await db.Page.find({ parentSlug: page.slug, isActive: true });
+      const subpages = await db.Page.find({ tenantId, parentSlug: page.slug, isActive: true });
       subpages.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
       siblings = subpages;
     }
@@ -375,8 +397,9 @@ router.get('/pages/:slug', async (req, res) => {
 // GET /api/v1/public/subsections
 router.get('/subsections', async (req, res) => {
   try {
+    const tenantId = req.tenantId;
     const { pageSlug } = req.query;
-    const filter = { isVisible: true };
+    const filter = { tenantId, isVisible: true };
     if (pageSlug) filter.pageSlug = pageSlug;
     const subsections = await db.Subsection.find(filter);
     subsections.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
@@ -389,7 +412,8 @@ router.get('/subsections', async (req, res) => {
 // GET /api/v1/public/sub-institutions
 router.get('/sub-institutions', async (req, res) => {
   try {
-    const items = await db.SubInstitution.find({ isActive: true });
+    const tenantId = req.tenantId;
+    const items = await db.SubInstitution.find({ tenantId, isActive: true });
     items.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
     return res.json({ success: true, data: items });
   } catch (err) {
@@ -398,4 +422,3 @@ router.get('/sub-institutions', async (req, res) => {
 });
 
 module.exports = router;
-
