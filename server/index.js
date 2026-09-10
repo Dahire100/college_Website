@@ -97,8 +97,14 @@ app.use('/uploads/:tenantId', (req, res, next) => {
   express.static(tenantDir, { maxAge: '7d', immutable: true })(req, res, next);
 });
 
-// Fallback for root / legacy uploaded media with client caching headers
-app.use('/uploads', express.static(uploadsDir, {
+// Fallback for root platform media (Strictly disallows traversing into tenant subdirectories)
+app.use('/uploads', (req, res, next) => {
+  const cleanPath = (req.path || '').replace(/^\//, '');
+  if (cleanPath.includes('/') || cleanPath.includes('\\')) {
+    return res.status(403).json({ success: false, message: 'Forbidden: Direct cross-tenant directory access blocked' });
+  }
+  next();
+}, express.static(uploadsDir, {
   maxAge: '7d',
   immutable: true
 }));

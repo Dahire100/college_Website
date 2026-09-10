@@ -76,6 +76,10 @@ const SuperAdminAuditLogSchema = new mongoose.Schema({
   timestamp: { type: Date, default: Date.now }
 });
 
+SuperAdminAuditLogSchema.pre(['updateOne', 'updateMany', 'findOneAndUpdate', 'deleteOne', 'deleteMany', 'findOneAndDelete'], function (next) {
+  return next(new Error('[AuditSecurityError] SuperAdmin audit logs are append-only and strictly immutable.'));
+});
+
 // 1. Single Admin Model (Tenant-scoped)
 const AdminSchema = new mongoose.Schema({
   tenantId: { type: mongoose.Schema.Types.Mixed, required: true, index: true },
@@ -83,6 +87,7 @@ const AdminSchema = new mongoose.Schema({
   email: { type: String, required: true },
   passwordHash: { type: String, required: true },
   fullName: { type: String, default: 'Administrator' },
+  mustChangePassword: { type: Boolean, default: false },
   lastLogin: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
@@ -161,6 +166,8 @@ const PageSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 PageSchema.index({ tenantId: 1, slug: 1 }, { unique: true });
+PageSchema.index({ tenantId: 1, isActive: 1, showInHeader: 1 });
+PageSchema.index({ tenantId: 1, isActive: 1, showInFooter: 1 });
 
 // 4c. Subsections Manager
 const SubsectionSchema = new mongoose.Schema({
@@ -212,6 +219,7 @@ const NoticeSchema = new mongoose.Schema({
   content: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
+NoticeSchema.index({ tenantId: 1, status: 1, publishedDate: -1 });
 
 // 7. Events
 const EventSchema = new mongoose.Schema({
@@ -229,6 +237,7 @@ const EventSchema = new mongoose.Schema({
   isFeatured: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
+EventSchema.index({ tenantId: 1, status: 1, eventDate: 1 });
 
 // 8. News & Articles
 const NewsSchema = new mongoose.Schema({
@@ -436,6 +445,7 @@ const InquirySchema = new mongoose.Schema({
   readAt: { type: Date },
   createdAt: { type: Date, default: Date.now }
 });
+InquirySchema.index({ tenantId: 1, status: 1, createdAt: -1 });
 
 // 21. Audit Log
 const AuditLogSchema = new mongoose.Schema({
@@ -449,6 +459,10 @@ const AuditLogSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+AuditLogSchema.pre(['updateOne', 'updateMany', 'findOneAndUpdate', 'deleteOne', 'deleteMany', 'findOneAndDelete'], function (next) {
+  return next(new Error('[AuditSecurityError] Tenant audit logs are append-only and strictly immutable.'));
+});
+
 // 22. Media
 const MediaSchema = new mongoose.Schema({
   tenantId: { type: mongoose.Schema.Types.Mixed, required: true, index: true },
@@ -460,6 +474,7 @@ const MediaSchema = new mongoose.Schema({
   category: { type: String, default: 'general' },
   createdAt: { type: Date, default: Date.now }
 });
+MediaSchema.index({ tenantId: 1, createdAt: -1 });
 
 // 23. Sub-Institutions (for Group of Institutions mode)
 const SubInstitutionSchema = new mongoose.Schema({
@@ -703,7 +718,16 @@ function sanitizeUpdatePayload(update) {
 function createCollectionAdapter(modelName) {
   const Model = Models[modelName];
   const isTenantScoped = modelName !== 'Tenant' && modelName !== 'SuperAdmin' && modelName !== 'SuperAdminAuditLog';
+  const isAuditModel = modelName === 'AuditLog' || modelName === 'SuperAdminAuditLog';
   if (!localStore[modelName]) localStore[modelName] = [];
+
+  function assertMutable(opName) {
+    if (isAuditModel) {
+      throw new Error(
+        `[AuditSecurityError] Local adapter operation '${opName}' on '${modelName}' blocked: Audit logs are append-only and strictly immutable.`
+      );
+    }
+  }
 
   function assertTenantFilter(filter, opName) {
     if (!isTenantScoped) return;
@@ -792,6 +816,7 @@ function createCollectionAdapter(modelName) {
     },
 
     async updateOne(filter, update, options = {}) {
+      assertMutable('updateOne');
       assertTenantFilter(filter, 'updateOne');
       if (isConnectedToMongo) {
         return await Model.updateOne(filter, update, options).exec();
@@ -839,6 +864,7 @@ function createCollectionAdapter(modelName) {
     },
 
     async updateMany(filter = {}, update, options = {}) {
+      assertMutable('updateMany');
       assertTenantFilter(filter, 'updateMany');
       if (isConnectedToMongo) {
         return await Model.updateMany(filter, update, options).exec();
@@ -872,6 +898,7 @@ function createCollectionAdapter(modelName) {
     },
 
     async findOneAndUpdate(filter, update, options = { new: true }) {
+      assertMutable('findOneAndUpdate');
       assertTenantFilter(filter, 'findOneAndUpdate');
       if (isConnectedToMongo) {
         return await Model.findOneAndUpdate(filter, update, options).lean().exec();
@@ -898,6 +925,7 @@ function createCollectionAdapter(modelName) {
     },
 
     async findByIdAndUpdate(id, update, options = { new: true }, tenantId = null) {
+      assertMutable('findByIdAndUpdate');
       if (isTenantScoped) {
         if (!tenantId) {
           throw new TenantIsolationError(
@@ -922,6 +950,7 @@ function createCollectionAdapter(modelName) {
     },
 
     async findOneAndDelete(filter) {
+      assertMutable('findOneAndDelete');
       assertTenantFilter(filter, 'findOneAndDelete');
       if (isConnectedToMongo) {
         return await Model.findOneAndDelete(filter).lean().exec();
@@ -942,6 +971,7 @@ function createCollectionAdapter(modelName) {
     },
 
     async findByIdAndDelete(id, tenantId = null) {
+      assertMutable('findByIdAndDelete');
       if (isTenantScoped) {
         if (!tenantId) {
           throw new TenantIsolationError(
@@ -964,6 +994,7 @@ function createCollectionAdapter(modelName) {
     },
 
     async deleteOne(filter = {}) {
+      assertMutable('deleteOne');
       assertTenantFilter(filter, 'deleteOne');
       if (isConnectedToMongo) {
         return await Model.deleteOne(filter).exec();
@@ -984,6 +1015,7 @@ function createCollectionAdapter(modelName) {
     },
 
     async deleteMany(filter = {}) {
+      assertMutable('deleteMany');
       assertTenantFilter(filter, 'deleteMany');
       if (isConnectedToMongo) {
         return await Model.deleteMany(filter).exec();

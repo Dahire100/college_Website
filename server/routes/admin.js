@@ -40,14 +40,39 @@ const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
-    const allowed = /\.(jpg|jpeg|png|gif|webp|svg|pdf|doc|docx|xls|xlsx)$/i;
-    if (file.originalname.match(allowed)) {
+    // Strictly disallow SVG and executable formats to prevent stored XSS
+    const allowedExts = /\.(jpg|jpeg|png|gif|webp|pdf|doc|docx|xls|xlsx)$/i;
+    const allowedMimes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+
+    const extMatches = file.originalname && file.originalname.match(allowedExts);
+    const mimeMatches = allowedMimes.includes(file.mimetype);
+
+    if (extMatches && mimeMatches) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file format. Only safe images, PDFs, and documents are permitted.'), false);
+      cb(new Error('Invalid file format. Only safe images (JPEG, PNG, GIF, WebP), PDFs, and Office documents are permitted. SVG and executable formats are strictly blocked.'), false);
     }
   }
 });
+
+function handleUploadMiddleware(req, res, next) {
+  upload.single('file')(req, res, function (err) {
+    if (err) {
+      return res.status(400).json({ success: false, message: err.message || 'File upload rejected by security validation.' });
+    }
+    next();
+  });
+}
 
 // Helper for audit logging
 async function logAction(req, action, entityType, entityId, details) {
@@ -843,10 +868,33 @@ router.get('/audit-logs', async (req, res) => {
 // ----------------------------------------------------
 // 16. MEDIA & FILE UPLOADS
 // ----------------------------------------------------
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post('/upload', handleUploadMiddleware, async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    // Verify tenant storage quota before persisting metadata
+    const tenant = await db.Tenant.findById(req.tenantId);
+    const storageLimit = (tenant && tenant.branding && Number(tenant.branding.storageLimitBytes)) || 524288000; // 500MB default
+
+    const allMedia = await db.Media.find({ tenantId: req.tenantId });
+    const currentUsageBytes = allMedia.reduce((sum, item) => sum + (Number(item.sizeBytes) || 0), 0);
+
+    if (currentUsageBytes + req.file.size > storageLimit) {
+      // Clean up uploaded file from disk immediately
+      try {
+        if (req.file.path && fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+      } catch (cleanErr) {
+        console.warn('[Upload Cleanup] Error removing discarded upload:', cleanErr.message);
+      }
+
+      return res.status(403).json({
+        success: false,
+        message: `Tenant storage limit exceeded (${Math.round(storageLimit / (1024 * 1024))} MB limit). Please delete old media or upgrade your subscription plan.`
+      });
     }
 
     const publicUrl = `/uploads/${req.tenantId}/${req.file.filename}`;

@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const { rateLimit } = require('express-rate-limit');
 const { db, getTenantDb, tenantStorage, mongoose, localStore } = require('../db');
 const { requireSuperAdmin, getSuperAdminSecret } = require('../middleware/superAdminAuth');
@@ -219,8 +222,16 @@ router.post('/tenants', async (req, res) => {
 
     // Automatically provision initial admin with username matching the domain/subdomain
     const adminUsername = tenant.subdomain || tenant.domain;
-    const adminPassword = req.body.adminPassword || 'Admin@123';
-    const passwordHash = await bcrypt.hash(adminPassword, 10);
+    
+    // Eliminate insecure hardcoded fallback: Generate cryptographically random temporary password
+    let plainPassword = req.body.adminPassword;
+    let mustChangePassword = false;
+    if (!plainPassword) {
+      const rand = crypto.randomBytes(6).toString('base64url');
+      plainPassword = `Tmp!${rand}9#`;
+      mustChangePassword = true;
+    }
+    const passwordHash = await bcrypt.hash(plainPassword, 10);
 
     try {
       await tenantStorage.run({ tenantId, tenant, tenantDb }, async () => {
@@ -230,7 +241,8 @@ router.post('/tenants', async (req, res) => {
           email: req.body.adminEmail || `admin@${tenant.domain}`,
           fullName: `${tenant.name} Administrator`,
           passwordHash,
-          lastLogin: new Date()
+          mustChangePassword,
+          lastLogin: null
         });
       });
     } catch (adminErr) {
@@ -250,7 +262,9 @@ router.post('/tenants', async (req, res) => {
       success: true,
       message: 'Tenant and administrative account created successfully',
       tenant,
-      adminUsername
+      adminUsername,
+      temporaryPassword: plainPassword,
+      mustChangePassword
     });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to create tenant: ' + err.message });
@@ -398,14 +412,14 @@ router.delete('/tenants/:id', async (req, res) => {
     // Delete tenant record
     await db.Tenant.deleteOne({ _id: tenant._id || tenant.id });
 
-    // Clean up tenant-scoped records (admins, audit logs, media files metadata, etc.)
+    // Clean up tenant-scoped records (admins, media metadata, pages, notices, etc.)
     const { Models } = require('../db');
     if (Models) {
       const collectionsToClean = [
-        'Admin', 'Page', 'Notice', 'Event', 'Department', 'Course',
+        'Admin', 'Page', 'Subsection', 'Notice', 'Event', 'News', 'Department', 'Course',
         'Faculty', 'Admission', 'Placement', 'Recruiter', 'Facility',
         'Testimonial', 'Leadership', 'Research', 'Gallery', 'SubInstitution',
-        'SiteSetting', 'HomepageSection', 'AuditLog', 'StudentInquiry', 'Banner'
+        'SiteSetting', 'HomepageSection', 'StudentInquiry', 'Banner', 'Media'
       ];
       for (const col of collectionsToClean) {
         if (Models[col] && typeof Models[col].deleteMany === 'function') {
@@ -414,6 +428,16 @@ router.delete('/tenants/:id', async (req, res) => {
           } catch (e) {}
         }
       }
+    }
+
+    // Clean up physical disk directory for tenant uploads
+    try {
+      const tenantUploadDir = path.join(__dirname, '..', '..', 'uploads', tenantId);
+      if (fs.existsSync(tenantUploadDir)) {
+        await fs.promises.rm(tenantUploadDir, { recursive: true, force: true });
+      }
+    } catch (fsErr) {
+      console.warn('[Tenant Cleanup] Notice: Could not remove tenant upload directory:', fsErr.message);
     }
 
     await logSuperAdminAction(req, 'tenant_deleted', tenantId, {

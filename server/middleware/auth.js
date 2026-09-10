@@ -86,7 +86,24 @@ async function requireAdmin(req, res, next) {
       });
     }
 
-    // 2. Verify tenant admin exists in database for this specific tenant
+    // 2. Immediate Revocation Check: Verify tenant exists and is active
+    const tenant = await db.Tenant.findById(decoded.tenantId);
+    if (!tenant || tenant.status === 'suspended') {
+      return res.status(403).json({
+        success: false,
+        message: 'Administrative access revoked: Institutional tenant account is suspended or deactivated.'
+      });
+    }
+
+    // Cross-tenant token replay protection
+    if (req.tenantId && String(req.tenantId) !== String(decoded.tenantId)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Security violation: Administrative token domain does not match current host context.'
+      });
+    }
+
+    // 3. Verify tenant admin exists in database for this specific tenant
     let admin = null;
     if (decoded.id) {
       admin = await db.Admin.findOne({ _id: decoded.id, tenantId: decoded.tenantId });
@@ -101,12 +118,23 @@ async function requireAdmin(req, res, next) {
       });
     }
 
+    // 4. Force password reset gate
+    const isChangePasswordPath = req.path === '/change-password' || (req.originalUrl && req.originalUrl.includes('/change-password'));
+    if (admin.mustChangePassword && !isChangePasswordPath) {
+      return res.status(403).json({
+        success: false,
+        mustChangePassword: true,
+        message: 'Initial security policy: You must change your temporary administrative password before performing any actions.'
+      });
+    }
+
     req.admin = {
       id: admin._id || admin.id,
       username: admin.username,
       email: admin.email,
       fullName: admin.fullName,
-      tenantId: String(admin.tenantId || decoded.tenantId)
+      tenantId: String(admin.tenantId || decoded.tenantId),
+      mustChangePassword: !!admin.mustChangePassword
     };
 
     next();

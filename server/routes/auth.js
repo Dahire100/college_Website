@@ -404,7 +404,10 @@ router.post('/change-password', requireAdmin, async (req, res) => {
     }
 
     const newHash = await bcrypt.hash(newPassword, 10);
-    await db.Admin.updateOne({ _id: admin._id || admin.id, tenantId: req.tenantId }, { passwordHash: newHash });
+    await db.Admin.updateOne(
+      { _id: admin._id || admin.id, tenantId: req.tenantId },
+      { passwordHash: newHash, mustChangePassword: false }
+    );
 
     await db.AuditLog.create({
       tenantId: req.tenantId,
