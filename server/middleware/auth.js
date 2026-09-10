@@ -1,7 +1,11 @@
 const jwt = require('jsonwebtoken');
 const { db } = require('../db');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'college_admin_jwt_secret_token_secure_2026';
+function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('FATAL: JWT_SECRET environment variable is required. Set it in .env');
+  return secret;
+}
 
 // Middleware to authenticate Tenant Admin
 async function requireAdmin(req, res, next) {
@@ -17,11 +21,16 @@ async function requireAdmin(req, res, next) {
     const token = authHeader.split(' ')[1];
     let decoded;
     try {
-      decoded = jwt.verify(token, JWT_SECRET);
+      decoded = jwt.verify(token, getJwtSecret());
     } catch (e) {
-      try {
-        decoded = jwt.verify(token, process.env.SUPERADMIN_JWT_SECRET || 'superadmin_jwt_secret_token_secure_saas_2026');
-      } catch (err2) {
+      // Also accept superadmin tokens (verified against their own secret)
+      const SUPER_SECRET = process.env.SUPERADMIN_JWT_SECRET;
+      if (SUPER_SECRET) {
+        try {
+          decoded = jwt.verify(token, SUPER_SECRET);
+        } catch (err2) { /* fall through */ }
+      }
+      if (!decoded) {
         return res.status(401).json({
           success: false,
           message: 'Administrative session expired or invalid. Please re-login.'
@@ -111,5 +120,5 @@ async function requireAdmin(req, res, next) {
 
 module.exports = {
   requireAdmin,
-  JWT_SECRET
+  getJwtSecret
 };

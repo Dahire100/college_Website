@@ -48,16 +48,48 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
     'sports-facilities': { parent: 'campus', title: 'Sports Facilities & Gymkhana' }
   };
 
+  const sanitizeSlug = (s) => (s || '').replace(/^#\/?/, '').replace(/^\/+|\/+$/g, '').trim();
+  const sanitizePath = (p) => (p || '').replace(/^#\/?/, '').replace(/^\/+|\/+$/g, '').trim();
+  const normalizeNavKey = (p) => {
+    const s = sanitizePath(p).toLowerCase();
+    return (!s || s === 'homepage') ? 'home' : s;
+  };
+
+  // Map pages by sanitized lowercase slug for fast, authoritative visibility checks
+  const pagesBySlug = {};
+  if (Array.isArray(pages)) {
+    pages.forEach(p => {
+      if (p?.slug) {
+        pagesBySlug[sanitizeSlug(p.slug).toLowerCase()] = p;
+      }
+    });
+  }
+
+  // Check if a page is permitted to show in the header navigation
+  const isPageVisibleInHeader = (slug) => {
+    const clean = sanitizeSlug(slug).toLowerCase();
+    if (!clean || clean === 'home') return true;
+    const pageDoc = pagesBySlug[clean];
+    if (pageDoc) {
+      if (pageDoc.isActive === false || pageDoc.showInHeader === false) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   // Group active subpages by parentSlug
   const subpagesByParent = {};
-
-  const sanitizeSlug = (s) => (s || '').replace(/^#\/?/, '').replace(/^\/+|\/+$/g, '').trim();
 
   const addSubpage = (parentKey, subObj) => {
     if (!parentKey || !subObj?.slug) return;
     const pk = sanitizeSlug(parentKey).toLowerCase();
     const cleanSlug = sanitizeSlug(subObj.slug);
     if (!pk || !cleanSlug) return;
+    // Strictly verify this subpage is allowed to be visible
+    if (!isPageVisibleInHeader(cleanSlug)) return;
+    if (subObj.isActive === false || subObj.showInHeader === false) return;
+
     if (!subpagesByParent[pk]) subpagesByParent[pk] = [];
     const normTitle = (subObj.title || subObj.navLabel || '').trim().toLowerCase();
     const idx = subpagesByParent[pk].findIndex(s =>
@@ -71,12 +103,17 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
     }
   };
 
-  // 1. Initialize known subpages baseline
+  // 1. Initialize known subpages baseline ONLY if they are active/visible in pages
   Object.entries(KNOWN_SUBPAGE_REGISTRY).forEach(([slug, info]) => {
+    const clean = sanitizeSlug(slug).toLowerCase();
+    if (!isPageVisibleInHeader(clean)) return;
+    const pageDoc = pagesBySlug[clean];
+    if (pageDoc && (pageDoc.isActive === false || pageDoc.showInHeader === false)) return;
+
     addSubpage(info.parent, {
-      slug: sanitizeSlug(slug),
-      title: info.title,
-      parentSlug: info.parent,
+      slug: clean,
+      title: pageDoc?.title || info.title,
+      parentSlug: pageDoc?.parentSlug || info.parent,
       isActive: true,
       showInHeader: true
     });
@@ -86,9 +123,9 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
   if (Array.isArray(navigation)) {
     navigation.forEach(n => {
       if (n.isActive === false) return;
-      const cleanId = sanitizeSlug(n.path);
+      const cleanId = sanitizeSlug(n.path).toLowerCase();
       const parentId = sanitizeSlug(n.parentId).toLowerCase();
-      if (parentId && parentId !== '0' && cleanId) {
+      if (parentId && parentId !== '0' && cleanId && isPageVisibleInHeader(cleanId)) {
         addSubpage(parentId, {
           slug: cleanId,
           title: n.title,
@@ -112,77 +149,78 @@ export default function Header({ settings = {}, navigation = [], pages = [], cur
 
   const isSubpageItem = (cleanId, navItem) => {
     if (!cleanId) return false;
-    // Explicit parentId from navigation
     const navParent = (navItem?.parentId || '').trim().toLowerCase();
     if (navParent && navParent !== '0') return true;
 
-    // In known subpage registry
     if (KNOWN_SUBPAGE_REGISTRY[cleanId]) return true;
 
-    // In pages collection
-    const pageObj = (pages || []).find(p => p.slug === cleanId);
+    const pageObj = pagesBySlug[cleanId];
     if (pageObj && pageObj.parentSlug) return true;
 
     return false;
   };
 
-  let navItems = defaultNavItems.map(d => ({
-    ...d,
-    subpages: subpagesByParent[d.id] || []
-  }));
+  const hasNavigationData = Array.isArray(navigation) && navigation.length > 0;
+  const activeNavPaths = new Set(
+    (navigation || [])
+      .filter(n => n.isActive !== false && !isSubpageItem(sanitizePath(n.path), n))
+      .map(n => normalizeNavKey(n.path))
+  );
 
-  if (Array.isArray(navigation) && navigation.length > 0) {
-    const sanitizePath = (p) => (p || '').replace(/^#\/?/, '').replace(/^\/+|\/+$/g, '').trim();
-    const normalizeNavKey = (p) => {
-      const s = sanitizePath(p).toLowerCase();
-      return (!s || s === 'homepage') ? 'home' : s;
-    };
+  let navItems = defaultNavItems
+    .filter(item => {
+      if (item.id === 'home') return true;
 
-    const activePaths = new Set(
-      navigation
-        .filter(n => n.isActive !== false && !isSubpageItem(sanitizePath(n.path), n))
-        .map(n => normalizeNavKey(n.path))
-    );
+      // 1. Check if explicitly disabled in pages collection
+      if (!isPageVisibleInHeader(item.id)) return false;
 
-    if (activePaths.size > 0) {
-      const coreNavs = defaultNavItems
-        .filter(item => activePaths.has(item.id) || ['home', 'about', 'academics', 'programs', 'admissions', 'campus', 'placements', 'research', 'life', 'news', 'contact'].includes(item.id))
-        .map(d => ({ ...d, subpages: subpagesByParent[d.id] || [] }));
+      // 2. If navigation records exist for this tenant, verify it is active in navigation
+      if (hasNavigationData) {
+        const navEntry = navigation.find(n => normalizeNavKey(n.path) === item.id);
+        if (navEntry && navEntry.isActive === false) return false;
+        if (activeNavPaths.size > 0 && !activeNavPaths.has(item.id)) {
+          const pageDoc = pagesBySlug[item.id];
+          if (!pageDoc || pageDoc.isActive === false || pageDoc.showInHeader === false) {
+            return false;
+          }
+        }
+      }
 
-      // Custom top-level pages only (strictly exclude any subpages, home duplicates, or items matching core navs)
-      const seenCustomKeys = new Set();
-      const customNavs = [];
+      return true;
+    })
+    .map(d => ({
+      ...d,
+      subpages: subpagesByParent[d.id] || []
+    }));
 
-      navigation.forEach(n => {
-        if (n.isActive === false) return;
-        const cleanId = sanitizePath(n.path);
-        const normKey = normalizeNavKey(n.path);
-        const normTitle = (n.title || '').trim().toLowerCase();
+  if (hasNavigationData) {
+    const seenCustomKeys = new Set();
+    const customNavs = [];
 
-        // Strictly exclude home / homepage (already represented as the root item in coreNavs)
-        if (normKey === 'home' || normTitle === 'home' || normTitle === 'homepage') return;
+    navigation.forEach(n => {
+      if (n.isActive === false) return;
+      const cleanId = sanitizePath(n.path).toLowerCase();
+      const normKey = normalizeNavKey(n.path);
+      const normTitle = (n.title || '').trim().toLowerCase();
 
-        // Strictly exclude any item matching defaultNavItems by id or label
-        if (defaultNavItems.some(d => d.id === normKey || d.id === cleanId || d.label.toLowerCase() === normTitle)) return;
+      if (normKey === 'home' || normTitle === 'home' || normTitle === 'homepage') return;
+      if (defaultNavItems.some(d => d.id === normKey || d.id === cleanId || d.label.toLowerCase() === normTitle)) return;
+      if (isSubpageItem(cleanId, n)) return;
+      if (!isPageVisibleInHeader(cleanId)) return;
 
-        // Strictly exclude if it is a subpage belonging to a parent
-        if (isSubpageItem(cleanId, n)) return;
+      if (seenCustomKeys.has(cleanId || normKey) || seenCustomKeys.has(normTitle)) return;
 
-        // Deduplicate custom nav entries
-        if (seenCustomKeys.has(cleanId || normKey) || seenCustomKeys.has(normTitle)) return;
+      seenCustomKeys.add(cleanId || normKey);
+      seenCustomKeys.add(normTitle);
 
-        seenCustomKeys.add(cleanId || normKey);
-        seenCustomKeys.add(normTitle);
-
-        customNavs.push({
-          id: cleanId || normKey,
-          label: n.title,
-          subpages: subpagesByParent[cleanId] || subpagesByParent[normKey] || []
-        });
+      customNavs.push({
+        id: cleanId || normKey,
+        label: n.title,
+        subpages: subpagesByParent[cleanId] || subpagesByParent[normKey] || []
       });
+    });
 
-      navItems = [...coreNavs, ...customNavs];
-    }
+    navItems = [...navItems, ...customNavs];
   }
 
   // Final deduplication safeguard: ensure every navItem in desktop & mobile header has a unique id and unique label

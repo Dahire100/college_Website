@@ -1,7 +1,11 @@
 const jwt = require('jsonwebtoken');
 const { db } = require('../db');
 
-const SUPERADMIN_JWT_SECRET = process.env.SUPERADMIN_JWT_SECRET || 'superadmin_jwt_secret_token_secure_saas_2026';
+function getSuperAdminSecret() {
+  const secret = process.env.SUPERADMIN_JWT_SECRET;
+  if (!secret) throw new Error('FATAL: SUPERADMIN_JWT_SECRET environment variable is required. Set it in .env');
+  return secret;
+}
 
 async function requireSuperAdmin(req, res, next) {
   try {
@@ -16,16 +20,12 @@ async function requireSuperAdmin(req, res, next) {
     const token = authHeader.split(' ')[1];
     let decoded;
     try {
-      decoded = jwt.verify(token, SUPERADMIN_JWT_SECRET);
+      decoded = jwt.verify(token, getSuperAdminSecret());
     } catch (err) {
-      try {
-        decoded = jwt.verify(token, process.env.JWT_SECRET || 'college_admin_jwt_secret_token_secure_2026');
-      } catch (err2) {
-        return res.status(403).json({
-          success: false,
-          message: 'Invalid or expired SuperAdmin token.'
-        });
-      }
+      return res.status(403).json({
+        success: false,
+        message: 'Invalid or expired SuperAdmin token.'
+      });
     }
 
     if (!decoded || decoded.role !== 'superadmin' || !decoded.username) {
@@ -61,5 +61,5 @@ async function requireSuperAdmin(req, res, next) {
 
 module.exports = {
   requireSuperAdmin,
-  SUPERADMIN_JWT_SECRET
+  getSuperAdminSecret
 };

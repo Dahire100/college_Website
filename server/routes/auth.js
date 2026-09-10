@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { db } = require('../db');
-const { requireAdmin, JWT_SECRET } = require('../middleware/auth');
+const { requireAdmin, getJwtSecret } = require('../middleware/auth');
 const { authLimiter } = require('../middleware/rateLimit');
 
 // POST /api/v1/auth/login (Protected by rate limiting against brute-force attacks)
@@ -47,9 +47,7 @@ router.post('/login', authLimiter, async (req, res) => {
       inputUser === domain ||
       (subdomain && inputUser === subdomain) ||
       (inputUser.replace(/^admin_/, '') === subdomain) ||
-      (domain === 'localhost' && (inputUser === 'admin' || inputUser === 'apex' || inputUser === 'localhost')) ||
-      (domain !== 'localhost' && domain.includes(inputUser) && inputUser.length >= 3) ||
-      (domain !== 'localhost' && subdomain && inputUser.includes(subdomain));
+      (domain === 'localhost' && (inputUser === 'admin' || inputUser === 'apex' || inputUser === 'localhost'));
 
     if (!isDomainMatch) {
       return res.status(403).json({
@@ -79,7 +77,7 @@ router.post('/login', authLimiter, async (req, res) => {
       });
     }
 
-    const isMatch = bcrypt.compareSync(password, admin.passwordHash);
+    const isMatch = await bcrypt.compare(password, admin.passwordHash);
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -98,7 +96,7 @@ router.post('/login', authLimiter, async (req, res) => {
         email: admin.email,
         tenantId: req.tenantId
       },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '8h' }
     );
 
@@ -154,7 +152,7 @@ router.post('/refresh', async (req, res) => {
 
     let decoded;
     try {
-      decoded = jwt.verify(token, JWT_SECRET);
+      decoded = jwt.verify(token, getJwtSecret());
     } catch (err) {
       return res.status(401).json({
         success: false,
@@ -201,7 +199,7 @@ router.post('/refresh', async (req, res) => {
         role: admin.role || 'admin',
         tenantId: req.tenantId
       },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '8h' }
     );
 
@@ -277,7 +275,7 @@ router.put('/profile', requireAdmin, async (req, res) => {
         });
       }
 
-      const isMatch = bcrypt.compareSync(currentPassword, admin.passwordHash);
+      const isMatch = await bcrypt.compare(currentPassword, admin.passwordHash);
       if (!isMatch) {
         return res.status(400).json({
           success: false,
@@ -288,13 +286,19 @@ router.put('/profile', requireAdmin, async (req, res) => {
 
     // Validate and prepare new password
     if (isChangingPassword) {
-      if (newPassword.length < 6) {
+      if (newPassword.length < 8) {
         return res.status(400).json({
           success: false,
-          message: 'New password must be at least 6 characters long.'
+          message: 'New password must be at least 8 characters long.'
         });
       }
-      updates.passwordHash = bcrypt.hashSync(newPassword, 10);
+      if (!/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Password must contain at least one uppercase letter, one digit, and one special character.'
+        });
+      }
+      updates.passwordHash = await bcrypt.hash(newPassword, 10);
     }
 
     // Optional profile fields
@@ -314,7 +318,7 @@ router.put('/profile', requireAdmin, async (req, res) => {
     // Generate fresh JWT token with updated username
     const token = jwt.sign(
       { id: finalId, username: finalUsername, email: finalEmail, tenantId: req.tenantId },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '8h' }
     );
 
@@ -369,10 +373,17 @@ router.post('/change-password', requireAdmin, async (req, res) => {
       });
     }
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       return res.status(400).json({
         success: false,
-        message: 'New password must be at least 6 characters.'
+        message: 'New password must be at least 8 characters.'
+      });
+    }
+
+    if (!/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must contain at least one uppercase letter, one digit, and one special character.'
       });
     }
 
@@ -384,7 +395,7 @@ router.post('/change-password', requireAdmin, async (req, res) => {
       });
     }
 
-    const isMatch = bcrypt.compareSync(currentPassword, admin.passwordHash);
+    const isMatch = await bcrypt.compare(currentPassword, admin.passwordHash);
     if (!isMatch) {
       return res.status(400).json({
         success: false,
@@ -392,7 +403,7 @@ router.post('/change-password', requireAdmin, async (req, res) => {
       });
     }
 
-    const newHash = bcrypt.hashSync(newPassword, 10);
+    const newHash = await bcrypt.hash(newPassword, 10);
     await db.Admin.updateOne({ _id: admin._id || admin.id, tenantId: req.tenantId }, { passwordHash: newHash });
 
     await db.AuditLog.create({

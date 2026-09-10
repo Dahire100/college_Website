@@ -3,7 +3,14 @@ import { MapPin, Phone, Mail, Lock, Shield, ArrowRight, ExternalLink } from 'luc
 import { getInstitutionProfile } from '../content/institutionProfile';
 import { api } from '../services/api';
 
-export default function Footer({ settings = {}, onNavigate, onOpenInquiry }) {
+export default function Footer({ settings = {}, pages = [], navigation = [], onNavigate, onOpenInquiry }) {
+  const isPageLive = (slug) => {
+    if (!pages || pages.length === 0) return true;
+    const clean = (slug || '').toLowerCase();
+    const p = pages.find(item => (item.slug || '').toLowerCase() === clean);
+    if (p) return p.isActive !== false && p.showInFooter !== false;
+    return true;
+  };
   const profile = getInstitutionProfile(settings);
   const [subInstitutions, setSubInstitutions] = useState([]);
   const isGroupMode = profile.profileKey === 'group';
@@ -92,11 +99,11 @@ export default function Footer({ settings = {}, onNavigate, onOpenInquiry }) {
           <div>
             <h4 style={{ color: '#FFFFFF', fontSize: '1rem', fontWeight: 700, marginBottom: '1rem' }}>Academics</h4>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              <li><button onClick={() => onNavigate('academics')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>Academics & Curriculum</button></li>
-              <li><button onClick={() => onNavigate('departments')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.academicUnitsLabel}</button></li>
-              <li><button onClick={() => onNavigate('programs')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.programsLabel}</button></li>
-              <li><button onClick={() => onNavigate('research')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.researchLabel}</button></li>
-              <li><button onClick={() => onNavigate('campus')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.campusLabel}</button></li>
+              {isPageLive('academics') && <li><button onClick={() => onNavigate('academics')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>Academics & Curriculum</button></li>}
+              {isPageLive('departments') && <li><button onClick={() => onNavigate('departments')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.academicUnitsLabel}</button></li>}
+              {isPageLive('programs') && <li><button onClick={() => onNavigate('programs')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.programsLabel}</button></li>}
+              {isPageLive('research') && <li><button onClick={() => onNavigate('research')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.researchLabel}</button></li>}
+              {isPageLive('campus') && <li><button onClick={() => onNavigate('campus')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.campusLabel}</button></li>}
             </ul>
           </div>
 
@@ -104,11 +111,11 @@ export default function Footer({ settings = {}, onNavigate, onOpenInquiry }) {
           <div>
             <h4 style={{ color: '#FFFFFF', fontSize: '1rem', fontWeight: 700, marginBottom: '1rem' }}>Student Zone</h4>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              <li><button onClick={() => onNavigate('admissions')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.admissionsLabel}</button></li>
-              <li><button onClick={() => onNavigate('placements')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.placementsLabel}</button></li>
-              <li><button onClick={() => onNavigate('life')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.studentLifeLabel}</button></li>
-              <li><button onClick={() => onNavigate('gallery')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>Gallery</button></li>
-              <li><button onClick={() => onNavigate('news')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.noticeLabel}</button></li>
+              {isPageLive('admissions') && <li><button onClick={() => onNavigate('admissions')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.admissionsLabel}</button></li>}
+              {isPageLive('placements') && <li><button onClick={() => onNavigate('placements')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.placementsLabel}</button></li>}
+              {isPageLive('life') && <li><button onClick={() => onNavigate('life')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.studentLifeLabel}</button></li>}
+              {isPageLive('gallery') && <li><button onClick={() => onNavigate('gallery')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>Gallery</button></li>}
+              {isPageLive('news') && <li><button onClick={() => onNavigate('news')} style={linkStyle} onMouseEnter={e => e.currentTarget.style.color = '#FCD34D'} onMouseLeave={e => e.currentTarget.style.color = '#94A3B8'}>{profile.noticeLabel}</button></li>}
             </ul>
           </div>
 

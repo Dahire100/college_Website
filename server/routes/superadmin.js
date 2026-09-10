@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { rateLimit } = require('express-rate-limit');
 const { db, getTenantDb, tenantStorage, mongoose, localStore } = require('../db');
-const { requireSuperAdmin, SUPERADMIN_JWT_SECRET } = require('../middleware/superAdminAuth');
+const { requireSuperAdmin, getSuperAdminSecret } = require('../middleware/superAdminAuth');
 const { invalidateTenantCache } = require('../middleware/tenant');
 
 // Brute-force protection for SuperAdmin login: max 5 attempts per 15 mins per IP
@@ -31,7 +31,7 @@ router.post('/login', superAdminLoginLimiter, async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid SuperAdmin credentials' });
     }
 
-    const isMatch = bcrypt.compareSync(password, superAdmin.passwordHash);
+    const isMatch = await bcrypt.compare(password, superAdmin.passwordHash);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid SuperAdmin credentials' });
     }
@@ -45,7 +45,7 @@ router.post('/login', superAdminLoginLimiter, async (req, res) => {
         email: superAdmin.email,
         role: 'superadmin'
       },
-      SUPERADMIN_JWT_SECRET,
+      getSuperAdminSecret(),
       { expiresIn: '1h' }
     );
 
@@ -131,7 +131,7 @@ router.put('/profile', async (req, res) => {
         });
       }
 
-      const isMatch = bcrypt.compareSync(currentPassword, superAdmin.passwordHash);
+      const isMatch = await bcrypt.compare(currentPassword, superAdmin.passwordHash);
       if (!isMatch) {
         return res.status(400).json({
           success: false,
@@ -146,7 +146,7 @@ router.put('/profile', async (req, res) => {
         });
       }
 
-      updates.passwordHash = bcrypt.hashSync(newPassword, 10);
+      updates.passwordHash = await bcrypt.hash(newPassword, 10);
     }
 
     if (fullName !== undefined) updates.fullName = fullName.trim();
@@ -220,7 +220,7 @@ router.post('/tenants', async (req, res) => {
     // Automatically provision initial admin with username matching the domain/subdomain
     const adminUsername = tenant.subdomain || tenant.domain;
     const adminPassword = req.body.adminPassword || 'Admin@123';
-    const passwordHash = bcrypt.hashSync(adminPassword, 10);
+    const passwordHash = await bcrypt.hash(adminPassword, 10);
 
     try {
       await tenantStorage.run({ tenantId, tenant, tenantDb }, async () => {
@@ -477,8 +477,8 @@ router.post('/tenants/:id/reset-admin', async (req, res) => {
 
     const tenantId = String(tenant._id || tenant.id);
     const { username, newPassword } = req.body;
-    if (!newPassword || newPassword.length < 6) {
-      return res.status(400).json({ success: false, message: 'A new password with minimum 6 characters is required' });
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'A new password with minimum 8 characters is required' });
     }
 
     const defaultAdminUsername = tenant.subdomain || tenant.domain || 'admin';
@@ -489,7 +489,7 @@ router.post('/tenants/:id/reset-admin', async (req, res) => {
     if (targetUsername) query.username = targetUsername;
     let admin = await db.Admin.findOne(query);
 
-    const passwordHash = bcrypt.hashSync(newPassword, 10);
+    const passwordHash = await bcrypt.hash(newPassword, 10);
     if (!admin) {
       admin = await db.Admin.create({
         tenantId,

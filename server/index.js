@@ -36,7 +36,12 @@ app.use(helmet({
 app.use(compression());
 
 // Security & Parsing Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ['http://localhost:3000', 'http://localhost:5173'],
+  credentials: true
+}));
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
@@ -141,8 +146,10 @@ async function startServer() {
     console.log(`🚀 Modern College Portal & Multi-Tenant SaaS Server Running`);
     console.log(`🌐 Public Website:      http://localhost:${PORT}/`);
     console.log(`🔐 Unified Admin CMS:   http://localhost:${PORT}/admin`);
-    console.log(`🔑 Tenant Admin:        ${process.env.ADMIN_USERNAME || 'admin'} / ${process.env.ADMIN_PASSWORD || 'Admin@123'}`);
-    console.log(`👑 SuperAdmin:          ${process.env.SUPERADMIN_USERNAME || 'superadmin'} / ${process.env.SUPERADMIN_PASSWORD || 'SuperAdmin@123'}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`🔑 Tenant Admin:        ${process.env.ADMIN_USERNAME || 'admin'} / ********`);
+      console.log(`👑 SuperAdmin:          ${process.env.SUPERADMIN_USERNAME || 'superadmin'} / ********`);
+    }
     console.log(`=======================================================`);
   });
 }

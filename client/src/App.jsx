@@ -157,6 +157,15 @@ export default function App() {
   const isAdminRoute = currentRoute === 'admin' || currentRoute.startsWith('admin/');
   const isDedicatedPortal = isAdminRoute || isSuperAdminRoute;
 
+  const isPageLive = (route) => {
+    if (route === 'home' || isDedicatedPortal) return true;
+    if (!config?.pages || config.pages.length === 0) return true;
+    const clean = (route || '').replace(/^\/+|\/+$/g, '').toLowerCase();
+    const p = config.pages.find(page => (page.slug || '').toLowerCase() === clean);
+    if (p && p.isActive === false) return false;
+    return true;
+  };
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {toast && <div className={`toast-msg ${toast.type}`}><span>{toast.message}</span></div>}
@@ -166,21 +175,35 @@ export default function App() {
       )}
 
       <main style={{ flex: 1 }}>
-        {currentRoute === 'home' && <Home onNavigate={navigate} onOpenInquiry={openInquiry} settings={settings} sections={config?.sections || []} />}
-        {currentRoute === 'about' && <About settings={settings} onNavigate={navigate} />}
-        {currentRoute === 'academics' && <Academics settings={settings} onNavigate={navigate} onOpenInquiry={openInquiry} />}
-        {currentRoute === 'departments' && <Departments settings={settings} onNavigate={navigate} />}
-        {currentRoute === 'programs' && <Programs settings={settings} onNavigate={navigate} onOpenInquiry={openInquiry} />}
-        {currentRoute === 'admissions' && <Admissions settings={settings} onOpenInquiry={openInquiry} />}
-        {currentRoute === 'placements' && <Placements settings={settings} onNavigate={navigate} />}
-        {currentRoute === 'campus' && <Campus settings={settings} onNavigate={navigate} />}
-        {currentRoute === 'research' && <Research settings={settings} onNavigate={navigate} onOpenInquiry={openInquiry} />}
-        {currentRoute === 'life' && <StudentLife settings={settings} onNavigate={navigate} />}
-        {currentRoute === 'gallery' && <Gallery settings={settings} />}
-        {currentRoute === 'news' && <NewsNotices settings={settings} onNavigate={navigate} />}
-        {currentRoute === 'contact' && <Contact settings={settings} onToast={showToast} />}
+        {!isDedicatedPortal && !isPageLive(currentRoute) && (
+          <div className="container" style={{ padding: '6rem 1rem', textAlign: 'center' }}>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--color-primary, #0F172A)', marginBottom: '1rem' }}>
+              Page Unavailable
+            </h2>
+            <p style={{ color: '#64748B', maxWidth: '500px', margin: '0 auto 2rem', lineHeight: 1.6 }}>
+              This page is currently unpublished or has been hidden by the institution administration.
+            </p>
+            <button className="btn btn-primary" onClick={() => navigate('home')}>
+              Return to Homepage
+            </button>
+          </div>
+        )}
 
-        {!isDedicatedPortal && !['home', 'about', 'academics', 'departments', 'programs', 'admissions', 'campus', 'placements', 'research', 'life', 'gallery', 'news', 'contact'].includes(currentRoute) && (
+        {isPageLive(currentRoute) && currentRoute === 'home' && <Home onNavigate={navigate} onOpenInquiry={openInquiry} settings={settings} sections={config?.sections || []} />}
+        {isPageLive(currentRoute) && currentRoute === 'about' && <About settings={settings} onNavigate={navigate} />}
+        {isPageLive(currentRoute) && currentRoute === 'academics' && <Academics settings={settings} onNavigate={navigate} onOpenInquiry={openInquiry} />}
+        {isPageLive(currentRoute) && currentRoute === 'departments' && <Departments settings={settings} onNavigate={navigate} />}
+        {isPageLive(currentRoute) && currentRoute === 'programs' && <Programs settings={settings} onNavigate={navigate} onOpenInquiry={openInquiry} />}
+        {isPageLive(currentRoute) && currentRoute === 'admissions' && <Admissions settings={settings} onOpenInquiry={openInquiry} />}
+        {isPageLive(currentRoute) && currentRoute === 'placements' && <Placements settings={settings} onNavigate={navigate} />}
+        {isPageLive(currentRoute) && currentRoute === 'campus' && <Campus settings={settings} onNavigate={navigate} />}
+        {isPageLive(currentRoute) && currentRoute === 'research' && <Research settings={settings} onNavigate={navigate} onOpenInquiry={openInquiry} />}
+        {isPageLive(currentRoute) && currentRoute === 'life' && <StudentLife settings={settings} onNavigate={navigate} />}
+        {isPageLive(currentRoute) && currentRoute === 'gallery' && <Gallery settings={settings} />}
+        {isPageLive(currentRoute) && currentRoute === 'news' && <NewsNotices settings={settings} onNavigate={navigate} />}
+        {isPageLive(currentRoute) && currentRoute === 'contact' && <Contact settings={settings} onToast={showToast} />}
+
+        {isPageLive(currentRoute) && !isDedicatedPortal && !['home', 'about', 'academics', 'departments', 'programs', 'admissions', 'campus', 'placements', 'research', 'life', 'gallery', 'news', 'contact'].includes(currentRoute) && (
           <CustomPage slug={currentRoute.includes('/') ? currentRoute.split('/').pop() : currentRoute} onOpenInquiry={openInquiry} onNavigate={navigate} />
         )}
 
@@ -193,7 +216,7 @@ export default function App() {
         )}
       </main>
 
-      {!isDedicatedPortal && <Footer settings={settings} onNavigate={navigate} onOpenInquiry={openInquiry} />}
+      {!isDedicatedPortal && <Footer settings={settings} pages={config?.pages} navigation={config?.navigation} onNavigate={navigate} onOpenInquiry={openInquiry} />}
 
       {!isDedicatedPortal && (
         <button

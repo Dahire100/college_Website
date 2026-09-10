@@ -20,7 +20,7 @@ router.get('/config', async (req, res) => {
     const sections = await db.HomepageSection.find({ tenantId, isVisible: true });
     sections.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
-    const pages = await db.Page.find({ tenantId, isActive: true });
+    const pages = await db.Page.find({ tenantId });
     pages.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
     return res.json({

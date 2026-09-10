@@ -1081,10 +1081,17 @@ router.put('/navigation/:id', async (req, res) => {
 
 router.patch('/navigation/:id/toggle', async (req, res) => {
   try {
-    const item = await db.Navigation.findById(req.params.id);
+    const item = await db.Navigation.findById(req.params.id, req.tenantId);
     if (!item) return res.status(404).json({ success: false, message: 'Navigation item not found' });
     const newStatus = !item.isActive;
-    const updated = await db.Navigation.findByIdAndUpdate(req.params.id, { isActive: newStatus }, { new: true });
+    const updated = await db.Navigation.findByIdAndUpdate(req.params.id, { isActive: newStatus }, { new: true }, req.tenantId);
+    
+    // Sync to Page model if matching page exists
+    const cleanSlug = (item.path || '').replace(/^#\/?/, '').replace(/^\/+|\/+$/g, '').trim().toLowerCase();
+    if (cleanSlug && cleanSlug !== 'home') {
+      await db.Page.updateOne({ tenantId: req.tenantId, slug: cleanSlug }, { isActive: newStatus, showInHeader: newStatus });
+    }
+
     await logAction(req, 'TOGGLE_NAVIGATION', 'navigation', req.params.id, `Active: ${newStatus}`);
     return res.json({ success: true, message: `Menu link is now ${newStatus ? 'Shown in Header' : 'Hidden from Header'}`, data: updated });
   } catch (err) {
@@ -1183,33 +1190,47 @@ router.post('/pages', async (req, res) => {
 
 const updatePageHandler = async (req, res) => {
   try {
-    const updated = await db.Page.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updated = await db.Page.findByIdAndUpdate(req.params.id, req.body, { new: true }, req.tenantId);
     if (updated) {
       let parentNavId = '0';
       if (updated.parentSlug) {
-        const parentNav = await db.Navigation.findOne({ path: `#${updated.parentSlug}` });
+        const parentVariants = [
+          updated.parentSlug,
+          `/${updated.parentSlug}`,
+          `#${updated.parentSlug}`,
+          `#/${updated.parentSlug}`
+        ];
+        const parentNav = await db.Navigation.findOne({ tenantId: req.tenantId, path: { $in: parentVariants } });
         if (parentNav) parentNavId = String(parentNav._id || parentNav.id);
         else parentNavId = updated.parentSlug;
       }
 
-      const navFilter = { path: { $in: [`#${updated.slug}`, `/${updated.slug}`] } };
+      const slugVariants = [
+        updated.slug,
+        `/${updated.slug}`,
+        `#${updated.slug}`,
+        `#/${updated.slug}`
+      ];
+      const navFilter = { tenantId: req.tenantId, path: { $in: slugVariants } };
       const navItem = await db.Navigation.findOne(navFilter);
+      const isNavActive = updated.isActive !== false && updated.showInHeader !== false;
       if (navItem) {
-        await db.Navigation.updateOne(
+        await db.Navigation.updateMany(
           navFilter,
           { 
             title: updated.navLabel || updated.title, 
-            isActive: updated.isActive,
+            isActive: isNavActive,
             parentId: parentNavId
           }
         );
       } else {
         await db.Navigation.create({
+          tenantId: req.tenantId,
           title: updated.navLabel || updated.title,
-          path: `#${updated.slug}`,
+          path: `/${updated.slug}`,
           parentId: parentNavId,
           sortOrder: 99,
-          isActive: updated.isActive !== false
+          isActive: isNavActive
         });
       }
     }
@@ -1225,11 +1246,22 @@ router.patch('/pages/:id', updatePageHandler);
 
 router.patch('/pages/:id/toggle', async (req, res) => {
   try {
-    const page = await db.Page.findById(req.params.id);
+    const page = await db.Page.findById(req.params.id, req.tenantId);
     if (!page) return res.status(404).json({ success: false, message: 'Page not found' });
     const newStatus = !page.isActive;
-    const updated = await db.Page.findByIdAndUpdate(req.params.id, { isActive: newStatus }, { new: true });
-    await db.Navigation.updateOne({ path: `#${page.slug}` }, { isActive: newStatus });
+    const updated = await db.Page.findByIdAndUpdate(req.params.id, { isActive: newStatus }, { new: true }, req.tenantId);
+    
+    // Sync all matching navigation entries (matches slug, /slug, #slug, #/slug)
+    const slugVariants = [
+      page.slug,
+      `/${page.slug}`,
+      `#${page.slug}`,
+      `#/${page.slug}`
+    ];
+    await db.Navigation.updateMany(
+      { tenantId: req.tenantId, path: { $in: slugVariants } },
+      { isActive: newStatus }
+    );
     await logAction(req, 'TOGGLE_PAGE', 'pages', req.params.id, `Status: ${newStatus}`);
     return res.json({ success: true, message: `Page is now ${newStatus ? 'Published' : 'Draft'}`, data: updated });
   } catch (err) {

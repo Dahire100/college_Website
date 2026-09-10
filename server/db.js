@@ -838,6 +838,39 @@ function createCollectionAdapter(modelName) {
       return { modifiedCount: 0 };
     },
 
+    async updateMany(filter = {}, update, options = {}) {
+      assertTenantFilter(filter, 'updateMany');
+      if (isConnectedToMongo) {
+        return await Model.updateMany(filter, update, options).exec();
+      }
+      const items = localStore[modelName] || [];
+      let modifiedCount = 0;
+      const rawUpdate = update.$set || update;
+      const updateData = { ...rawUpdate };
+      if (isTenantScoped) {
+        delete updateData.tenantId;
+      }
+      items.forEach(item => {
+        let match = true;
+        for (const [k, v] of Object.entries(filter)) {
+          if (v && typeof v === 'object' && Array.isArray(v.$in)) {
+            if (!v.$in.includes(item[k])) { match = false; break; }
+          } else if (String(item[k]) !== String(v) && item[k] !== v) {
+            match = false;
+            break;
+          }
+        }
+        if (match) {
+          Object.assign(item, updateData, { updatedAt: new Date().toISOString() });
+          modifiedCount++;
+        }
+      });
+      if (modifiedCount > 0) {
+        saveLocalStore(localStore);
+      }
+      return { modifiedCount };
+    },
+
     async findOneAndUpdate(filter, update, options = { new: true }) {
       assertTenantFilter(filter, 'findOneAndUpdate');
       if (isConnectedToMongo) {
