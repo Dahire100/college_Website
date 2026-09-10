@@ -45,6 +45,18 @@
       "destination": "/server/index.js"
     },
     {
+      "source": "/superadmin/(.*)",
+      "destination": "/server/index.js"
+    },
+    {
+      "source": "/superadmin",
+      "destination": "/server/index.js"
+    },
+    {
+      "source": "/auth/(.*)",
+      "destination": "/server/index.js"
+    },
+    {
       "source": "/uploads/(.*)",
       "destination": "/server/index.js"
     },

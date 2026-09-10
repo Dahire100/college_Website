@@ -71,6 +71,15 @@ const resolveTenant = async (req, res, next) => {
       }
     }
 
+    // Graceful fallback for Vercel / Render / single-tenant hosting deployments
+    if (!tenant) {
+      const allTenants = await db.Tenant.find({});
+      tenant = allTenants.find(t => t.domain === 'localhost' || t.status === 'active') || allTenants[0];
+      if (tenant) {
+        tenantCache.set(host, tenant);
+      }
+    }
+
     if (!tenant || tenant.status !== 'active') {
       return res.status(404).json({
         success: false,

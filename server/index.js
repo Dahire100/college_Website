@@ -37,13 +37,58 @@ app.use(compression());
 
 // Security & Parsing Middleware
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',')
-    : ['http://localhost:3000', 'http://localhost:5173'],
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean);
+    if (
+      allowed.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      origin.endsWith('.onrender.com') ||
+      origin.includes('localhost') ||
+      origin.includes('127.0.0.1')
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+
+// Ensure database connection in Serverless environments (e.g. Vercel)
+let isInitialized = false;
+let initPromise = null;
+
+async function ensureConnected() {
+  if (isInitialized) return;
+  if (!initPromise) {
+    initPromise = (async () => {
+      await connectDB();
+      try {
+        const tenantCount = await db.Tenant.countDocuments();
+        if (tenantCount === 0) {
+          await seed();
+        }
+      } catch (e) {
+        console.error('[Serverless Init Warning]', e.message);
+      }
+      isInitialized = true;
+    })();
+  }
+  return initPromise;
+}
+
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/superadmin') || req.path.startsWith('/auth') || req.path.startsWith('/uploads')) {
+    try {
+      await ensureConnected();
+    } catch (err) {
+      console.error('[DB Initialization Error]', err);
+    }
+  }
+  next();
+});
 
 // Ensure public uploads directory exists
 const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');

@@ -4,7 +4,7 @@
   "description": "Production-ready Modern College Portal and MongoDB Atlas Admin CMS",
   "main": "server/index.js",
   "scripts": {
-    "start": "nodemon node server/index.js",
+    "start": "node server/index.js",
     "build": "npm --prefix client install && npm --prefix client run build",
     "dev": "nodemon node server/index.js",
     "seed": "node server/seed.js"
