@@ -17,6 +17,15 @@ const PORT = process.env.PORT || 3000;
 // Trust exactly one reverse proxy hop (Render / Vercel edge) - prevents IP and Host spoofing
 app.set('trust proxy', 1);
 
+// Clean up accidental leading absolute URLs in request path (e.g., /https://domain.com/public/... -> /public/...)
+app.use((req, res, next) => {
+  const match = req.url.match(/^\/https?:\/\/[^\/]+(\/.*)?$/i) || req.url.match(/^\/https?:[^\/]+(\/.*)?$/i);
+  if (match) {
+    req.url = match[1] || '/';
+  }
+  next();
+});
+
 // Security Middleware (Helmet HTTP Headers with permissive CSP for React SPA & CDNs)
 app.use(helmet({
   contentSecurityPolicy: {
@@ -80,7 +89,7 @@ async function ensureConnected() {
 }
 
 app.use(async (req, res, next) => {
-  if (req.path.startsWith('/api') || req.path.startsWith('/superadmin') || req.path.startsWith('/auth') || req.path.startsWith('/uploads')) {
+  if (req.path.startsWith('/api') || req.path.startsWith('/superadmin') || req.path.startsWith('/auth') || req.path.startsWith('/uploads') || req.path.startsWith('/public')) {
     try {
       await ensureConnected();
     } catch (err) {
@@ -109,12 +118,14 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Apply API Rate Limiting to /api routes
+// Apply API Rate Limiting to /api and /public routes
 app.use('/api', apiLimiter);
+app.use('/public', apiLimiter);
 
 // 3. TENANT RESOLUTION MIDDLEWARE
-// Applied to all /api routes (except health) and /uploads
+// Applied to all /api routes (except health), /public, /auth, and /uploads
 app.use('/api', resolveTenant);
+app.use('/public', resolveTenant);
 app.use('/auth', resolveTenant);
 app.use('/uploads', resolveTenant);
 
@@ -122,6 +133,7 @@ app.use('/uploads', resolveTenant);
 const tenantConfigRoutes = require('./routes/tenantConfig');
 app.use('/api/tenant-config', tenantConfigRoutes);
 app.use('/api/v1/public/tenant-config', tenantConfigRoutes);
+app.use('/public/tenant-config', tenantConfigRoutes);
 
 // 5. REST API ROUTES (TENANT-SCOPED)
 const authRoutes = require('./routes/auth');
@@ -131,6 +143,8 @@ const adminRoutes = require('./routes/admin');
 app.use('/api/v1/auth', authRoutes);
 app.use('/auth', authRoutes);
 app.use('/api/v1/public', publicRoutes);
+app.use('/api/public', publicRoutes);
+app.use('/public', publicRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
 // 6. MEDIA UPLOAD SERVING (Tenant Partitioned & Access Controlled)

@@ -27,10 +27,9 @@ const authLimiter = rateLimit({
 });
 
 // Inquiry / Contact Form Rate Limiter (Prevents automated form submission spam)
-// Allows up to 5 inquiry submissions per 10 minutes per IP
 const inquiryLimiter = rateLimit({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 10,
+  max: 120,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

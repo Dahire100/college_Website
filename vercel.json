@@ -45,6 +45,22 @@
       "destination": "/server/index.js"
     },
     {
+      "source": "/public/(.*)",
+      "destination": "/server/index.js"
+    },
+    {
+      "source": "/public",
+      "destination": "/server/index.js"
+    },
+    {
+      "source": "/https:/(.*)",
+      "destination": "/server/index.js"
+    },
+    {
+      "source": "/http:/(.*)",
+      "destination": "/server/index.js"
+    },
+    {
       "source": "/superadmin/(.*)",
       "destination": "/server/index.js"
     },

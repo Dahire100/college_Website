@@ -51,7 +51,7 @@ router.get('/banners', async (req, res) => {
 });
 
 // GET /api/v1/public/notices
-router.get('/notices', async (req, res) => {
+router.get(['/notices', '/notices/'], async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const { category, search, pinned } = req.query;
@@ -77,7 +77,7 @@ router.get('/notices', async (req, res) => {
       return new Date(b.publishedDate || 0) - new Date(a.publishedDate || 0);
     });
 
-    return res.json({ success: true, data: notices });
+    return res.json({ success: true, data: notices, notices });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to load notices' });
   }
@@ -108,19 +108,19 @@ router.get('/news', async (req, res) => {
 });
 
 // GET /api/v1/public/departments
-router.get('/departments', async (req, res) => {
+router.get(['/departments', '/departments/'], async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const departments = await db.Department.find({ tenantId, isActive: true });
     departments.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    return res.json({ success: true, data: departments });
+    return res.json({ success: true, data: departments, departments });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to load departments' });
   }
 });
 
 // GET /api/v1/public/departments/:code
-router.get('/departments/:code', async (req, res) => {
+router.get(['/departments/:code', '/departments/:code/'], async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const code = req.params.code.toUpperCase();
@@ -146,8 +146,8 @@ router.get('/departments/:code', async (req, res) => {
   }
 });
 
-// GET /api/v1/public/courses
-router.get('/courses', async (req, res) => {
+// GET /api/v1/public/courses and /api/v1/public/course-catalog
+const handleCourses = async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const { degree, department } = req.query;
@@ -161,14 +161,15 @@ router.get('/courses', async (req, res) => {
       courses = courses.filter(c => c.departmentCode && c.departmentCode.toLowerCase() === department.toLowerCase());
     }
 
-    return res.json({ success: true, data: courses });
+    return res.json({ success: true, data: courses, courses });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to load courses' });
   }
-});
+};
+router.get(['/courses', '/courses/', '/course-catalog', '/course-catalog/'], handleCourses);
 
 // GET /api/v1/public/faculty
-router.get('/faculty', async (req, res) => {
+router.get(['/faculty', '/faculty/'], async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const { department, search } = req.query;
@@ -184,7 +185,7 @@ router.get('/faculty', async (req, res) => {
     }
 
     faculty.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    return res.json({ success: true, data: faculty });
+    return res.json({ success: true, data: faculty, faculty });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to load faculty directory' });
   }
@@ -225,24 +226,24 @@ router.get('/placements', async (req, res) => {
 });
 
 // GET /api/v1/public/recruiters
-router.get('/recruiters', async (req, res) => {
+router.get(['/recruiters', '/recruiters/'], async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const recruiters = await db.Recruiter.find({ tenantId });
     recruiters.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    return res.json({ success: true, data: recruiters });
+    return res.json({ success: true, data: recruiters, recruiters });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to load recruiters' });
   }
 });
 
 // GET /api/v1/public/facilities
-router.get('/facilities', async (req, res) => {
+router.get(['/facilities', '/facilities/'], async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const facilities = await db.Facility.find({ tenantId, isActive: true });
     facilities.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    return res.json({ success: true, data: facilities });
+    return res.json({ success: true, data: facilities, facilities });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to load campus facilities' });
   }
@@ -295,33 +296,35 @@ router.get('/gallery', async (req, res) => {
   }
 });
 
-// POST /api/v1/public/inquiries (Submit Contact / Admission Inquiry with Rate Limiting)
-router.post('/inquiries', inquiryLimiter, async (req, res) => {
+// POST /api/v1/public/inquiries (Submit Contact / Admission Inquiry Lead)
+const handleInquirySubmission = async (req, res) => {
   try {
     const tenantId = req.tenantId;
-    const name = req.body.fullName || req.body.name;
-    const { email, phone, courseInterested, departmentCode, message, source, subject } = req.body;
-    const fullName = name;
+    const body = req.body || {};
+    const name = body.fullName || body.name || body.studentName || 'Prospective Student';
+    const email = body.email ? String(body.email).trim().toLowerCase() : '';
+    const phone = body.phone || body.phoneNumber || body.contact || 'N/A';
+    const message = body.message || body.query || body.notes || body.subject || 'Public inquiry lead';
+    const { courseInterested, departmentCode, source, subject } = body;
+    const fullName = String(name).trim();
 
-    if (!fullName || !email || !phone || !message ||
-        typeof fullName !== 'string' || typeof email !== 'string' ||
-        typeof phone !== 'string' || typeof message !== 'string') {
+    if (!fullName || (!email && (!phone || phone === 'N/A'))) {
       return res.status(400).json({
         success: false,
-        message: 'Name, email, phone number, and inquiry message must be valid strings.'
+        message: 'Name and either an email or phone number are required.'
       });
     }
 
     const newInquiry = await db.Inquiry.create({
       tenantId,
       fullName: fullName.trim(),
-      email: email.trim().toLowerCase(),
-      phone: phone.trim(),
-      source: String(source || 'inquiry').trim().toLowerCase(),
-      subject: String(subject || courseInterested || departmentCode || '').trim(),
+      email: email || 'inquiry@portal.local',
+      phone: String(phone).trim(),
+      source: String(source || 'public_inquiry').trim().toLowerCase(),
+      subject: String(subject || courseInterested || departmentCode || 'Admission Lead').trim(),
       courseInterested: courseInterested || '',
       departmentCode: departmentCode || '',
-      message: message.trim(),
+      message: String(message).trim(),
       status: 'new',
       notes: '',
       adminReply: '',
@@ -333,7 +336,8 @@ router.post('/inquiries', inquiryLimiter, async (req, res) => {
     return res.status(201).json({
       success: true,
       message: 'Thank you for your inquiry! Our Admissions Counseling Cell will connect with you shortly.',
-      inquiryId: newInquiry._id || newInquiry.id
+      inquiryId: newInquiry._id || newInquiry.id,
+      data: newInquiry
     });
   } catch (err) {
     console.error('Inquiry submission error:', err);
@@ -342,28 +346,34 @@ router.post('/inquiries', inquiryLimiter, async (req, res) => {
       message: 'Failed to record inquiry. Please try again or call our admissions helpline.'
     });
   }
-});
+};
+
+router.post(
+  ['/inquiries', '/inquiries/', '/inquiry', '/inquiry/', '/leads', '/leads/', '/lead', '/lead/'],
+  inquiryLimiter,
+  handleInquirySubmission
+);
 
 // GET /api/v1/public/pages
-router.get('/pages', async (req, res) => {
+router.get(['/pages', '/pages/'], async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const pages = await db.Page.find({ tenantId, isActive: true });
     pages.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    return res.json({ success: true, data: pages });
+    return res.json({ success: true, data: pages, pages });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to load pages' });
   }
 });
 
-// GET /api/v1/public/pages/:slug
-router.get('/pages/:slug', async (req, res) => {
+// GET /api/v1/public/pages/:slug and /public/page/:slug
+const handlePageBySlug = async (req, res) => {
   try {
     const tenantId = req.tenantId;
-    const slug = req.params.slug.toLowerCase();
+    const slug = (req.params.slug || '').toLowerCase().trim();
     const page = await db.Page.findOne({ tenantId, slug, isActive: true });
     if (!page) {
-      return res.status(404).json({ success: false, message: 'Page not found' });
+      return res.status(404).json({ success: false, message: `Page with slug '${slug}' not found` });
     }
     const subsections = await db.Subsection.find({ tenantId, pageSlug: slug, isVisible: true });
     subsections.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
@@ -392,10 +402,12 @@ router.get('/pages/:slug', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to load page content' });
   }
-});
+};
+
+router.get(['/pages/:slug', '/pages/:slug/', '/page/:slug', '/page/:slug/'], handlePageBySlug);
 
 // GET /api/v1/public/subsections
-router.get('/subsections', async (req, res) => {
+router.get(['/subsections', '/subsections/'], async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const { pageSlug } = req.query;
@@ -403,22 +415,33 @@ router.get('/subsections', async (req, res) => {
     if (pageSlug) filter.pageSlug = pageSlug;
     const subsections = await db.Subsection.find(filter);
     subsections.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    return res.json({ success: true, data: subsections });
+    return res.json({ success: true, data: subsections, subsections });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to load subsections' });
   }
 });
 
 // GET /api/v1/public/sub-institutions
-router.get('/sub-institutions', async (req, res) => {
+router.get(['/sub-institutions', '/sub-institutions/'], async (req, res) => {
   try {
     const tenantId = req.tenantId;
     const items = await db.SubInstitution.find({ tenantId, isActive: true });
     items.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-    return res.json({ success: true, data: items });
+    return res.json({ success: true, data: items, items });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to load sub-institutions' });
   }
+});
+
+// Fallback lookup by slug for /public/:slug
+router.get('/:slug', handlePageBySlug);
+
+// Catch-all 404 for unmatched public API routes to guarantee JSON response instead of SPA HTML shell
+router.use((req, res) => {
+  return res.status(404).json({
+    success: false,
+    message: `Public endpoint not found: ${req.method} ${req.originalUrl || req.path}`
+  });
 });
 
 module.exports = router;
